@@ -1,0 +1,11 @@
+{
+	"DataBase": {
+		"User": "fits_r",
+		"Password": "test",
+		"MaxOpenConns": 30, 
+		"MaxIdleConns": 20
+	},
+	"Server": {
+		"Port": "8080"
+	}
+}
