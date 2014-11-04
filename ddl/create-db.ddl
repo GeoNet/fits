@@ -1,0 +1,2 @@
+CREATE DATABASE fits WITH OWNER geonetadmin TEMPLATE template0 ENCODING 'UTF8' ;
+ALTER DATABASE fits SET timezone TO UTC;
