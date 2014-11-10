@@ -5,6 +5,7 @@ Field Time Series data.
 ## Development 
 
 Requires Go 1.2.1 or newer (for db.SetMaxOpenConns(n)).
+Requires Go 1.3 or newer (for http.Client.Timeout).
 
 ### Dependencies and Compilation
 
@@ -50,5 +51,5 @@ More details about port forwarding work arounds here: https://github.com/boot2do
 You can then init the DB and load a small amount of test data with:
 
 ```
-./scripts/initdb.sh
+cd scripts; ./initdb.sh
 ```
