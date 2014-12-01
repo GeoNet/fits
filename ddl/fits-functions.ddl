@@ -1,4 +1,4 @@
-CREATE FUNCTION fits.add_site(siteID_n TEXT, networkID_n TEXT, name_n TEXT, longitude_n NUMERIC, latitude_n NUMERIC, height_n NUMERIC, ground_relationship_n NUMERIC) RETURNS VOID AS
+CREATE FUNCTION fits.add_site(networkID_n TEXT, siteID_n TEXT, name_n TEXT, longitude_n NUMERIC, latitude_n NUMERIC, height_n NUMERIC, ground_relationship_n NUMERIC) RETURNS VOID AS
 $$
 DECLARE
 tries INTEGER = 0;
@@ -30,7 +30,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION fits.add_observation(siteID_n TEXT, networkID_n TEXT, typeID_n TEXT, methodID_n TEXT, sampleID_n TEXT, systemID_n TEXT, time_n TIMESTAMP(6) WITH TIME ZONE, value_n NUMERIC, error_n NUMERIC ) RETURNS VOID AS
+CREATE FUNCTION fits.add_observation(networkID_n TEXT, siteID_n TEXT, typeID_n TEXT, methodID_n TEXT, sampleID_n TEXT, systemID_n TEXT, time_n TIMESTAMP(6) WITH TIME ZONE, value_n NUMERIC, error_n NUMERIC ) RETURNS VOID AS
 $$
 DECLARE
 tries INTEGER = 0;
