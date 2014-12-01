@@ -6,6 +6,8 @@ CREATE TABLE fits.network (
 	description TEXT NOT NULL
 );
 
+-- ground_relationship is from the site to the ground in m.  e.g., a site above ground
+-- has a negative ground relationship.
 CREATE TABLE fits.site (
 	sitePK SERIAL PRIMARY KEY,
 	siteID TEXT NOT NULL,
@@ -13,6 +15,7 @@ CREATE TABLE fits.site (
 	networkPK BIGINT REFERENCES fits.network(networkPK) NOT NULL,
 	location GEOGRAPHY(POINT, 4326) NOT NULL,
 	height NUMERIC NOT NULL,
+	ground_relationship NUMERIC NOT NULL,
 	UNIQUE(siteID, networkPK)
 );
 

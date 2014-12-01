@@ -2,13 +2,13 @@ insert into fits.network (networkID, description) VALUES ('TN1', 'Test network 1
 insert into fits.network (networkID, description) VALUES ('TN2', 'Test network 2');
 
 -- Add the same site info twice and make sure it doesn't change.
-select fits.add_site('TEST1', 'TN1', $$Test site 1$$, 172.79019, -42.21496, -999.9);
-select fits.add_site('TEST1', 'TN1', $$Test site 1$$, 172.79019, -42.21496, -999.9);
+select fits.add_site('TEST1', 'TN1', $$Test site 1$$, 172.79019, -42.21496, -999.9, 0.0);
+select fits.add_site('TEST1', 'TN1', $$Test site 1$$, 172.79019, -42.21496, -999.9, 0.0);
 -- Add a site and then update the height.  Make sure it does change.
-select fits.add_site('TEST2', 'TN1', $$Test site 2$$, 172.79019, -42.21496, -999.9);
-select fits.add_site('TEST2', 'TN1', $$Test site 2$$, 172.79019, -42.21496, -111.1);
+select fits.add_site('TEST2', 'TN1', $$Test site 2$$, 172.79019, -42.21496, -999.9, 0.0);
+select fits.add_site('TEST2', 'TN1', $$Test site 2$$, 172.79019, -42.21496, -111.1, 0.0);
 -- Add another site TEST2 but in the TN2 network
-select fits.add_site('TEST2', 'TN2', $$Test site 2$$, 172.79019, -42.21496, -999.99);
+select fits.add_site('TEST2', 'TN2', $$Test site 2$$, 172.79019, -42.21496, -999.99, 0.0);
 
 insert into fits.unit(symbol, name) VALUES ('m', 'metre');
 insert into fits.unit(symbol, name) VALUES ('K', 'Kelvin');

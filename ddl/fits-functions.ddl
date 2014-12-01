@@ -1,11 +1,11 @@
-CREATE FUNCTION fits.add_site(siteID_n TEXT, networkID_n TEXT, name_n TEXT, longitude_n NUMERIC, latitude_n NUMERIC, height_n NUMERIC) RETURNS VOID AS
+CREATE FUNCTION fits.add_site(siteID_n TEXT, networkID_n TEXT, name_n TEXT, longitude_n NUMERIC, latitude_n NUMERIC, height_n NUMERIC, ground_relationship_n NUMERIC) RETURNS VOID AS
 $$
 DECLARE
 tries INTEGER = 0;
 BEGIN
 LOOP
 UPDATE fits.site 
-SET height = height_n, location =  ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))) 
+SET height = height_n, ground_relationship = ground_relationship_n, location =  ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))) 
 WHERE siteID = siteID_n 
 AND networkpk = (select networkpk from fits.network where networkID = networkID_n);
 IF found THEN
@@ -13,8 +13,8 @@ RETURN;
 END IF;
 
 BEGIN
-INSERT INTO fits.site(siteID, name, networkpk, location, height) 
-SELECT siteID_n, name_n, networkpk, ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))), height_n 
+INSERT INTO fits.site(siteID, name, networkpk, location, height, ground_relationship) 
+SELECT siteID_n, name_n, networkpk, ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))), height_n, ground_relationship_n
 from fits.network 
 where networkID = networkID_n;
 RETURN;
