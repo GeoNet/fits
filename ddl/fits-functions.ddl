@@ -5,7 +5,7 @@ tries INTEGER = 0;
 BEGIN
 LOOP
 UPDATE fits.site 
-SET height = height_n, ground_relationship = ground_relationship_n, location =  ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))) 
+SET height = height_n, ground_relationship = ground_relationship_n, name = name_n, location =  ST_GeogFromWKB(st_AsEWKB(st_setsrid(st_makepoint(longitude_n, latitude_n), 4326))) 
 WHERE siteID = siteID_n 
 AND networkpk = (select networkpk from fits.network where networkID = networkID_n);
 IF found THEN
