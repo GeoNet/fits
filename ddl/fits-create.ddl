@@ -74,3 +74,14 @@ CREATE TABLE fits.observation (
 CREATE INDEX ON fits.observation (sitePK);
 CREATE INDEX ON fits.observation (typePK);
 CREATE INDEX ON fits.observation (time);
+
+CREATE TABLE fits.visual_observation (
+	sitePK BIGINT REFERENCES fits.site(sitePK) NOT NULL,
+	time TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+	image_url TEXT NOT NULL,
+	notes TEXT NOT NULL,
+	PRIMARY KEY (sitePK, time)
+);
+
+CREATE INDEX ON fits.visual_observation (sitePK);
+CREATE INDEX ON fits.visual_observation (time);
