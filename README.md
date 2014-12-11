@@ -4,8 +4,7 @@ Field Time Series data.
 
 ## Development 
 
-Requires Go 1.2.1 or newer (for db.SetMaxOpenConns(n)).
-Requires Go 1.3 or newer (for http.Client.Timeout).
+Requires Go 1.3 or newer.
 
 ### Dependencies and Compilation
 
