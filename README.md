@@ -2,6 +2,8 @@
 
 Field Time Series data.
 
+[![Build Status](https://snap-ci.com/GeoNet/fits/branch/master/build_image)](https://snap-ci.com/GeoNet/fits/branch/master)
+
 ## Development 
 
 Requires Go 1.3 or newer.
