@@ -1,7 +1,8 @@
-// Package httpgzip provides a http handler wrapper to transparently
+// Provides an http handler wrapper to transparently
 // add gzip compression. It will sniff the content type based on the
-// uncompressed data if necessary.
-package httpgzip
+// uncompressed data if necessary.  This is from https://github.com/daaku/go.httpgzip
+//
+package web
 
 import (
 	"compress/gzip"
@@ -27,7 +28,7 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 }
 
 // Wrap a http.Handler to support transparent gzip encoding.
-func NewHandler(h http.Handler) http.Handler {
+func GzipHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Accept-Encoding")
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {

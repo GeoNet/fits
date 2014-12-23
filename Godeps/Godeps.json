@@ -1,10 +1,18 @@
 {
-	"ImportPath": "github.com/GeoNet/geonet-rest",
-	"GoVersion": "go1.3.1",
+	"ImportPath": "github.com/GeoNet/fits",
+	"GoVersion": "go1.3.3",
 	"Deps": [
 		{
-			"ImportPath": "github.com/daaku/go.httpgzip",
-			"Rev": "3f59977b58c61991f5ed3670bbd141937d808b06"
+			"ImportPath": "github.com/GeoNet/app/cfg",
+			"Rev": "e6b1ad05a2ebb80b3bd91601adc08215706c2f1d"
+		},
+		{
+			"ImportPath": "github.com/GeoNet/app/metrics",
+			"Rev": "e6b1ad05a2ebb80b3bd91601adc08215706c2f1d"
+		},
+		{
+			"ImportPath": "github.com/GeoNet/app/web",
+			"Rev": "e6b1ad05a2ebb80b3bd91601adc08215706c2f1d"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",

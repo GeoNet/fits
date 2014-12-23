@@ -1,8 +1,7 @@
-package httpgzip_test
+package web
 
 import (
 	"bytes"
-	"github.com/daaku/go.httpgzip"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +17,7 @@ func stubHandler(response string) http.Handler {
 
 func TestWithoutGzip(t *testing.T) {
 	const resp = "hello"
-	handler := httpgzip.NewHandler(stubHandler(resp))
+	handler := GzipHandler(stubHandler(resp))
 	writer := httptest.NewRecorder()
 	handler.ServeHTTP(writer, &http.Request{Method: "GET"})
 	if writer.Body == nil {
@@ -35,7 +34,7 @@ func TestWithoutGzip(t *testing.T) {
 
 func TestWithoutGzipWithMultipleVaryHeaders(t *testing.T) {
 	const resp = "hello"
-	handler := httpgzip.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Foo")
 		w.Write([]byte(resp))
 	}))
@@ -54,7 +53,7 @@ func TestWithoutGzipWithMultipleVaryHeaders(t *testing.T) {
 }
 
 func TestWithGzip(t *testing.T) {
-	handler := httpgzip.NewHandler(stubHandler("hello"))
+	handler := GzipHandler(stubHandler("hello"))
 	writer := httptest.NewRecorder()
 	handler.ServeHTTP(writer, &http.Request{
 		Method: "GET",
@@ -75,7 +74,7 @@ func TestWithGzip(t *testing.T) {
 }
 
 func TestWithGzipAndMultipleVaryHeader(t *testing.T) {
-	handler := httpgzip.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Foo")
 		w.Write([]byte("hello"))
 	}))
@@ -100,7 +99,7 @@ func TestWithGzipAndMultipleVaryHeader(t *testing.T) {
 
 func TestWithGzipReal(t *testing.T) {
 	const raw = "hello"
-	handler := httpgzip.NewHandler(stubHandler(raw))
+	handler := GzipHandler(stubHandler(raw))
 	server := httptest.NewServer(handler)
 	defer server.Close()
 	resp, err := http.Get(server.URL)
@@ -120,7 +119,7 @@ func TestWithGzipReal(t *testing.T) {
 
 func TestWithGzipRealAndMultipleVaryHeaders(t *testing.T) {
 	const raw = "hello"
-	handler := httpgzip.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Foo")
 		w.Write([]byte(raw))
 	}))
@@ -142,7 +141,7 @@ func TestWithGzipRealAndMultipleVaryHeaders(t *testing.T) {
 }
 
 func TestWithGzipDoubleWrite(t *testing.T) {
-	handler := httpgzip.NewHandler(
+	handler := GzipHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write(bytes.Repeat([]byte("foo"), 1000))
 			w.Write(bytes.Repeat([]byte("bar"), 1000))
