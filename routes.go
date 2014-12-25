@@ -24,6 +24,7 @@ func init() {
 	docs.AddEndpoint("observation", &observationDoc)
 	docs.AddEndpoint("method", &methodDoc)
 	docs.AddEndpoint("type", &typeDoc)
+	docs.AddEndpoint("plot", &plotDoc)
 }
 
 var exHost = "http://localhost:" + config.Server.Port
@@ -77,8 +78,21 @@ func router(w http.ResponseWriter, r *http.Request) {
 		default:
 			web.BadRequest(w, r, "service not found.")
 		}
-	// routes with no specific Accept header.  Send to the highest
-	// version of the query.
+		// routes with no specific Accept header.  Send to the highest
+		// version of the query.
+	case r.URL.Path == "/plot" &&
+		len(r.URL.Query()) == 3 &&
+		r.URL.Query().Get("typeID") != "" &&
+		r.URL.Query().Get("networkID") != "" &&
+		r.URL.Query().Get("siteID") != "":
+		q := &plotQuery{}
+		q.plot = plot{
+			typeID:    r.URL.Query().Get("typeID"),
+			networkID: r.URL.Query().Get("networkID"),
+			siteID:    r.URL.Query().Get("siteID"),
+		}
+
+		api.Serve(q, w, r)
 	case r.URL.Path == "/site" &&
 		len(r.URL.Query()) == 1 &&
 		r.URL.Query().Get("typeID") != "":

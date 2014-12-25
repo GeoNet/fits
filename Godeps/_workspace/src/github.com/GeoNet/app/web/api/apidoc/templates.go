@@ -242,6 +242,7 @@ const (
 	<a id="{{anchor .Title}}" class="anchor"></a>
 	<h3 class="page-header">{{.Title}}</h3>
 	<p class="lead">{{.Description}}</p>
+	{{.Discussion}}
 	<div class="panel panel-primary">
 	<div class="panel-heading">Method: GET</div>
 	<div class="panel-body">
