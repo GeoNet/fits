@@ -95,7 +95,8 @@ func Load(name string) Config {
 
 // Postgres returns a connection string that is suitable for use with sql for connecting to a Postgres DB.
 func (c *Config) Postgres() string {
-	return "connect_timeout=" + strconv.Itoa(c.DataBase.ConnectionTimeOut) +
+	return "host=" + c.DataBase.Host +
+		" connect_timeout=" + strconv.Itoa(c.DataBase.ConnectionTimeOut) +
 		" user=" + c.DataBase.User +
 		" password=" + c.DataBase.Password +
 		" dbname=" + c.DataBase.Name +
