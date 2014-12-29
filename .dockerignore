@@ -1,0 +1,13 @@
+.git
+scripts
+ddl
+Godeps/_workspace/pkg
+gnss-test
+fits
+*_test*
+.gitignore
+.dockerignore
+README*
+LICENSE
+epel.repo
+fits.json

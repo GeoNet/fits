@@ -1,29 +1,23 @@
-# docker-postgis
-#
-# VERSION 0.1
+FROM golang
 
-FROM centos:centos6
-MAINTAINER Geoff Clithere g.clitheroe@gns.cri.nz
+RUN apt-get update && apt-get -y install rsyslog rsyslog-gnutls supervisor
+RUN go get github.com/tools/godep
 
-RUN yum clean expire-cache
+RUN groupadd -r fits && useradd -r -g fits fits
+RUN chown -R fits:fits /var/log
 
-ADD epel.repo /etc/yum.repos.d/epel-bootstrap.repo
-RUN yum --disablerepo='*' --enablerepo=epel -y install epel-release
-RUN rm /etc/yum.repos.d/epel-bootstrap.repo
+COPY etc/rsyslog.conf /etc/rsyslog.conf
+COPY etc/logentries.all.crt /etc/logentries.all.crt
+COPY etc/supervisord.conf /etc/supervisor/supervisord.conf
 
-RUN yum -y install http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
+COPY . /go/src/github.com/GeoNet/fits
 
-RUN yum clean expire-cache
-RUN yum install -y postgresql93-server postgresql93-contrib
-RUN yum install -y postgis2_93 
+WORKDIR /go/src/github.com/GeoNet/fits
 
-RUN su - postgres -c '/usr/pgsql-9.3/bin/initdb -D /var/lib/pgsql/data'
+RUN godep go install 
 
-RUN echo "host    all             all             0.0.0.0/0            trust" >> /var/lib/pgsql/data/pg_hba.conf
-RUN echo "local   all         all                               trust" >> /var/lib/pgsql/data/pg_hba.conf
+COPY prod/logentries.conf /etc/rsyslog.d/logentries.conf
+COPY prod/fits.json /etc/sysconfig/fits.json
 
-RUN cat /var/lib/pgsql/data/pg_hba.conf
-
-RUN echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
-EXPOSE 5432
-CMD su - postgres -c '/usr/pgsql-9.3/bin/postgres -D /var/lib/pgsql/data' 
+EXPOSE 8080
+CMD ["/usr/bin/supervisord"]
