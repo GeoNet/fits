@@ -21,7 +21,8 @@ import (
 //    		"SSLMode": "disable"
 //    	},
 //    	"Server": {
-//    		"Port": "8080"
+//    		"Port": "8080",
+//                        "CNAME": "my.cool.service"
 //    	},
 //    	"Production": false
 //    }
@@ -43,7 +44,8 @@ type DataBase struct {
 }
 
 type Server struct {
-	Port string // the port for the web server to listen for connections on e.g., `8080`
+	Port  string // the port for the web server to listen for connections on e.g., `8080`
+	CNAME string // the public CNAME for the service.
 }
 
 // LoadConfig locates and loads the JSON file containing Config information for an appliation.  See the
