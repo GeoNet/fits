@@ -26,31 +26,22 @@ Run all tests (including any in sub dirs):
 
 ### Database
 
-#### Docker
-
-There is a Docker file for making a container with Postgres 9.3 and Postgis 2.x installed.
-
-If you are using boot2docker on a Mac you do not need sudo on these commands.
-
-```
-sudo docker build -t 'geonet/postgis' .
-```
-
-```
-sudo docker run -p 5432:5432 -i -d -t geonet/postgis
-
-```
-
-On a Mac you will also need to forward the DB port:
-
-```
-boot2docker ssh -L 5432:localhost:5432 -N
-```
-
-More details about port forwarding work arounds here: https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md
+You will need Postgres 9.x+ and Postgis 2+.  
 
 You can then init the DB and load a small amount of test data with:
 
 ```
 cd scripts; ./initdb.sh
 ```
+## Deployment 
+
+
+The application deploys in Docker.  Create a zip file containing everything from this 
+directory.  Two files need to be added to the zip file in a directory called prod with production credentials in them:
+
+* `prod/logentries.conf` - this is a copy of `etc/logentries.conf with a valid LE_TOKEN.
+* `prod/fits.json` - this is a copy of fits.json with valid DB credentials.
+
+Deploy the zip to AWS Beanstalk into a Docker based environment. 
+
+* Application logs are sent to Logentries using TLS.
