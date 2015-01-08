@@ -12,7 +12,7 @@ var docs = apidoc.Docs{
 	Production: config.Production,
 	APIHost:    `TODO`,
 	Title:      `FITS API`,
-	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Information Time Series
+	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
 			database.  If you are looking for other data then please check the 
 			<a href="http://info.geonet.org.nz/x/DYAO">full range of data</a> available from GeoNet. </p>`,
 	RepoURL:          `https://github.com/GeoNet/fits`,
