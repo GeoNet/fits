@@ -10,7 +10,7 @@ import (
 
 var docs = apidoc.Docs{
 	Production: config.Production,
-	APIHost:    `TODO`,
+	APIHost:    config.Server.CNAME,
 	Title:      `FITS API`,
 	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
 			database.  If you are looking for other data then please check the 
