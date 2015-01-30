@@ -30,101 +30,35 @@ func init() {
 var exHost = "http://localhost:" + config.WebServer.Port
 
 func router(w http.ResponseWriter, r *http.Request) {
+
+	// requests that don't have a specific version header are routed to the latest version.
+	var latest bool
+	accept := r.Header.Get("Accept")
+	switch accept {
+	case web.V1GeoJSON, web.V1JSON, web.V1CSV:
+	default:
+		latest = true
+	}
+
 	switch {
-	case r.Header.Get("Accept") == web.V1GeoJSON:
-		switch {
-		case r.URL.Path == "/site" &&
-			len(r.URL.Query()) == 1 &&
-			r.URL.Query().Get("typeID") != "":
-			q := &siteQuery{
-				typeID: r.URL.Query().Get("typeID"),
-			}
-			api.Serve(q, w, r)
-		case r.RequestURI == "/type":
-			q := &typeQuery{}
-			api.Serve(q, w, r)
-		default:
-			web.BadRequest(w, r, "service not found.")
-		}
-
-	case r.Header.Get("Accept") == web.V1JSON:
-		switch {
-		case r.RequestURI == "/type":
-			q := &typeQuery{}
-			api.Serve(q, w, r)
-		case r.URL.Path == "/method" &&
-			len(r.URL.Query()) == 1 &&
-			r.URL.Query().Get("typeID") != "":
-			q := &methodQuery{
-				typeID: r.URL.Query().Get("typeID"),
-			}
-			api.Serve(q, w, r)
-		default:
-			web.BadRequest(w, r, "service not found.")
-		}
-	case r.Header.Get("Accept") == web.V1CSV:
-		switch {
-		case r.URL.Path == "/observation" &&
-			len(r.URL.Query()) == 3 &&
-			r.URL.Query().Get("typeID") != "" &&
-			r.URL.Query().Get("networkID") != "" &&
-			r.URL.Query().Get("siteID") != "":
-			q := &observationQuery{
-				typeID:    r.URL.Query().Get("typeID"),
-				networkID: r.URL.Query().Get("networkID"),
-				siteID:    r.URL.Query().Get("siteID"),
-			}
-			api.Serve(q, w, r)
-		default:
-			web.BadRequest(w, r, "service not found.")
-		}
-		// routes with no specific Accept header.  Send to the highest
-		// version of the query.
-	case r.URL.Path == "/plot" &&
-		len(r.URL.Query()) == 3 &&
-		r.URL.Query().Get("typeID") != "" &&
-		r.URL.Query().Get("networkID") != "" &&
-		r.URL.Query().Get("siteID") != "":
+	case r.URL.Path == "/plot":
 		q := &plotQuery{}
-		q.plot = plot{
-			typeID:    r.URL.Query().Get("typeID"),
-			networkID: r.URL.Query().Get("networkID"),
-			siteID:    r.URL.Query().Get("siteID"),
-		}
-
 		api.Serve(q, w, r)
-	case r.URL.Path == "/site" &&
-		len(r.URL.Query()) == 1 &&
-		r.URL.Query().Get("typeID") != "":
-		q := &siteQuery{
-			typeID: r.URL.Query().Get("typeID"),
-		}
+	case r.URL.Path == "/observation" && (accept == web.V1CSV || latest):
+		q := &observationQuery{}
 		api.Serve(q, w, r)
-	case r.RequestURI == "/type":
+	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
+		q := &siteQuery{}
+		api.Serve(q, w, r)
+	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
 		q := &typeQuery{}
 		api.Serve(q, w, r)
-	case r.URL.Path == "/observation" &&
-		len(r.URL.Query()) == 3 &&
-		r.URL.Query().Get("typeID") != "" &&
-		r.URL.Query().Get("networkID") != "" &&
-		r.URL.Query().Get("siteID") != "":
-		q := &observationQuery{
-			typeID:    r.URL.Query().Get("typeID"),
-			networkID: r.URL.Query().Get("networkID"),
-			siteID:    r.URL.Query().Get("siteID"),
-		}
+	case r.URL.Path == "/method" && (accept == web.V1JSON || latest):
+		q := &methodQuery{}
 		api.Serve(q, w, r)
-	case r.URL.Path == "/method" &&
-		len(r.URL.Query()) == 1 &&
-		r.URL.Query().Get("typeID") != "":
-		q := &methodQuery{
-			typeID: r.URL.Query().Get("typeID"),
-		}
-		api.Serve(q, w, r)
-	// api-doc queries.
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:
-		web.NotAcceptable(w, r, "Can't find a route for this request. Please refer to /api-docs")
+		web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
 	}
 }

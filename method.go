@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/GeoNet/app/web"
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
@@ -42,20 +41,19 @@ func (q *methodQuery) Doc() *apidoc.Query {
 }
 
 func (q *methodQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	var d string
-
-	// Check that the typeID exists in the DB.
-	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", q.typeID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+q.typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+	if len(r.URL.Query()) != 1 {
+		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
 
-	return true
+	q.typeID = r.URL.Query().Get("typeID")
+
+	if q.typeID == "" {
+		web.BadRequest(w, r, "No typeID query param.")
+		return false
+	}
+
+	return validType(w, r, q.typeID)
 }
 
 func (q *methodQuery) Handle(w http.ResponseWriter, r *http.Request) {

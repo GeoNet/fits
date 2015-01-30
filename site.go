@@ -43,21 +43,19 @@ func (q *siteQuery) Doc() *apidoc.Query {
 }
 
 func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	var d string
-
-	// Check that the typeID exists in the DB.  This is needed as the geoJSON query will return empty
-	// JSON for an invalid typeID.
-	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", q.typeID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+q.typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+	if len(r.URL.Query()) != 1 {
+		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
 
-	return true
+	q.typeID = r.URL.Query().Get("typeID")
+
+	if q.typeID == "" {
+		web.BadRequest(w, r, "No typeID query param.")
+		return false
+	}
+
+	return validType(w, r, q.typeID)
 }
 
 func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
@@ -89,4 +87,21 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 	b := []byte(d)
 	web.Ok(w, r, &b)
+}
+
+// validSite checks that the siteID and networkID combination exists in the DB.
+func validSite(w http.ResponseWriter, r *http.Request, networkID, siteID string) bool {
+	var d string
+
+	err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", networkID, siteID).Scan(&d)
+	if err == sql.ErrNoRows {
+		web.NotFound(w, r, "invalid siteID and networkID combination: "+siteID+" "+networkID)
+		return false
+	}
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return false
+	}
+
+	return true
 }

@@ -50,31 +50,31 @@ func (q *observationQuery) Doc() *apidoc.Query {
 }
 
 func (q *observationQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	var d string
-
-	// Check that the typeID exists in the DB.
-	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", q.typeID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+q.typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+	if len(r.URL.Query()) != 3 {
+		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
 
-	// Check that the siteID and networkID combination exists in the DB.
-	err = db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", q.networkID, q.siteID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid siteID and networkID combination: "+q.siteID+" "+q.networkID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+	q.typeID = r.URL.Query().Get("typeID")
+	q.networkID = r.URL.Query().Get("networkID")
+	q.siteID = r.URL.Query().Get("siteID")
+
+	if q.typeID == "" {
+		web.BadRequest(w, r, "No typeID query param.")
 		return false
 	}
 
-	return true
+	if q.networkID == "" {
+		web.BadRequest(w, r, "No networkID query param.")
+		return false
+	}
+
+	if q.siteID == "" {
+		web.BadRequest(w, r, "No siteID query param.")
+		return false
+	}
+
+	return (validSite(w, r, q.networkID, q.siteID) && validType(w, r, q.typeID))
 }
 
 func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {

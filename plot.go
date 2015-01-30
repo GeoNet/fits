@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"github.com/GeoNet/app/web"
 	"github.com/GeoNet/app/web/api/apidoc"
 	"github.com/ajstarks/svgo"
@@ -63,31 +62,33 @@ func (q *plotQuery) Doc() *apidoc.Query {
 }
 
 func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	var d string
-
-	// Check that the typeID exists in the DB.
-	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", q.plot.typeID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+q.plot.typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+	if len(r.URL.Query()) != 3 {
+		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
 
-	// Check that the siteID and networkID combination exists in the DB.
-	err = db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", q.plot.networkID, q.plot.siteID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid siteID and networkID combination: "+q.plot.siteID+" "+q.plot.networkID)
-		return false
+	q.plot = plot{
+		typeID:    r.URL.Query().Get("typeID"),
+		networkID: r.URL.Query().Get("networkID"),
+		siteID:    r.URL.Query().Get("siteID"),
 	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
+
+	if q.plot.typeID == "" {
+		web.BadRequest(w, r, "No typeID query param.")
 		return false
 	}
 
-	return true
+	if q.plot.networkID == "" {
+		web.BadRequest(w, r, "No networkID query param.")
+		return false
+	}
+
+	if q.plot.siteID == "" {
+		web.BadRequest(w, r, "No siteID query param.")
+		return false
+	}
+
+	return (validSite(w, r, q.plot.networkID, q.plot.siteID) && validType(w, r, q.plot.typeID))
 }
 
 func (q *plotQuery) Handle(w http.ResponseWriter, r *http.Request) {
