@@ -9,8 +9,8 @@ import (
 )
 
 var docs = apidoc.Docs{
-	Production: config.Production,
-	APIHost:    config.Server.CNAME,
+	Production: config.WebServer.Production,
+	APIHost:    config.WebServer.CNAME,
 	Title:      `FITS API`,
 	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
 			database.  If you are looking for other data then please check the 
@@ -27,7 +27,7 @@ func init() {
 	docs.AddEndpoint("plot", &plotDoc)
 }
 
-var exHost = "http://localhost:" + config.Server.Port
+var exHost = "http://localhost:" + config.WebServer.Port
 
 func router(w http.ResponseWriter, r *http.Request) {
 	switch {

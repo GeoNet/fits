@@ -1,0 +1,29 @@
+{
+	"DataBase": {
+		"Host": "a",
+		"Name": "b",
+		"User": "c",
+		"Password": "d",
+		"MaxOpenConns": 1, 
+		"MaxIdleConns": 2, 
+		"ConnectionTimeOut": 3,
+		"SSLMode": "e"
+	},
+	"SQS": {
+		"AWSRegion": "f",
+		"QueueName": "g",
+		"AccessKey": "h",
+		"SecretKey": "i",
+		"NumberOfListeners": 4
+	},
+	"Env": {
+		"Prefix": "GO_CFG_TEST"
+	} ,
+	"Librato": {
+		"User": "XXX",
+		"Key": "YYY"
+	},
+	"Logentries": {
+		"Token": "ZZZ"
+	}
+}

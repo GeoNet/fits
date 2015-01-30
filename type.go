@@ -5,7 +5,6 @@ import (
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
 	"net/http"
-	"time"
 )
 
 var typeDoc = apidoc.Endpoint{Title: "Type",
@@ -48,7 +47,6 @@ func (q *typeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var d string
 
-	start := time.Now()
 	err := db.QueryRow(
 		`select row_to_json(fc) from (select array_to_json(array_agg(t)) as type 
 		    from (select typeid as "typeID", type.name, symbol as unit, description 
@@ -57,7 +55,6 @@ func (q *typeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		web.ServiceUnavailable(w, r, err)
 		return
 	}
-	web.DBTime.Track(start, "DB typeV1JSON")
 
 	b := []byte(d)
 	web.Ok(w, r, &b)

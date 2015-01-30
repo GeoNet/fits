@@ -6,7 +6,6 @@ import (
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
 	"net/http"
-	"time"
 )
 
 var siteDoc = apidoc.Endpoint{Title: "Site",
@@ -66,7 +65,6 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var d string
 
-	start := time.Now()
 	err := db.QueryRow(
 		`SELECT row_to_json(fc)
                          FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
@@ -88,7 +86,6 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		web.ServiceUnavailable(w, r, err)
 		return
 	}
-	web.DBTime.Track(start, "DB siteV1JSON")
 
 	b := []byte(d)
 	web.Ok(w, r, &b)

@@ -3,14 +3,16 @@ package main
 import (
 	"database/sql"
 	"github.com/GeoNet/app/cfg"
+	_ "github.com/GeoNet/app/log/logentries"
 	"github.com/GeoNet/app/web"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 )
 
+//go:generate configer fits.json
 var (
-	config = cfg.Load("fits")
+	config = cfg.Load()
 	db     *sql.DB
 )
 
@@ -23,7 +25,7 @@ var header = web.Header{
 // main connects to the database, sets up request routing, and starts the http server.
 func main() {
 	var err error
-	db, err = sql.Open("postgres", config.Postgres())
+	db, err = sql.Open("postgres", config.DataBase.Postgres())
 	if err != nil {
 		log.Fatalf("ERROR: problem with DB config: %s", err)
 	}
@@ -38,7 +40,7 @@ func main() {
 	}
 
 	http.Handle("/", handler())
-	log.Fatal(http.ListenAndServe(":"+config.Server.Port, nil))
+	log.Fatal(http.ListenAndServe(":"+config.WebServer.Port, nil))
 }
 
 // handler creates a mux and wraps it with default handlers.  Seperate function to enable testing.

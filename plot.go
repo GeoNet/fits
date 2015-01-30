@@ -135,7 +135,6 @@ func (p *plot) loadData() (err error) {
 	var value, er float64
 
 	// load observations from the DB
-	start := time.Now()
 	rows, err := db.Query(
 		`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
 		WHERE 
@@ -166,7 +165,6 @@ func (p *plot) loadData() (err error) {
 		p.data = append(p.data, &v)
 	}
 	rows.Close()
-	web.DBTime.Track(start, "DB plot obs query")
 
 	// Additional plot labels
 	err = db.QueryRow("select site.name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",

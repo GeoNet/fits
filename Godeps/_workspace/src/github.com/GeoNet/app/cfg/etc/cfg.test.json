@@ -1,0 +1,27 @@
+{
+	"DataBase": {
+		"Host": "aa",
+		"Name": "bb",
+		"User": "cc",
+		"Password": "dd",
+		"MaxOpenConns": 10, 
+		"MaxIdleConns": 20, 
+		"ConnectionTimeOut": 30,
+		"SSLMode": "ee"
+	},
+	"SQS": {
+		"AWSRegion": "ff",
+		"QueueName": "gg",
+		"AccessKey": "hh",
+		"SecretKey": "ii",
+		"NumberOfListeners": 40
+	},
+	"WebServer": {
+		"Port": "8080",
+		"CNAME": "jj",
+		"Production": true
+	},
+	"Env": {
+		"Prefix": "GO_CFG_TEST"
+	} 
+}

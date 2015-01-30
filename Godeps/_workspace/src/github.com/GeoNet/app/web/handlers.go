@@ -1,28 +1,16 @@
 // Provides http handlers for writing responses to clients.  Metrics and logging about requests and reponses.
 //
-// The following metrics are exposed at http://.../debug/test
-//    * requests - counter of total requests.
-//    * responses - map of counters of response codes.
-//    * requestsPerSecond - requests per second over 30s window.
-//    * averageResponseTime - average response time (s) over 30s window.
-//    * averageDBResponseTime - average DB response time (s) over 30s window.  See below.
-//
-// The averageDBResponseTime metric must be updated by your application.  If your app
-// doesn't use a DB then you can safely ignore this (the counter will stay at 0).
-// Update the metric via the exposed DBTime e.g.,
-//
-//    start := time.Now()
-//    ... do database access stuff...
-//    web.DBTime.Track(start, "DB typeV1JSON")
-//
+// If the environment variables LIBRATO_USER and LIBRATO_KEY are found then metrics are also send to Librato.
 package web
 
 import (
 	"bytes"
-	"expvar"
 	"github.com/GeoNet/app/metrics"
+	"github.com/GeoNet/app/metrics/librato"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -46,33 +34,45 @@ const (
 	HtmlContent = "text/html; charset=utf-8"
 )
 
-// counters for expvar
-var (
-	req     = expvar.NewInt("requests")
-	res     = expvar.NewMap("responses")
-	resTime metrics.Timer
-	DBTime  metrics.Timer
-	reqRate metrics.Rate
-)
-
 type Header struct {
 	Cache, Surrogate string // Set as the default in the response header - can override in handler funcs.
 	Vary             string // This is added to the response header (which may already Vary on gzip).
 }
 
+// metrics gathering
+type metric struct {
+	interval                  time.Duration // Rates calculated over interval.
+	period                    time.Duration // Metrics updated every period.
+	libratoUser, libratoKey   string
+	r2xx, r4xx, r5xx, reqRate metrics.Rate
+	resTime                   metrics.Timer
+}
+
+var (
+	mtr metric
+)
+
 func init() {
-	res.Init()
-	res.Add("2xx", 0)
-	res.Add("4xx", 0)
-	res.Add("5xx", 0)
+	mtr = metric{
+		interval:    time.Duration(1) * time.Second,
+		period:      time.Duration(20) * time.Second,
+		libratoUser: os.Getenv("LIBRATO_USER"),
+		libratoKey:  os.Getenv("LIBRATO_KEY"),
+	}
 
-	resTime = metrics.Timer{Period: 30 * time.Second, V: expvar.NewFloat("averageResponseTime")}
-	reqRate = metrics.Rate{Period: 30 * time.Second, Interval: 1 * time.Second, V: expvar.NewFloat("requestsPerSecond")}
-	DBTime = metrics.Timer{Period: 30 * time.Second, V: expvar.NewFloat("averageDBResponseTime")}
+	mtr.r2xx.Init(mtr.interval, mtr.period)
+	mtr.r4xx.Init(mtr.interval, mtr.period)
+	mtr.r5xx.Init(mtr.interval, mtr.period)
+	mtr.reqRate.Init(mtr.interval, mtr.period)
+	mtr.resTime.Init(mtr.period)
 
-	go resTime.Avg()
-	go reqRate.Avg()
-	go DBTime.Avg()
+	if mtr.libratoUser != "" && mtr.libratoKey != "" {
+		log.Println("Sending metrics to Librato Metrics.")
+		go mtr.libratoMetrics()
+	} else {
+		log.Println("Sending metrics to logger only.")
+		go mtr.logMetrics()
+	}
 }
 
 // OkBuf (200) - writes the content in the bytes.Buffer pointed to by b to w.
@@ -80,14 +80,14 @@ func init() {
 // if an error could occur when generating the content.
 func OkBuf(w http.ResponseWriter, r *http.Request, b *bytes.Buffer) {
 	// Haven't bothered logging 200s.
-	res.Add("2xx", 1)
+	mtr.r2xx.Inc()
 	b.WriteTo(w)
 }
 
 // Ok (200) - writes the content in the []byte pointed by b to w.
 func Ok(w http.ResponseWriter, r *http.Request, b *[]byte) {
 	// Haven't bothered logging 200s.
-	res.Add("2xx", 1)
+	mtr.r2xx.Inc()
 	w.Write(*b)
 }
 
@@ -95,7 +95,7 @@ func Ok(w http.ResponseWriter, r *http.Request, b *[]byte) {
 // else.
 func OkTrack(w http.ResponseWriter, r *http.Request) {
 	// Haven't bothered logging 200s.
-	res.Add("2xx", 1)
+	mtr.r2xx.Inc()
 }
 
 // NotFound (404) - whatever the client was looking for we haven't got it.  The message should try
@@ -103,7 +103,7 @@ func OkTrack(w http.ResponseWriter, r *http.Request) {
 // Use for things that might become available.
 func NotFound(w http.ResponseWriter, r *http.Request, message string) {
 	log.Println(r.RequestURI + " 404")
-	res.Add("4xx", 1)
+	mtr.r4xx.Inc()
 	w.Header().Set("Cache-Control", MaxAge10)
 	w.Header().Set("Surrogate-Control", MaxAge10)
 	http.Error(w, message, http.StatusNotFound)
@@ -113,7 +113,7 @@ func NotFound(w http.ResponseWriter, r *http.Request, message string) {
 // Whatever the client was looking for we haven't got it.
 func NotFoundPage(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.RequestURI + " 404")
-	res.Add("4xx", 1)
+	mtr.r4xx.Inc()
 	w.Header().Set("Cache-Control", MaxAge10)
 	w.Header().Set("Surrogate-Control", MaxAge10)
 	w.WriteHeader(http.StatusNotFound)
@@ -124,7 +124,7 @@ func NotFoundPage(w http.ResponseWriter, r *http.Request) {
 // generate. The message should suggest content types that can be created.
 func NotAcceptable(w http.ResponseWriter, r *http.Request, message string) {
 	log.Println(r.RequestURI + " 406")
-	res.Add("4xx", 1)
+	mtr.r4xx.Inc()
 	w.Header().Set("Cache-Control", MaxAge10)
 	w.Header().Set("Surrogate-Control", MaxAge86400)
 	http.Error(w, message, http.StatusNotAcceptable)
@@ -133,7 +133,7 @@ func NotAcceptable(w http.ResponseWriter, r *http.Request, message string) {
 // MethodNotAllowed - the client used a method we don't allow.
 func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.RequestURI + " 405")
-	res.Add("4xx", 1)
+	mtr.r4xx.Inc()
 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 }
 
@@ -142,7 +142,7 @@ func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 // Use for things that will never become available.
 func BadRequest(w http.ResponseWriter, r *http.Request, message string) {
 	log.Println(r.RequestURI + " 400")
-	res.Add("4xx", 1)
+	mtr.r4xx.Inc()
 	w.Header().Set("Cache-Control", MaxAge10)
 	w.Header().Set("Surrogate-Control", MaxAge86400)
 	http.Error(w, message, http.StatusBadRequest)
@@ -152,7 +152,7 @@ func BadRequest(w http.ResponseWriter, r *http.Request, message string) {
 func ServiceUnavailable(w http.ResponseWriter, r *http.Request, err error) {
 	log.Println(r.RequestURI + " 503")
 	log.Printf("ERROR %s", err)
-	res.Add("5xx", 1)
+	mtr.r5xx.Inc()
 	http.Error(w, "Sad trombone.  Something went wrong and for that we are very sorry.  Please try again in a few minutes.", http.StatusServiceUnavailable)
 }
 
@@ -160,7 +160,7 @@ func ServiceUnavailable(w http.ResponseWriter, r *http.Request, err error) {
 func ServiceUnavailablePage(w http.ResponseWriter, r *http.Request, err error) {
 	log.Println(r.RequestURI + " 503")
 	log.Printf("ERROR %s", err)
-	res.Add("5xx", 1)
+	mtr.r5xx.Inc()
 	w.WriteHeader(http.StatusServiceUnavailable)
 	w.Write(error503)
 }
@@ -172,10 +172,9 @@ func ServiceUnavailablePage(w http.ResponseWriter, r *http.Request, err error) {
 // Tracks response times.
 func (hdr *Header) Get(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req.Add(1)
-		reqRate.Inc()
+		mtr.reqRate.Inc()
 		if r.Method == "GET" {
-			defer resTime.Track(time.Now(), "GET "+r.URL.RequestURI())
+			defer mtr.resTime.Inc(time.Now())
 			log.Printf("GET %s", r.URL)
 			w.Header().Set("Cache-Control", hdr.Cache)
 			w.Header().Set("Surrogate-Control", hdr.Surrogate)
@@ -191,13 +190,82 @@ func (hdr *Header) GetGzip(m *http.ServeMux) http.Handler {
 	return hdr.Get(GzipHandler(m))
 }
 
-// Track returns h wrapped with request tracking.
-func Track(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req.Add(1)
-		reqRate.Inc()
-		defer resTime.Track(time.Now(), r.Method+" "+r.URL.RequestURI())
-		log.Printf("%s %s", r.Method, r.URL)
-		h.ServeHTTP(w, r)
-	})
+// logMetrics and libratoMetrics could be combined with the use of a little more logic.  Keep them
+// separated so it's easier to remove Librato or add other collectors.
+
+func (m *metric) logMetrics() {
+	rate := m.interval.String()
+	for {
+		select {
+		case v := <-m.r2xx.Avg:
+			log.Printf("Metric: Responses.2xx=%f per %s", v, rate)
+		case v := <-m.r4xx.Avg:
+			log.Printf("Metric: Responses.4xx=%f per %s", v, rate)
+		case v := <-m.r5xx.Avg:
+			log.Printf("Metric: Responses.5xx=%f per %s", v, rate)
+		case v := <-m.reqRate.Avg:
+			log.Printf("Metric: Requests=%f per %s", v, rate)
+		case v := <-m.resTime.Avg:
+			log.Printf("Metric: Responses.AverageTime=%fs", v)
+		}
+	}
+}
+
+func (m *metric) libratoMetrics() {
+	lbr := make(chan []librato.Gauge, 1)
+
+	librato.Init(m.libratoUser, m.libratoKey, lbr)
+
+	rate := m.interval.String()
+
+	host, err := os.Hostname()
+	if err != nil {
+		host = "unknown"
+	}
+
+	a := strings.Split(os.Args[0], "/")
+	source := a[len(a)-1]
+
+	r2xxg := &librato.Gauge{Source: source, Name: "Responses.2xx"}
+	r4xxg := &librato.Gauge{Source: source, Name: "Responses.4xx"}
+	r5xxg := &librato.Gauge{Source: source, Name: "Responses.5xx"}
+	rg := &librato.Gauge{Source: source, Name: "Requests"} // Per app resquests for adding to a total.
+
+	rsg := &librato.Gauge{Source: host, Name: source + ".Responses.AverageTime"}
+	rhg := &librato.Gauge{Source: host, Name: source + ".Requests"} // Track per host requests as well.
+
+	var g []librato.Gauge
+
+	for {
+		select {
+		case v := <-m.r2xx.Avg:
+			r2xxg.SetValue(v)
+			g = append(g, *r2xxg)
+			log.Printf("Metric: Responses.2xx=%f per %s", v, rate)
+		case v := <-m.r4xx.Avg:
+			r4xxg.SetValue(v)
+			g = append(g, *r4xxg)
+			log.Printf("Metric: Responses.4xx=%f per %s", v, rate)
+		case v := <-m.r5xx.Avg:
+			r5xxg.SetValue(v)
+			g = append(g, *r5xxg)
+			log.Printf("Metric: Responses.5xx=%f per %s", v, rate)
+		case v := <-m.reqRate.Avg:
+			rg.SetValue(v)
+			rhg.SetValue(v)
+			g = append(g, *rg)
+			g = append(g, *rhg)
+			log.Printf("Metric: Requests=%f per %s", v, rate)
+		case v := <-m.resTime.Avg:
+			rsg.SetValue(v)
+			g = append(g, *rsg)
+			log.Printf("Metric: Responses.AverageTime=%fs", v)
+		}
+		if len(g) == 6 {
+			if len(lbr) < cap(lbr) { // the lbr chan shouldn't be blocked but would rather drop metrics and keep operating.
+				lbr <- g
+			}
+			g = nil
+		}
+	}
 }

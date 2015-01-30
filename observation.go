@@ -7,7 +7,6 @@ import (
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
 	"net/http"
-	"time"
 )
 
 var eol []byte
@@ -95,7 +94,6 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var d string
 
-	start := time.Now()
 	rows, err := db.Query(
 		`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -128,7 +126,6 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		b.Write(eol)
 	}
 	rows.Close()
-	web.DBTime.Track(start, "DB observationQuery")
 
 	web.OkBuf(w, r, &b)
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
 	"net/http"
-	"time"
 )
 
 var methodDoc = apidoc.Endpoint{Title: "Method",
@@ -64,7 +63,6 @@ func (q *methodQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var d string
 
-	start := time.Now()
 	err := db.QueryRow(
 		`select row_to_json(fc) from (select array_to_json(array_agg(m)) as method  
 		             from (select methodid as "methodID", method.name, method.description, method.reference 
@@ -77,7 +75,6 @@ func (q *methodQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	web.DBTime.Track(start, "DB methodV1JSON")
 
 	b := []byte(d)
 	web.Ok(w, r, &b)
