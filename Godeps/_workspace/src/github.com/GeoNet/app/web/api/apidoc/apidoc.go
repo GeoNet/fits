@@ -36,6 +36,7 @@ type Query struct {
 	ExampleHost string // the host to run the example query against.
 	Accept      string
 	Description string                   // a short description.
+	Discussion  template.HTML            // additional discussion.  Inserted as is.
 	Params      map[string]template.HTML // query parameters
 	Props       map[string]template.HTML // response properties
 }

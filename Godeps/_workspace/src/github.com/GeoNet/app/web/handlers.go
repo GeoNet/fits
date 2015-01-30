@@ -91,6 +91,13 @@ func Ok(w http.ResponseWriter, r *http.Request, b *[]byte) {
 	w.Write(*b)
 }
 
+// OkTrack (200) - increments the response 2xx counter and nothing
+// else.
+func OkTrack(w http.ResponseWriter, r *http.Request) {
+	// Haven't bothered logging 200s.
+	res.Add("2xx", 1)
+}
+
 // NotFound (404) - whatever the client was looking for we haven't got it.  The message should try
 // to explain why we couldn't find that thing that they was looking for.
 // Use for things that might become available.
@@ -121,6 +128,13 @@ func NotAcceptable(w http.ResponseWriter, r *http.Request, message string) {
 	w.Header().Set("Cache-Control", MaxAge10)
 	w.Header().Set("Surrogate-Control", MaxAge86400)
 	http.Error(w, message, http.StatusNotAcceptable)
+}
+
+// MethodNotAllowed - the client used a method we don't allow.
+func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.RequestURI + " 405")
+	res.Add("4xx", 1)
+	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 }
 
 // BadRequest (400) the client made a badRequest request that should not be repeated without correcting it.
@@ -169,11 +183,21 @@ func (hdr *Header) Get(h http.Handler) http.Handler {
 			h.ServeHTTP(w, r)
 			return
 		}
-		res.Add("4xx", 1)
-		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+		MethodNotAllowed(w, r)
 	})
 }
 
 func (hdr *Header) GetGzip(m *http.ServeMux) http.Handler {
 	return hdr.Get(GzipHandler(m))
+}
+
+// Track returns h wrapped with request tracking.
+func Track(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req.Add(1)
+		reqRate.Inc()
+		defer resTime.Track(time.Now(), r.Method+" "+r.URL.RequestURI())
+		log.Printf("%s %s", r.Method, r.URL)
+		h.ServeHTTP(w, r)
+	})
 }
