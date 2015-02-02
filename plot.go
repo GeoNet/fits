@@ -24,11 +24,20 @@ var plotQueryD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Observations SVG",
 	Description: "Plot observations as Scalable Vector Graphic (SVG)",
-	Discussion: `<p>
+	Discussion: `<p><b><i>Caution:</i></b> these plots should be used with caution
+	and some understanding of the underlying data.  FITS data is unevenly sampled and often has a wider time range than
+	can be represented accurately in these plots.  No down sampling of any kind is attempted for plotting.  Data points
+	are joined with straight lines.  There is potential for artifacts or for signal to be obscured.  If you think you have seen 
+	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
+	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
 	<br/>Plots show data with errors.  The minimum, maximum, and latest values are labeled.  The plot can be 
 	used in an html img tag e.g., <code>&lt;img src="/plot?networkID=LI&siteID=GISB&typeID=e"/></code> or as
 	an object or inline depending on your needs.
+	</p>
+	<p>
+	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
+	<br/>The number of days displayed can be changed with the <code>days</code> query paramter.
 	</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf" style="width: 100% \9" class="img-responsive" />
@@ -47,6 +56,7 @@ var plotQueryD = &apidoc.Query{
 		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
 		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
 		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
+		"days":      `optional.  The number of days of data to display before now e.g., <code>250</code>.  Maximum value is 365000.`,
 	},
 	Props: map[string]template.HTML{
 		"": "",
@@ -62,7 +72,7 @@ func (q *plotQuery) Doc() *apidoc.Query {
 }
 
 func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if len(r.URL.Query()) != 3 {
+	if !(len(r.URL.Query()) == 3 || len(r.URL.Query()) == 4) {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
@@ -88,6 +98,21 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
+	// query param days is optional
+	if r.URL.Query().Get("days") == "" {
+		q.plot.days = 365000
+	} else {
+		var err error
+		q.plot.days, err = strconv.Atoi(r.URL.Query().Get("days"))
+		if err != nil {
+			web.BadRequest(w, r, "Invalid days query param.")
+		}
+		if q.plot.days > 365000 {
+			web.BadRequest(w, r, "Invalid days query param.")
+			return false
+		}
+	}
+
 	return (validSite(w, r, q.plot.networkID, q.plot.siteID) && validType(w, r, q.plot.typeID))
 }
 
@@ -96,8 +121,7 @@ func (q *plotQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	q.plot.imageHeight = 250
 	q.plot.imageWidth = 800
 
-	if err := q.plot.loadData(); err != nil {
-		web.ServiceUnavailable(w, r, err)
+	if !q.plot.loadData(w, r) {
 		return
 	}
 
@@ -120,6 +144,7 @@ type plot struct {
 	hasErrors                                 bool // some data has no errors e.g., 0.0
 	start, end, max, min                      *val
 	typeID, networkID, siteID                 string // query params
+	days                                      int    // query param
 	siteName, typeName, typeDescription, unit string
 }
 
@@ -131,7 +156,7 @@ func (v *val) date() string {
 	return strings.Split(v.t.Format(time.RFC3339), "T")[0]
 }
 
-func (p *plot) loadData() (err error) {
+func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	var datetime string
 	var value, er float64
 
@@ -145,21 +170,25 @@ func (p *plot) loadData() (err error) {
 	AND typepk = (
 		SELECT typepk FROM fits.type WHERE typeid = $3
 		) 
+	AND time > (now() - interval '`+strconv.Itoa(p.days)+` days')
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
 	if err != nil {
-		return
+		web.ServiceUnavailable(w, r, err)
+		return false
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&datetime, &value, &er)
 		if err != nil {
-			return
+			web.ServiceUnavailable(w, r, err)
+			return false
 		}
 		v := val{}
 
 		v.t, err = time.Parse(time.RFC3339Nano, datetime)
 		if err != nil {
-			return
+			web.ServiceUnavailable(w, r, err)
+			return false
 		}
 		v.v = value
 		v.e = er
@@ -167,29 +196,39 @@ func (p *plot) loadData() (err error) {
 	}
 	rows.Close()
 
+	if len(p.data) < 2 {
+		web.NotFound(w, r, "query returned insufficient data to plot.")
+		return false
+	}
+
 	// Additional plot labels
 	err = db.QueryRow("select site.name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
 		p.networkID, p.siteID).Scan(&p.siteName)
 	if err != nil {
-		return
+		web.ServiceUnavailable(w, r, err)
+		return false
 	}
 
 	err = db.QueryRow("select name FROM fits.type where typeID = $1",
 		p.typeID).Scan(&p.typeName)
 	if err != nil {
-		return
+		web.ServiceUnavailable(w, r, err)
+		return false
+
 	}
 
 	err = db.QueryRow("select description FROM fits.type where typeID = $1",
 		p.typeID).Scan(&p.typeDescription)
 	if err != nil {
-		return
+		web.ServiceUnavailable(w, r, err)
+		return false
 	}
 
 	err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
 		p.typeID).Scan(&p.unit)
 	if err != nil {
-		return
+		web.ServiceUnavailable(w, r, err)
+		return false
 	}
 
 	// Calculate graphics x,y for data
@@ -230,7 +269,7 @@ func (p *plot) loadData() (err error) {
 		v.ey = int(v.e * dy)
 	}
 
-	return
+	return true
 }
 
 func (p *plot) svg() *bytes.Buffer {
