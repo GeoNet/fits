@@ -11,11 +11,11 @@ import (
 var siteDoc = apidoc.Endpoint{Title: "Site",
 	Description: `Look up site information.`,
 	Queries: []*apidoc.Query{
-		new(siteQuery).Doc(),
+		new(siteTypeQuery).Doc(),
 	},
 }
 
-var siteQueryD = &apidoc.Query{
+var siteTypeQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
 	Title:       "Observation Type",
 	Description: "Find sites that have an observation type available at them.",
@@ -34,15 +34,15 @@ var siteQueryD = &apidoc.Query{
 	},
 }
 
-type siteQuery struct {
+type siteTypeQuery struct {
 	typeID string
 }
 
-func (q *siteQuery) Doc() *apidoc.Query {
-	return siteQueryD
+func (q *siteTypeQuery) Doc() *apidoc.Query {
+	return siteTypeQueryD
 }
 
-func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	if len(r.URL.Query()) != 1 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
@@ -58,7 +58,7 @@ func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	return validType(w, r, q.typeID)
 }
 
-func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
+func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
 	var d string

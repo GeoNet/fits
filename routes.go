@@ -48,7 +48,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 		q := &observationQuery{}
 		api.Serve(q, w, r)
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
-		q := &siteQuery{}
+		q := &siteTypeQuery{}
 		api.Serve(q, w, r)
 	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
 		q := &typeQuery{}
