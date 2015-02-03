@@ -22,6 +22,7 @@ func TestRoutes(t *testing.T) {
 		TestAccept: false,
 	}
 	r.Add("/site?typeID=t1")
+	r.Add("/site?siteID=TEST1&networkID=TN1")
 
 	r.Test(ts, t)
 

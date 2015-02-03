@@ -48,8 +48,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 		q := &observationQuery{}
 		api.Serve(q, w, r)
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
-		q := &siteTypeQuery{}
-		api.Serve(q, w, r)
+		if len(r.URL.Query()) == 1 {
+			q := &siteTypeQuery{}
+			api.Serve(q, w, r)
+		} else {
+			q := &siteQuery{}
+			api.Serve(q, w, r)
+		}
 	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
 		q := &typeQuery{}
 		api.Serve(q, w, r)
