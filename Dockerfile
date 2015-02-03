@@ -1,23 +1,14 @@
 FROM golang
 
-RUN apt-get update && apt-get -y install rsyslog rsyslog-gnutls supervisor
-RUN go get github.com/tools/godep
+RUN apt-get update 
 
-RUN groupadd -r fits && useradd -r -g fits fits
-RUN chown -R fits:fits /var/log
+COPY fits /fits
+COPY fits.json /fits.json
+RUN chmod 0755 /fits
 
-COPY etc/rsyslog.conf /etc/rsyslog.conf
-COPY etc/logentries.all.crt /etc/logentries.all.crt
-COPY etc/supervisord.conf /etc/supervisor/supervisord.conf
-
-COPY . /go/src/github.com/GeoNet/fits
-
-WORKDIR /go/src/github.com/GeoNet/fits
-
-RUN godep go install 
-
-COPY prod/logentries.conf /etc/rsyslog.d/logentries.conf
-COPY prod/fits.json /etc/sysconfig/fits.json
+WORKDIR /
 
 EXPOSE 8080
-CMD ["/usr/bin/supervisord"]
+
+CMD ["/fits"]
+
