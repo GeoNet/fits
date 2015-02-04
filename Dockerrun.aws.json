@@ -1,9 +1,17 @@
 {
   "AWSEBDockerrunVersion": "1",
-  "Ports": [
-    {
-      "ContainerPort": "8080"
-    }
-  ],
-  "Logging": "/var/log/"
+  "Authentication": {
+    "Bucket": "cfg-prod.geonet.org.nz",
+    "Key": "elasticbeanstalk/fits-dockercfg"
+    },
+    "Image": {
+      "Name": "quay.io/geonet/fits",
+      "Update": "true"
+      },
+      "Ports": [
+      {
+        "ContainerPort": "8080"
+      }
+      ],
+      "Logging": "/var/log/"
 }
