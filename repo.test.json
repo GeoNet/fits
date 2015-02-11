@@ -1,0 +1,27 @@
+{
+	"DataBase": {
+		"Host": "localhost",
+		"Name": "fits",
+		"User": "fits_r",
+		"Password": "test",
+		"MaxOpenConns": 30, 
+		"MaxIdleConns": 20, 
+		"ConnectionTimeOut": 5,
+		"SSLMode": "disable"
+	},
+	"WebServer": {
+		"Port": "8080",
+		"CNAME": "localhost",
+		"Production": false
+	},
+	"Env": {
+		"Prefix": "FITS"
+	} ,
+	"Librato": {
+		"User": "XXX",
+		"Key": "YYY"
+	},
+	"Logentries": {
+		"Token": "ZZZ"
+	}
+}
