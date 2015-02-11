@@ -37,7 +37,7 @@ var plotQueryD = &apidoc.Query{
 	</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
-	<br/>The number of days displayed can be changed with the <code>days</code> query paramter.
+	<br/>The number of days displayed can be changed with the <code>days</code> query parameter.
 	</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf" style="width: 100% \9" class="img-responsive" />
@@ -59,7 +59,7 @@ var plotQueryD = &apidoc.Query{
 		"days":      `optional.  The number of days of data to display before now e.g., <code>250</code>.  Maximum value is 365000.`,
 	},
 	Props: map[string]template.HTML{
-		"": "",
+		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
 	},
 }
 
@@ -251,7 +251,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	p.height = p.imageHeight - 100
-	p.width = p.imageWidth - 170
+	p.width = p.imageWidth - 180
 	p.xShift = 40
 	p.yShift = 50
 

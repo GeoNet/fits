@@ -35,7 +35,7 @@ var observationQueryD = &apidoc.Query{
 		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
 	},
 	Props: map[string]template.HTML{
-		"column 1": `The date-time of the observation in ISO8601 format, UTC time zone.`,
+		"column 1": `The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.`,
 		"column 2": `The observation value.`,
 		"column 3": `The observation error.  0 is used for an unknown error.`,
 	},

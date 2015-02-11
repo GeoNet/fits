@@ -105,10 +105,10 @@ var siteTypeQueryD = &apidoc.Query{
 	ExampleHost: exHost,
 	URI:         "/site?typeID=(typeID)",
 	Params: map[string]template.HTML{
-		"typeID": `the obseravation type.`,
+		"typeID": `the observation type.`,
 	},
 	Props: map[string]template.HTML{
-		"groundRelationship": `the ground relationship (m) for the site.  Site above ground level have a negative ground relationship.`,
+		"groundRelationship": `the ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
 		"height":             `the height of the site (m).`,
 		"name":               `the name of the site.`,
 		"neworkID":           `the identifier for the network the site is in.`,
