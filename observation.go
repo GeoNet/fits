@@ -127,5 +127,7 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
+	w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`.csv"`)
+
 	web.OkBuf(w, r, &b)
 }
