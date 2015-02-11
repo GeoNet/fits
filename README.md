@@ -33,15 +33,3 @@ You can then init the DB and load a small amount of test data with:
 ```
 cd scripts; ./initdb.sh
 ```
-## Deployment 
-
-
-The application deploys in Docker.  Create a zip file containing everything from this 
-directory.  Two files need to be added to the zip file in a directory called prod with production credentials in them:
-
-* `prod/logentries.conf` - this is a copy of `etc/logentries.conf with a valid LE_TOKEN.
-* `prod/fits.json` - this is a copy of fits.json with valid DB credentials.
-
-Deploy the zip to AWS Beanstalk into a Docker based environment. 
-
-* Application logs are sent to Logentries using TLS.
