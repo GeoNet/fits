@@ -22,7 +22,7 @@ var methodQueryD = &apidoc.Query{
 	ExampleHost: exHost,
 	URI:         "/method?typeID=(typeID)",
 	Params: map[string]template.HTML{
-		"typeID": `a valid type indentifier.`,
+		"typeID": `a valid type identifier.`,
 	},
 	Props: map[string]template.HTML{
 		"description": `a description of the method.`,

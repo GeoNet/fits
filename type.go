@@ -27,7 +27,7 @@ var typeQueryD = &apidoc.Query{
 	},
 	Props: map[string]template.HTML{
 		"description": `a description of the type.`,
-		"name":        `a short name for the type`,
+		"name":        `a short name for the type.`,
 		"typeID":      `the type identifier.`,
 		"unit":        `the unit for the type.`,
 	},
