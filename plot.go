@@ -251,7 +251,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	p.height = p.imageHeight - 100
-	p.width = p.imageWidth - 170
+	p.width = p.imageWidth - 180
 	p.xShift = 40
 	p.yShift = 50
 
