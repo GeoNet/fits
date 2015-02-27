@@ -45,23 +45,16 @@ func (q *siteQuery) Doc() *apidoc.Query {
 }
 
 func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if len(r.URL.Query()) != 2 {
+	switch {
+	case len(r.URL.Query()) != 2:
 		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	case !web.ParamsExist(w, r, "siteID", "networkID"):
 		return false
 	}
 
 	q.networkID = r.URL.Query().Get("networkID")
 	q.siteID = r.URL.Query().Get("siteID")
-
-	if q.networkID == "" {
-		web.BadRequest(w, r, "No networkID query param.")
-		return false
-	}
-
-	if q.siteID == "" {
-		web.BadRequest(w, r, "No siteID query param.")
-		return false
-	}
 
 	return validSite(w, r, q.networkID, q.siteID)
 }
@@ -125,17 +118,15 @@ func (q *siteTypeQuery) Doc() *apidoc.Query {
 }
 
 func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if len(r.URL.Query()) != 1 {
+	switch {
+	case len(r.URL.Query()) != 1:
 		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	case !web.ParamsExist(w, r, "typeID"):
 		return false
 	}
 
 	q.typeID = r.URL.Query().Get("typeID")
-
-	if q.typeID == "" {
-		web.BadRequest(w, r, "No typeID query param.")
-		return false
-	}
 
 	return validType(w, r, q.typeID)
 }

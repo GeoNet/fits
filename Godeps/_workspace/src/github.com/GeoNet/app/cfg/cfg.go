@@ -19,9 +19,12 @@ type Config struct {
 	DataBase   *DataBase
 	WebServer  *WebServer
 	SQS        *SQS
+	SNS        *SNS
+	SC3        *SC3
 	Env        *Env
 	Librato    *Librato
 	Logentries *Logentries
+	HeartBeat  *HeartBeat
 }
 
 // DataBase for database config.  Elements with an env tag can be overidden via env var.  See Load.
@@ -56,6 +59,22 @@ type SQS struct {
 	NumberOfListeners int    `doc:"number of SQS listeners." env:"${PREFIX}_SQS_NUMBER_OF_LISTENERS"`
 }
 
+type SNS struct {
+	AWSRegion string `doc:"SNS region e.g., ap-southeast-2." env:"${PREFIX}_SNS_AWS_REGION"`
+	AccessKey string `doc:"SNS queue user access key." env:"${PREFIX}_SNS_ACCESS_KEY"`
+	SecretKey string `doc:"SNS queue user secret." env:"${PREFIX}_SNS_SECRET_KEY"`
+	TopicArn  string `doc:"SNS Topic Arn." env:"${PREFIX}_SNS_TOPIC_ARN"`
+}
+
+type HeartBeat struct {
+	ServiceID string `doc:"A service id for heartbeat messages." env:"${PREFIX}_SERVICE_ID"`
+}
+
+type SC3 struct {
+	SpoolDir string `doc:"Spool directory for SeisComPML files." env:"${PREFIX}_SC3_SPOOL_DIR"`
+	Site     string `doc:"The SC3 site - primary or backup." env:${PREFIX}_SC3_SITE"`
+}
+
 type Librato struct {
 	User string `doc:"username for Librato." env:"LIBRATO_USER"` // no PREFIX for Librato - one per host is plenty.
 	Key  string `doc:"key for Librato." env:"LIBRATO_KEY"`
@@ -72,6 +91,9 @@ func (c *Config) env() {
 		env(c.Env.Prefix, c.SQS)
 		env(c.Env.Prefix, c.Librato)
 		env(c.Env.Prefix, c.Logentries)
+		env(c.Env.Prefix, c.SNS)
+		env(c.Env.Prefix, c.HeartBeat)
+		env(c.Env.Prefix, c.SC3)
 	}
 }
 
@@ -242,6 +264,9 @@ func (c *Config) EnvDoc() (d []EnvDoc, err error) {
 		d = append(d, envDoc(c.Env.Prefix, c.SQS)...)
 		d = append(d, envDoc(c.Env.Prefix, c.Librato)...)
 		d = append(d, envDoc(c.Env.Prefix, c.Logentries)...)
+		d = append(d, envDoc(c.Env.Prefix, c.SNS)...)
+		d = append(d, envDoc(c.Env.Prefix, c.HeartBeat)...)
+		d = append(d, envDoc(c.Env.Prefix, c.SC3)...)
 	} else {
 		err = fmt.Errorf("Found nil Prefix in the config.  Don't know how to read env var.")
 	}

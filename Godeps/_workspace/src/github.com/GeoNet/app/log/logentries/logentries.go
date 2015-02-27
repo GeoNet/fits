@@ -9,6 +9,8 @@
 //          _  "github.com/GeoNet/app/log/logentries"
 //   )
 //
+// If requred the Init() func can be used to pass in the Logentries token instead of an env var.
+//
 package logentries
 
 import (
@@ -96,14 +98,32 @@ var le chan string
 var std = os.Stderr
 
 func init() {
-	s = sender{}
+	initLe(os.Getenv("LOGENTRIES_TOKEN"))
+}
 
-	s.token = os.Getenv("LOGENTRIES_TOKEN")
-	if s.token == "" {
-		log.Println("empty LOGENTRIES_TOKEN, not logging to Logentries.")
+// Init can be used to Init logging to Logentries directly instead of setting an env var.
+// If the LOGENTRIES_TOKEN env var is also set then this method no-ops as logging will
+// already be configured.
+func Init(le_token string) {
+	if os.Getenv("LOGENTRIES_TOKEN") != "" {
 		return
 	}
-	s.token = s.token + " "
+
+	if le_token == "XXX" {
+		return
+	}
+
+	initLe(le_token)
+}
+
+func initLe(token string) {
+	if token == "" {
+		return
+	}
+
+	log.Println("Logging to Logentries")
+
+	s = sender{token: token + " "}
 
 	s.roots = x509.NewCertPool()
 	if ok := s.roots.AppendCertsFromPEM([]byte(rootPEM)); !ok {

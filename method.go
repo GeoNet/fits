@@ -41,17 +41,15 @@ func (q *methodQuery) Doc() *apidoc.Query {
 }
 
 func (q *methodQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if len(r.URL.Query()) != 1 {
+	switch {
+	case len(r.URL.Query()) != 1:
 		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	case !web.ParamsExist(w, r, "typeID"):
 		return false
 	}
 
 	q.typeID = r.URL.Query().Get("typeID")
-
-	if q.typeID == "" {
-		web.BadRequest(w, r, "No typeID query param.")
-		return false
-	}
 
 	return validType(w, r, q.typeID)
 }

@@ -72,8 +72,11 @@ func (q *plotQuery) Doc() *apidoc.Query {
 }
 
 func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if !(len(r.URL.Query()) == 3 || len(r.URL.Query()) == 4) {
+	switch {
+	case !(len(r.URL.Query()) == 3 || len(r.URL.Query()) == 4):
 		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	case !web.ParamsExist(w, r, "typeID", "networkID", "siteID"):
 		return false
 	}
 
@@ -81,21 +84,6 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 		typeID:    r.URL.Query().Get("typeID"),
 		networkID: r.URL.Query().Get("networkID"),
 		siteID:    r.URL.Query().Get("siteID"),
-	}
-
-	if q.plot.typeID == "" {
-		web.BadRequest(w, r, "No typeID query param.")
-		return false
-	}
-
-	if q.plot.networkID == "" {
-		web.BadRequest(w, r, "No networkID query param.")
-		return false
-	}
-
-	if q.plot.siteID == "" {
-		web.BadRequest(w, r, "No siteID query param.")
-		return false
 	}
 
 	// query param days is optional

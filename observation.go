@@ -50,29 +50,17 @@ func (q *observationQuery) Doc() *apidoc.Query {
 }
 
 func (q *observationQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	if len(r.URL.Query()) != 3 {
+	switch {
+	case len(r.URL.Query()) != 3:
 		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	case !web.ParamsExist(w, r, "siteID", "networkID", "typeID"):
 		return false
 	}
 
 	q.typeID = r.URL.Query().Get("typeID")
 	q.networkID = r.URL.Query().Get("networkID")
 	q.siteID = r.URL.Query().Get("siteID")
-
-	if q.typeID == "" {
-		web.BadRequest(w, r, "No typeID query param.")
-		return false
-	}
-
-	if q.networkID == "" {
-		web.BadRequest(w, r, "No networkID query param.")
-		return false
-	}
-
-	if q.siteID == "" {
-		web.BadRequest(w, r, "No siteID query param.")
-		return false
-	}
 
 	return (validSite(w, r, q.networkID, q.siteID) && validType(w, r, q.typeID))
 }
