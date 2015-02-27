@@ -52,6 +52,7 @@ func TestRoutes(t *testing.T) {
 	}
 	r.Add("/type")
 	r.Add("/method?typeID=t1")
+	r.Add("/method")
 
 	r.Test(ts, t)
 
