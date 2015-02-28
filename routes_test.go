@@ -37,6 +37,7 @@ func TestRoutes(t *testing.T) {
 		TestAccept: false,
 	}
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1")
+	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1&days=400")
 
 	r.Test(ts, t)
 
