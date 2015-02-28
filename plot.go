@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"github.com/GeoNet/app/web"
 	"github.com/GeoNet/app/web/api/apidoc"
 	"github.com/ajstarks/svgo"
@@ -72,34 +73,33 @@ func (q *plotQuery) Doc() *apidoc.Query {
 }
 
 func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch {
-	case !(len(r.URL.Query()) == 3 || len(r.URL.Query()) == 4):
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
-	case !web.ParamsExist(w, r, "typeID", "networkID", "siteID"):
-		return false
-	}
-
-	q.plot = plot{
-		typeID:    r.URL.Query().Get("typeID"),
-		networkID: r.URL.Query().Get("networkID"),
-		siteID:    r.URL.Query().Get("siteID"),
-	}
-
-	// query param days is optional
-	if r.URL.Query().Get("days") == "" {
-		q.plot.days = 365000
-	} else {
+	switch len(r.URL.Query()) {
+	case 3:
+		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
+			return false
+		}
+	case 4:
+		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID", "days") {
+			return false
+		}
 		var err error
 		q.plot.days, err = strconv.Atoi(r.URL.Query().Get("days"))
 		if err != nil {
 			web.BadRequest(w, r, "Invalid days query param.")
+			return false
 		}
 		if q.plot.days > 365000 {
 			web.BadRequest(w, r, "Invalid days query param.")
 			return false
 		}
+	default:
+		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
 	}
+
+	q.plot.typeID = r.URL.Query().Get("typeID")
+	q.plot.networkID = r.URL.Query().Get("networkID")
+	q.plot.siteID = r.URL.Query().Get("siteID")
 
 	return (validSite(w, r, q.plot.networkID, q.plot.siteID) && validType(w, r, q.plot.typeID))
 }
@@ -149,8 +149,24 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	var value, er float64
 
 	// load observations from the DB
-	rows, err := db.Query(
-		`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
+	var rows *sql.Rows
+	var err error
+
+	switch p.days {
+	case 0:
+		rows, err = db.Query(
+			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		)
+	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
+	default:
+		rows, err = db.Query(
+			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
 		WHERE 
 		sitepk = (
 			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
@@ -160,6 +176,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 		) 
 	AND time > (now() - interval '`+strconv.Itoa(p.days)+` days')
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
+	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return false
