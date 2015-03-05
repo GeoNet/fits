@@ -41,23 +41,26 @@ var plotQueryD = &apidoc.Query{
 	<br/>The number of days displayed can be changed with the <code>days</code> query parameter.
 	</p>
 	<p>
+	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50" style="width: 100% \9" class="img-responsive" />
+	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.
+	</p>
+	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf" style="width: 100% \9" class="img-responsive" />
 	<br />Not all observations have an associated error estimate.
 	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=mp1" style="width: 100% \9" class="img-responsive" />
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=mp2" style="width: 100% \9" class="img-responsive" />
-	</p>`,
+            `,
 	Example:     "/plot?networkID=LI&siteID=GISB&typeID=e",
 	ExampleHost: exHost,
-	URI:         "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)",
+	URI:         "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)[&days=int][&yrange=float64]",
 	Params: map[string]template.HTML{
 		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
 		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
 		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
-		"days":      `optional.  The number of days of data to display before now e.g., <code>250</code>.  Maximum value is 365000.`,
+		"days": `Optional.  The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
+		x-axis which may not be the same as the data.  Maximum value is 365000.`,
+		"yrange": `Optional.  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
+		data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
+		the y-axis range will be -20 to 60.  yrange must be > 0`,
 	},
 	Props: map[string]template.HTML{
 		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
@@ -73,42 +76,53 @@ func (q *plotQuery) Doc() *apidoc.Query {
 }
 
 func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch len(r.URL.Query()) {
-	case 3:
-		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
-			return false
-		}
-	case 4:
-		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID", "days") {
-			return false
-		}
-		var err error
-		q.plot.days, err = strconv.Atoi(r.URL.Query().Get("days"))
-		if err != nil {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return false
-		}
-		if q.plot.days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return false
-		}
-	default:
-		web.BadRequest(w, r, "incorrect number of query params.")
+	// values needed for all queries
+	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
 		return false
 	}
 
-	q.plot.typeID = r.URL.Query().Get("typeID")
-	q.plot.networkID = r.URL.Query().Get("networkID")
-	q.plot.siteID = r.URL.Query().Get("siteID")
+	rl := r.URL.Query()
+
+	q.plot.typeID = rl.Get("typeID")
+	q.plot.networkID = rl.Get("networkID")
+	q.plot.siteID = rl.Get("siteID")
+
+	if rl.Get("days") != "" {
+		var err error
+		q.plot.days, err = strconv.Atoi(rl.Get("days"))
+		if err != nil || q.plot.days > 365000 {
+			web.BadRequest(w, r, "Invalid days query param.")
+			return false
+		}
+
+		q.plot.tmax = time.Now().UTC()
+		q.plot.tmin = q.plot.tmax.Add(time.Duration(q.plot.days*-1) * time.Hour * 24)
+	}
+
+	if rl.Get("yrange") != "" {
+		var err error
+		q.plot.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
+		if err != nil || q.plot.yrange <= 0 {
+			web.BadRequest(w, r, "invalid yrange query param.")
+			return false
+		}
+	}
+
+	// delete any query params we know how to handle and there should be nothing left.
+	rl.Del("typeID")
+	rl.Del("networkID")
+	rl.Del("siteID")
+	rl.Del("days")
+	rl.Del("yrange")
+	if len(rl) > 0 {
+		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	}
 
 	return (validSite(w, r, q.plot.networkID, q.plot.siteID) && validType(w, r, q.plot.typeID))
 }
 
 func (q *plotQuery) Handle(w http.ResponseWriter, r *http.Request) {
-
-	q.plot.imageHeight = 250
-	q.plot.imageWidth = 800
-
 	if !q.plot.loadData(w, r) {
 		return
 	}
@@ -119,6 +133,41 @@ func (q *plotQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 // things for making the plot
 
+const (
+	font      = `fill:black;font-family:Arial, sans-serif;`
+	titleFont = "text-anchor:start;font-size:16px;font-weight:bold;" + font
+	cFont     = "text-anchor:start;font-size:10px;" + font
+
+	errPoly  = `fill:paleturquoise;opacity:1;stroke:paleturquoise;stroke-width:1;`
+	dataLine = `fill:none;stroke:darkslategray;stroke-width:0.5;`
+
+	markerFont   = font + `font-size:14px;`
+	markerFontE  = "text-anchor:end;" + markerFont
+	markerFontS  = "text-anchor:start;" + markerFont
+	valMarker    = `fill:mediumblue;opacity:0.5;stroke:none`
+	latestMarker = `fill:red;opacity:0.5;stroke:none`
+	markerSize   = 8
+	markerOffset = 10 // offsets the marker label from the marker
+
+	crossLine   = `fill:none;opacity:0.9;stroke:cadetblue;stroke-width:0.5;stroke-linecap:round`
+	crossSize   = 5
+	crossOffset = 17 // offsets cross labels
+	crossFont   = `font-size:12px;` + font
+	crossFontE  = "text-anchor:end;" + crossFont
+	crossFontS  = "text-anchor:start;" + crossFont
+
+	height  = 250                   // image height
+	width   = 800                   // image width
+	top     = 40                    // space from top of image to plot
+	bottom  = 40                    // space from bottom of image to plot
+	left    = 10                    // space from left of image to plot
+	right   = 140                   // space from right of image to plot
+	pHeight = height - top - bottom // plot height
+	pWidth  = width - left - right  // plot width
+	pRight  = width - right         // right side of plot
+	pBottom = height - bottom       // bottom of plot
+)
+
 type val struct {
 	t        time.Time
 	e, v     float64
@@ -127,13 +176,14 @@ type val struct {
 
 type plot struct {
 	data                                      []*val
-	height, width, xShift, yShift             int  // size and position of the graph on the image.
-	imageHeight, imageWidth                   int  // overall image size
 	hasErrors                                 bool // some data has no errors e.g., 0.0
 	start, end, max, min                      *val
-	typeID, networkID, siteID                 string // query params
-	days                                      int    // query param
+	tmin, tmax                                time.Time // x min and max when days is specified.
+	typeID, networkID, siteID                 string    // query params
+	days                                      int       // query param
+	yrange                                    float64
 	siteName, typeName, typeDescription, unit string
+	hasData                                   bool
 }
 
 func (v *val) label() string {
@@ -152,8 +202,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	var rows *sql.Rows
 	var err error
 
-	switch p.days {
-	case 0:
+	if p.days == 0 {
 		rows, err = db.Query(
 			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
 		WHERE 
@@ -164,7 +213,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 		SELECT typepk FROM fits.type WHERE typeid = $3
 		)
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
-	default:
+	} else {
 		rows, err = db.Query(
 			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
 		WHERE 
@@ -174,8 +223,8 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	AND typepk = (
 		SELECT typepk FROM fits.type WHERE typeid = $3
 		) 
-	AND time > (now() - interval '`+strconv.Itoa(p.days)+` days')
-	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
+	AND time > $4
+	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID, p.tmin)
 	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
@@ -201,11 +250,6 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	}
 	rows.Close()
 
-	if len(p.data) < 2 {
-		web.NotFound(w, r, "query returned insufficient data to plot.")
-		return false
-	}
-
 	// Additional plot labels
 	err = db.QueryRow("select site.name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
 		p.networkID, p.siteID).Scan(&p.siteName)
@@ -214,136 +258,147 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	err = db.QueryRow("select name FROM fits.type where typeID = $1",
-		p.typeID).Scan(&p.typeName)
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
-
-	}
-
-	err = db.QueryRow("select description FROM fits.type where typeID = $1",
-		p.typeID).Scan(&p.typeDescription)
+	err = db.QueryRow("select type.name, type.description, unit.symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
+		p.typeID).Scan(&p.typeName, &p.typeDescription, &p.unit)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return false
 	}
 
-	err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
-		p.typeID).Scan(&p.unit)
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
-	}
+	// If there is enough data to plot then calculate graphics x,y for data
+	if len(p.data) >= 2 {
+		p.hasData = true
 
-	// Calculate graphics x,y for data
-	p.start = p.data[0]
-	p.end = p.data[len(p.data)-1]
+		p.start = p.data[0]
+		p.end = p.data[len(p.data)-1]
 
-	p.min = p.data[0]
-	p.max = p.data[0]
+		p.min = p.data[0]
+		p.max = p.data[0]
 
-	for _, v := range p.data {
-		if v.v > p.max.v {
-			p.max = v
+		for _, v := range p.data {
+			if v.v > p.max.v {
+				p.max = v
+			}
+			if v.v < p.min.v {
+				p.min = v
+			}
+			if !p.hasErrors && v.e > 0 {
+				p.hasErrors = true
+			}
 		}
-		if v.v < p.min.v {
-			p.min = v
+
+		// if days has been specified then set the length of the y axis to that otherwise
+		// autorange on the data
+		var dx float64
+		var vshift int // if the start of the data would be after the start of the plot shift it right.
+		if p.days > 0 {
+			dx = float64(pWidth) / p.tmax.Sub(p.tmin).Seconds()
+			if p.tmin.Before(p.start.t) {
+				vshift = int((p.start.t.Sub(p.tmin).Seconds() * dx) + 0.5)
+			}
+		} else {
+			dx = float64(pWidth) / p.end.t.Sub(p.start.t).Seconds()
 		}
-		if !p.hasErrors && v.e > 0 {
-			p.hasErrors = true
+
+		var ymin, dy float64
+
+		if p.yrange > 0 {
+			ymin = (p.min.v + (math.Abs(p.max.v-p.min.v) / 2)) - p.yrange
+			dy = float64(pHeight) / (p.yrange * 2)
+		} else {
+			// additional y height fits the error at the min and max values.
+			// this may not be the largest error so the y range can be smaller
+			// than needed.  We are looking at the data not the errors.
+			dy = float64(pHeight) / math.Abs((p.max.v+p.max.e)-(p.min.v-p.min.e))
+			ymin = p.min.v - p.min.e
 		}
-	}
 
-	p.height = p.imageHeight - 100
-	p.width = p.imageWidth - 180
-	p.xShift = 40
-	p.yShift = 50
-
-	dx := float64(p.width) / p.end.t.Sub(p.start.t).Seconds()
-	var dy float64
-	// additional y height fits the error at the min and max values.
-	// this may not be the largest error so the y range can be smaller
-	// than needed.  We are looking at the data not the errors.
-	dy = float64(p.height) / math.Abs((p.max.v+p.max.e)-(p.min.v-p.min.e))
-
-	// add graphics x.y location to the data
-	for _, v := range p.data {
-		v.x = int((v.t.Sub(p.start.t).Seconds()*dx)+0.5) + p.xShift
-		v.y = p.height - int(((v.v-p.min.v)*dy)+0.5) + p.yShift
-		v.ey = int(v.e * dy)
+		for _, v := range p.data {
+			v.x = int((v.t.Sub(p.start.t).Seconds()*dx)+0.5) + left + vshift
+			v.y = pHeight - int(((v.v-ymin)*dy)+0.5) + top
+			v.ey = int(v.e * dy)
+		}
 	}
 
 	return true
 }
 
 func (p *plot) svg() *bytes.Buffer {
-	var x, y, xErr, yErr []int
-
-	for _, v := range p.data {
-		x = append(x, v.x)
-		y = append(y, v.y)
-	}
-
-	var font = `fill:black;font-family:Arial, sans-serif;`
-	var labelFont = font + `font-size:14px;`
-
 	var b bytes.Buffer
 	s := svg.New(&b)
 
-	s.Start(p.imageWidth, p.imageHeight)
+	s.Start(width, height)
 	s.Title("FITS: " + p.networkID + "." + p.siteID + " " + p.typeID)
 
-	//  lh y axis
-	s.Text(p.start.x, p.min.y+25, p.start.date(), "text-anchor:middle;font-size:12px;"+font)
-	s.Line(p.start.x, p.min.y+12, p.start.x, p.max.y, `fill:none;opacity:0.9;stroke:cadetblue;stroke-width:1;stroke-linecap:round`)
+	if p.hasData {
+		var x, y []int
 
-	if p.hasErrors {
-		// the first half of the error polygon - left to right and above the value.
 		for _, v := range p.data {
-
-			xErr = append(xErr, v.x)
-			yErr = append(yErr, v.y-v.ey)
+			x = append(x, v.x)
+			y = append(y, v.y)
 		}
 
-		// the second half of the error polygon - right to left and below the value
-		for i := len(p.data) - 1; i >= 0; i-- {
-			xErr = append(xErr, p.data[i].x)
-			yErr = append(yErr, p.data[i].y+p.data[i].ey)
+		if p.hasErrors {
+			var xErr, yErr []int
+			// the first half of the error polygon - left to right and above the value.
+			for _, v := range p.data {
+
+				xErr = append(xErr, v.x)
+				yErr = append(yErr, v.y-v.ey)
+			}
+			// the second half of the error polygon - right to left and below the value
+			for i := len(p.data) - 1; i >= 0; i-- {
+				xErr = append(xErr, p.data[i].x)
+				yErr = append(yErr, p.data[i].y+p.data[i].ey)
+			}
+
+			s.Polygon(xErr, yErr, errPoly)
 		}
 
-		s.Polygon(xErr, yErr, `fill:paleturquoise;opacity:1;stroke:paleturquoise;stroke-width:1;`)
+		s.Polyline(x, y, dataLine)
+		marker(s, p.min.x, p.min.y, p.min.label())
+		marker(s, p.max.x, p.max.y, p.max.label())
+		s.Circle(p.end.x, p.end.y, markerSize, latestMarker)
+		s.Text(p.end.x+markerOffset, p.end.y, p.end.label(), markerFontS)
 	}
 
-	s.Polyline(x, y, `fill:none;stroke:darkslategray;stroke-width:0.5;`)
-
-	// Label the minimum value
-	s.Circle(p.min.x, p.min.y, 8, `fill:mediumblue;opacity:0.5;stroke:none`)
-	if p.min.x > p.width/2 {
-		s.Text(p.min.x-10, p.min.y, p.min.label(), "text-anchor:end;"+labelFont)
-	} else {
-		s.Text(p.min.x+10, p.min.y, p.min.label(), "text-anchor:start;"+labelFont)
+	switch {
+	case p.days > 0:
+		cross(s, left, pBottom, crossSize, strings.Split(p.tmin.Format(time.RFC3339), "T")[0])
+		cross(s, pRight, pBottom, crossSize, strings.Split(p.tmax.Format(time.RFC3339), "T")[0])
+	case p.hasData:
+		cross(s, left, pBottom, crossSize, p.start.date())
+		cross(s, pRight, pBottom, crossSize, p.end.date())
 	}
 
-	// Label the maximum value
-	s.Circle(p.max.x, p.max.y, 8, `fill:mediumblue;opacity:0.5;stroke:none`)
-	if p.max.x > p.width/2 {
-		s.Text(p.max.x-10, p.max.y, p.max.label(), "text-anchor:end;"+labelFont)
-	} else {
-		s.Text(p.max.x+10, p.max.y, p.max.label(), "text-anchor:start;"+labelFont)
-	}
+	// Title and copyright
+	s.Text(5, 22, p.siteID+" ("+p.siteName+") - "+p.typeDescription+": "+p.typeName+" ("+p.unit+")", titleFont)
+	s.Text(5, height-5, "fits.geonet.org.nz CC BY 3.0 NZ GNS Science", cFont)
 
-	// Label the latest value
-	s.Circle(p.end.x, p.end.y, 8, `fill:red;opacity:0.5;stroke:none`)
-	s.Text(p.end.x+10, p.end.y, p.end.label(), "text-anchor:start;"+labelFont)
-
-	s.Text(5, p.imageHeight-5, "www.geonet.org.nz", "text-anchor:start;font-size:11px;"+font)
-
-	s.Text(5, 22, p.siteID+" ("+p.siteName+") - "+p.typeDescription, "text-anchor:start;font-size:16px;font-weight:bold;"+font)
-
-	s.RotateTranslate(0, 0, 90)
-	s.Text(int(p.height/2)+p.yShift, -18, p.typeName+" ("+p.unit+")", "text-anchor:middle;font-size:13px;"+font)
-	s.Gend()
 	s.End()
 	return &b
+}
+
+// cross draws a cross at x y with the label below and to the left or right depening on which
+// half of the plot the cross is in.
+func cross(s *svg.SVG, x, y, size int, l string) {
+	s.Line(x, y-size, x, y+size, crossLine)
+	s.Line(x-size, y, x+size, y, crossLine)
+
+	if x > pWidth/2 {
+		s.Text(x, y+crossOffset, l, crossFontE)
+	} else {
+		s.Text(x, y+crossOffset, l, crossFontS)
+	}
+}
+
+// marker draws the data marker at x y with the label to left or right depening on which
+// half of the plot the maker is in.
+func marker(s *svg.SVG, x, y int, l string) {
+	s.Circle(x, y, markerSize, valMarker)
+	if x > pWidth/2 {
+		s.Text(x-markerOffset, y, l, markerFontE)
+	} else {
+		s.Text(x+markerOffset, y, l, markerFontS)
+	}
 }

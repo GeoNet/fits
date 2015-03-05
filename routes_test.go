@@ -57,6 +57,43 @@ func TestRoutes(t *testing.T) {
 
 	r.Test(ts, t)
 
+	// plot routes
+	r = webtest.Route{
+		Accept:     "",
+		Content:    "image/svg+xml",
+		Cache:      web.MaxAge300,
+		Surrogate:  web.MaxAge300,
+		Response:   http.StatusOK,
+		Vary:       "Accept",
+		TestAccept: false,
+	}
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=12.2")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000&yrange=12.2")
+
+	r.Test(ts, t)
+
+	// Plot routes that should bad request
+	r = webtest.Route{
+		Accept:     "",
+		Content:    web.ErrContent,
+		Cache:      web.MaxAge10,
+		Surrogate:  web.MaxAge86400,
+		Response:   http.StatusBadRequest,
+		Vary:       "Accept",
+		TestAccept: false,
+	}
+	r.Add("/plot?typeID=t1&siteID=TEST1")
+	r.Add("/plot?typeID=t1")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=nan")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=1000000000000")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&start=")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=-12.2")
+	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=0")
+
+	r.Test(ts, t)
+
 	// Routes that should 404
 	r = webtest.Route{
 		Accept:     web.V1JSON,
