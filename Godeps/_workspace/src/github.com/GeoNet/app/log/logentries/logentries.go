@@ -1,16 +1,4 @@
 // Package logentries send log messages to Logentries using TLS.
-//
-// If an non empty env var LOGENTRIES_TOKEN is found then it reconfigures the log package to
-// send to Logentries via TLS and also continues to write to std err.  The send to Logentries is via
-// a buffered chan and messages will not be sent to Logentries if the chan is full.
-//
-// It would make sense to import this package for just it's side effects:
-//   import (
-//          _  "github.com/GeoNet/app/log/logentries"
-//   )
-//
-// If requred the Init() func can be used to pass in the Logentries token instead of an env var.
-//
 package logentries
 
 import (
@@ -97,27 +85,13 @@ var le chan string
 
 var std = os.Stderr
 
-func init() {
-	initLe(os.Getenv("LOGENTRIES_TOKEN"))
-}
-
-// Init can be used to Init logging to Logentries directly instead of setting an env var.
-// If the LOGENTRIES_TOKEN env var is also set then this method no-ops as logging will
-// already be configured.
-func Init(le_token string) {
-	if os.Getenv("LOGENTRIES_TOKEN") != "" {
-		return
-	}
-
-	if le_token == "XXX" {
-		return
-	}
-
-	initLe(le_token)
-}
-
-func initLe(token string) {
+// Init reconfigures the logger to send to Logentries using TLS as well as
+// continuing to write to std err.  The send to Logentries is via a buffered chan and
+// messages will not be sent to Logentries if the chan is full.
+// Call with an empty token no-ops.
+func Init(token string) {
 	if token == "" {
+		log.Println("Not sending to Logentries - empty token.")
 		return
 	}
 

@@ -52,12 +52,14 @@ var (
 	mtr metric
 )
 
-func init() {
+// InitLibrato initialises gathering and sending metrics to Librato metrics.
+// Call from an init func.  Use empty strings to send metrics to the logs only.
+func InitLibrato(user, key string) {
 	mtr = metric{
 		interval:    time.Duration(1) * time.Second,
 		period:      time.Duration(20) * time.Second,
-		libratoUser: os.Getenv("LIBRATO_USER"),
-		libratoKey:  os.Getenv("LIBRATO_KEY"),
+		libratoUser: user,
+		libratoKey:  key,
 	}
 
 	mtr.r2xx.Init(mtr.interval, mtr.period)

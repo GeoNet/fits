@@ -267,12 +267,14 @@ const (
 	<dt>{{$k}}</dt>
 	<dd>{{$v}}</dd>
 	{{end}}
+	{{if .ExampleResponse}}
 	</dl>
 	<h4>Example Query and Response</h4>
 	<div class="panel panel-success">
 	<div class="panel-heading">http://{{$.APIHost}}{{.Example}}</div>
 	<div class="panel-body panel-height"><pre>{{.ExampleResponse}}</pre></div>
 	</div>
+	{{end}}
 
 	{{end}}
 	{{template "footer"}}

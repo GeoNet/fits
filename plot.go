@@ -49,9 +49,7 @@ var plotQueryD = &apidoc.Query{
 	<br />Not all observations have an associated error estimate.
 	</p>
             `,
-	Example:     "/plot?networkID=LI&siteID=GISB&typeID=e",
-	ExampleHost: exHost,
-	URI:         "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)[&days=int][&yrange=float64]",
+	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)[&days=int][&yrange=float64]",
 	Params: map[string]template.HTML{
 		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
 		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,

@@ -32,7 +32,7 @@ func init() {
 type Query struct {
 	Title       string
 	URI         string
-	Example     string // example URI for a query
+	Example     string // example URI for a query.  Optional.  ExampleHost must be specified as well.
 	ExampleHost string // the host to run the example query against.
 	Accept      string
 	Description string                   // a short description.
@@ -71,6 +71,9 @@ func (d *Docs) AddEndpoint(path string, e *Endpoint) {
 // and returns it as a pretty printed string.
 // Returns an empty string on error.
 func (d *Query) ExampleResponse() (e string) {
+	if d.Example == "" || d.ExampleHost == "" {
+		return
+	}
 	req, err := http.NewRequest("GET", d.ExampleHost+d.Example, nil)
 	if err != nil {
 		return
