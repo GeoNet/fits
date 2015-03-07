@@ -34,3 +34,9 @@ You can then init the DB and load a small amount of test data with:
 ```
 cd scripts; ./initdb.sh
 ```
+
+#### Logical Model
+
+The database logical model.
+
+![database logical model](ddl/FITS_Logical_Model.png)
