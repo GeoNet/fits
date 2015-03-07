@@ -1,14 +1,11 @@
-FROM golang
+FROM quay.io/geonet/golang-godep:latest
 
-RUN apt-get update 
+COPY . /go/src/github.com/GeoNet/fits
 
-COPY fits /fits
-COPY fits.json /fits.json
-RUN chmod 0755 /fits
+WORKDIR /go/src/github.com/GeoNet/fits
 
-WORKDIR /
+RUN godep go install -a
 
 EXPOSE 8080
 
-CMD ["/fits"]
-
+CMD ["/go/bin/fits"]

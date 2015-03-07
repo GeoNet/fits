@@ -1,0 +1,12 @@
+.git
+.gitignore
+Dockerrun.aws.json
+fits
+ddl
+scripts
+README*
+etc
+prod
+*_test.go
+*test.json
+docker-run.sh

@@ -1,9 +1,5 @@
 {
   "AWSEBDockerrunVersion": "1",
-  "Authentication": {
-    "Bucket": "cfg-prod.geonet.org.nz",
-    "Key": "elasticbeanstalk/fits-dockercfg"
-    },
     "Image": {
       "Name": "quay.io/geonet/fits",
       "Update": "true"
