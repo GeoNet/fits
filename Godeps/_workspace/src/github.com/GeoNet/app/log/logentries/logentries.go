@@ -126,14 +126,14 @@ func Init(token string) {
 
 // Write writes to Logentries using TLS via a buffered chan.  If the chan if full then messages are
 // not saved for sending  to Logentries.
-// Writes all messages to std error.
 func (w Writer) Write(b []byte) (int, error) {
 	if len(le) < cap(le) {
 		le <- string(b)
 	} else {
 		std.Write([]byte("WARN Logentries buffer full."))
+		return std.Write(b)
 	}
-	return std.Write(b)
+	return len(b), nil
 }
 
 // connect makes a TLS connection to Librato.  It must be called with s.mu held.
