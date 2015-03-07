@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/GeoNet/app/cfg"
-	_ "github.com/GeoNet/app/log/logentries"
+	"github.com/GeoNet/app/log/logentries"
 	"github.com/GeoNet/app/web"
 	_ "github.com/lib/pq"
 	"log"
@@ -20,6 +20,11 @@ var header = web.Header{
 	Cache:     web.MaxAge300,
 	Surrogate: web.MaxAge300,
 	Vary:      "Accept",
+}
+
+func init() {
+	logentries.Init(config.Logentries.Token)
+	web.InitLibrato(config.Librato.User, config.Librato.Key)
 }
 
 // main connects to the database, sets up request routing, and starts the http server.
