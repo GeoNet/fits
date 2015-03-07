@@ -147,18 +147,17 @@ const (
 	markerSize   = 8
 	markerOffset = 10 // offsets the marker label from the marker
 
-	crossLine   = `fill:none;opacity:0.9;stroke:cadetblue;stroke-width:0.5;stroke-linecap:round`
-	crossSize   = 5
-	crossOffset = 17 // offsets cross labels
-	crossFont   = `font-size:12px;` + font
-	crossFontE  = "text-anchor:end;" + crossFont
-	crossFontS  = "text-anchor:start;" + crossFont
+	axisLine  = `fill:none;opacity:0.9;stroke:cadetblue;stroke-width:0.5;stroke-linecap:round`
+	axisFont  = `font-size:12px;` + font
+	axisFontE = "text-anchor:end;" + axisFont
+	axisFontS = "text-anchor:start;" + axisFont
+	axisFontM = "text-anchor:middle;" + axisFont
 
 	height  = 250                   // image height
 	width   = 800                   // image width
 	top     = 40                    // space from top of image to plot
 	bottom  = 40                    // space from bottom of image to plot
-	left    = 10                    // space from left of image to plot
+	left    = 18                    // space from left of image to plot
 	right   = 140                   // space from right of image to plot
 	pHeight = height - top - bottom // plot height
 	pWidth  = width - left - right  // plot width
@@ -360,37 +359,34 @@ func (p *plot) svg() *bytes.Buffer {
 		s.Text(p.end.x+markerOffset, p.end.y, p.end.label(), markerFontS)
 	}
 
+	// axes
+	s.Line(left, top, left, pBottom+5, axisLine)
+	s.Line(left, pBottom, left+5, pBottom, axisLine)
+	s.Line(pRight-5, pBottom, pRight, pBottom, axisLine)
+	s.Line(pRight, pBottom, pRight, pBottom+5, axisLine)
+
 	switch {
 	case p.days > 0:
-		cross(s, left, pBottom, crossSize, strings.Split(p.tmin.Format(time.RFC3339), "T")[0])
-		cross(s, pRight, pBottom, crossSize, strings.Split(p.tmax.Format(time.RFC3339), "T")[0])
+		s.Text(left, pBottom+17, strings.Split(p.tmin.Format(time.RFC3339), "T")[0], axisFontS)
+		s.Text(pRight, pBottom+17, strings.Split(p.tmax.Format(time.RFC3339), "T")[0], axisFontE)
 	case p.hasData:
-		cross(s, left, pBottom, crossSize, p.start.date())
-		cross(s, pRight, pBottom, crossSize, p.end.date())
+		s.Text(left, pBottom+17, p.start.date(), axisFontS)
+		s.Text(pRight, pBottom+17, p.end.date(), axisFontE)
 	}
 
+	s.RotateTranslate(0, 0, 90)
+	s.Text(int(pHeight/2)+top, -6, p.typeName+" ("+p.unit+")", axisFontM)
+	s.Gend()
+
 	// Title and copyright
-	s.Text(5, 22, p.siteID+" ("+p.siteName+") - "+p.typeDescription+": "+p.typeName+" ("+p.unit+")", titleFont)
-	s.Text(5, height-5, "fits.geonet.org.nz CC BY 3.0 NZ GNS Science", cFont)
+	s.Text(5, 22, p.siteID+" ("+p.siteName+") - "+p.typeDescription, titleFont)
+	s.Text(5, height-5, "CC BY 3.0 NZ GNS Science", cFont)
 
 	s.End()
 	return &b
 }
 
-// cross draws a cross at x y with the label below and to the left or right depening on which
-// half of the plot the cross is in.
-func cross(s *svg.SVG, x, y, size int, l string) {
-	s.Line(x, y-size, x, y+size, crossLine)
-	s.Line(x-size, y, x+size, y, crossLine)
-
-	if x > pWidth/2 {
-		s.Text(x, y+crossOffset, l, crossFontE)
-	} else {
-		s.Text(x, y+crossOffset, l, crossFontS)
-	}
-}
-
-// marker draws the data marker at x y with the label to left or right depening on which
+// marker draws the data marker at x y with the label to left or right depending on which
 // half of the plot the maker is in.
 func marker(s *svg.SVG, x, y int, l string) {
 	s.Circle(x, y, markerSize, valMarker)
