@@ -81,12 +81,14 @@ func InitLibrato(user, key string) {
 // Using a Buffer is useful for avoiding writing partial content to the client
 // if an error could occur when generating the content.
 func OkBuf(w http.ResponseWriter, r *http.Request, b *bytes.Buffer) {
+	// Haven't bothered logging 200s.
 	mtr.r2xx.Inc()
 	b.WriteTo(w)
 }
 
 // Ok (200) - writes the content in the []byte pointed by b to w.
 func Ok(w http.ResponseWriter, r *http.Request, b *[]byte) {
+	// Haven't bothered logging 200s.
 	mtr.r2xx.Inc()
 	w.Write(*b)
 }
@@ -94,6 +96,7 @@ func Ok(w http.ResponseWriter, r *http.Request, b *[]byte) {
 // OkTrack (200) - increments the response 2xx counter and nothing
 // else.
 func OkTrack(w http.ResponseWriter, r *http.Request) {
+	// Haven't bothered logging 200s.
 	mtr.r2xx.Inc()
 }
 
@@ -200,20 +203,12 @@ func ParamsExist(w http.ResponseWriter, r *http.Request, params ...string) bool 
 // Sets the Vary header to Accept for use with REST APIs and upstream caching.
 // Increments the request counter.
 // Tracks response times.
-// If env var DEBUG is set to true at start up then also logs GET requests.
 func (hdr *Header) Get(h http.Handler) http.Handler {
-	if os.Getenv("DEBUG") == "true" {
-		return logGet(hdr.get(h))
-	}
-
-	return hdr.get(h)
-}
-
-func (hdr *Header) get(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mtr.reqRate.Inc()
 		if r.Method == "GET" {
 			defer mtr.resTime.Inc(time.Now())
+			log.Printf("GET %s", r.URL)
 			w.Header().Set("Cache-Control", hdr.Cache)
 			w.Header().Set("Surrogate-Control", hdr.Surrogate)
 			w.Header().Add("Vary", hdr.Vary)
@@ -221,13 +216,6 @@ func (hdr *Header) get(h http.Handler) http.Handler {
 			return
 		}
 		MethodNotAllowed(w, r)
-	})
-}
-
-func logGet(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL)
-		h.ServeHTTP(w, r)
 	})
 }
 

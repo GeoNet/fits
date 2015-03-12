@@ -4,19 +4,19 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/GeoNet/app/cfg",
-			"Rev": "b32e8a19f6a627cb51923541a0563aaa85a67bfe"
+			"Rev": "4c7929dd43e4122102690ffbc37603573393cf93"
 		},
 		{
 			"ImportPath": "github.com/GeoNet/app/log/logentries",
-			"Rev": "b32e8a19f6a627cb51923541a0563aaa85a67bfe"
+			"Rev": "4c7929dd43e4122102690ffbc37603573393cf93"
 		},
 		{
 			"ImportPath": "github.com/GeoNet/app/metrics",
-			"Rev": "b32e8a19f6a627cb51923541a0563aaa85a67bfe"
+			"Rev": "4c7929dd43e4122102690ffbc37603573393cf93"
 		},
 		{
 			"ImportPath": "github.com/GeoNet/app/web",
-			"Rev": "b32e8a19f6a627cb51923541a0563aaa85a67bfe"
+			"Rev": "4c7929dd43e4122102690ffbc37603573393cf93"
 		},
 		{
 			"ImportPath": "github.com/ajstarks/svgo",
