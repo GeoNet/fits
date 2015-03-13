@@ -41,11 +41,11 @@ type Header struct {
 
 // metrics gathering
 type metric struct {
-	interval                  time.Duration // Rates calculated over interval.
-	period                    time.Duration // Metrics updated every period.
-	libratoUser, libratoKey   string
-	r2xx, r4xx, r5xx, reqRate metrics.Rate
-	resTime                   metrics.Timer
+	interval                        time.Duration // Rates calculated over interval.
+	period                          time.Duration // Metrics updated every period.
+	libratoUser, libratoKey, source string
+	r2xx, r4xx, r5xx, reqRate       metrics.Rate
+	resTime                         metrics.Timer
 }
 
 var (
@@ -54,12 +54,13 @@ var (
 
 // InitLibrato initialises gathering and sending metrics to Librato metrics.
 // Call from an init func.  Use empty strings to send metrics to the logs only.
-func InitLibrato(user, key string) {
+func InitLibrato(user, key, source string) {
 	mtr = metric{
 		interval:    time.Duration(1) * time.Second,
 		period:      time.Duration(20) * time.Second,
 		libratoUser: user,
 		libratoKey:  key,
+		source:      source,
 	}
 
 	mtr.r2xx.Init(mtr.interval, mtr.period)
@@ -254,16 +255,19 @@ func (m *metric) libratoMetrics() {
 		host = "unknown"
 	}
 
+	if m.source != "" {
+		host = host + "-" + m.source
+	}
+
 	a := strings.Split(os.Args[0], "/")
 	source := a[len(a)-1]
 
-	r2xxg := &librato.Gauge{Source: source, Name: "Responses.2xx"}
-	r4xxg := &librato.Gauge{Source: source, Name: "Responses.4xx"}
-	r5xxg := &librato.Gauge{Source: source, Name: "Responses.5xx"}
-	rg := &librato.Gauge{Source: source, Name: "Requests"} // Per app resquests for adding to a total.
+	r2xxg := &librato.Gauge{Source: host, Name: source + ".Responses.2xx"}
+	r4xxg := &librato.Gauge{Source: host, Name: source + ".Responses.4xx"}
+	r5xxg := &librato.Gauge{Source: host, Name: source + ".Responses.5xx"}
 
 	rsg := &librato.Gauge{Source: host, Name: source + ".Responses.AverageTime"}
-	rhg := &librato.Gauge{Source: host, Name: source + ".Requests"} // Track per host requests as well.
+	rg := &librato.Gauge{Source: host, Name: source + ".Requests"}
 
 	var g []librato.Gauge
 
@@ -280,14 +284,12 @@ func (m *metric) libratoMetrics() {
 			g = append(g, *r5xxg)
 		case v := <-m.reqRate.Avg:
 			rg.SetValue(v)
-			rhg.SetValue(v)
 			g = append(g, *rg)
-			g = append(g, *rhg)
 		case v := <-m.resTime.Avg:
 			rsg.SetValue(v)
 			g = append(g, *rsg)
 		}
-		if len(g) == 6 {
+		if len(g) == 5 {
 			if len(lbr) < cap(lbr) { // the lbr chan shouldn't be blocked but would rather drop metrics and keep operating.
 				lbr <- g
 			}

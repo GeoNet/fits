@@ -105,14 +105,14 @@ func unset() {
 	os.Setenv("GO_CFG_TEST_DATABASE_HOST", "")
 	os.Setenv("GO_CFG_TEST_DATABASE_MAX_OPEN_CONNS", "")
 	os.Setenv("GO_CFG_TEST_WEB_SERVER_PRODUCTION", "")
-	os.Setenv("LIBRATO_USER", "")
-	os.Setenv("LOGENTRIES_TOKEN", "")
+	os.Setenv("GO_CFG_TEST_LIBRATO_USER", "")
+	os.Setenv("GO_CFG_TEST_LOGENTRIES_TOKEN", "")
 }
 
 func set() {
 	os.Setenv("GO_CFG_TEST_DATABASE_HOST", "aaa")
 	os.Setenv("GO_CFG_TEST_DATABASE_MAX_OPEN_CONNS", "100")
 	os.Setenv("GO_CFG_TEST_WEB_SERVER_PRODUCTION", "false")
-	os.Setenv("LIBRATO_USER", "XXXX")
-	os.Setenv("LOGENTRIES_TOKEN", "ZZZZ")
+	os.Setenv("GO_CFG_TEST_LIBRATO_USER", "XXXX")
+	os.Setenv("GO_CFG_TEST_LOGENTRIES_TOKEN", "ZZZZ")
 }

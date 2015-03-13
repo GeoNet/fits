@@ -76,12 +76,13 @@ type SC3 struct {
 }
 
 type Librato struct {
-	User string `doc:"username for Librato." env:"LIBRATO_USER"` // no PREFIX for Librato - one per host is plenty.
-	Key  string `doc:"key for Librato." env:"LIBRATO_KEY"`
+	User   string `doc:"username for Librato." env:"${PREFIX}_LIBRATO_USER"`
+	Key    string `doc:"key for Librato." env:"${PREFIX}_LIBRATO_KEY"`
+	Source string `doc:"source for metrics.  Appended to host if not empty." env:"${PREFIX}_LIBRATO_SOURCE"`
 }
 
 type Logentries struct {
-	Token string `doc:"token for Logentries." env:"LOGENTRIES_TOKEN"`
+	Token string `doc:"token for Logentries." env:"${PREFIX}_LOGENTRIES_TOKEN"`
 }
 
 func (c *Config) env() {
