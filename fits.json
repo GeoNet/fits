@@ -19,7 +19,8 @@
 	} ,
 	"Librato": {
 		"User": "",
-		"Key": ""
+		"Key": "",
+		"Source": ""
 	},
 	"Logentries": {
 		"Token": ""
