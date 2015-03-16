@@ -20,6 +20,7 @@ var observationDoc = apidoc.Endpoint{Title: "Observation",
 	Description: `Look up observations.`,
 	Queries: []*apidoc.Query{
 		new(observationQuery).Doc(),
+		new(spatialObs).Doc(),
 	},
 }
 
