@@ -25,6 +25,9 @@ func TestRoutes(t *testing.T) {
 	r.Add("/site?typeID=t1&methodID=m1")
 	r.Add("/site")
 	r.Add("/site?siteID=TEST1&networkID=TN1")
+	r.Add("/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
+	r.Add("/site?typeID=t1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
+	r.Add("/site?typeID=t1&methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 
 	r.Test(ts, t)
 
@@ -134,6 +137,10 @@ func TestRoutes(t *testing.T) {
 	}
 	r.Add("/")
 	r.Add("/bob")
+	r.Add("/site?methodID=m1")
+	r.Add("/site?methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
+	r.Add("/site?within=POLYGON((170.18+-37.52,177.19+-47.52))")                             // not enough points
+	r.Add("/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,178.18+-37.52))") // doesn't close
 
 	r.Test(ts, t)
 
@@ -167,7 +174,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999")
-	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))")             // no enough points
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))")             // not enough points
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))") // doesn't close
 
 	r.Test(ts, t)

@@ -10,7 +10,7 @@ select fits.add_site('TN1', 'TEST2', $$Test site 2$$, 172.79019, -42.21496, -111
 -- Add another site TEST2 but in the TN2 network
 select fits.add_site('TN2', 'TEST2', $$Test site 2$$, 172.79019, -42.21496, -999.99, 0.0);
 
-select fits.add_site('TN1', 'TEST3', $$Test site 2$$, 172.79019, -42.21496, -999.99, 0.0);
+select fits.add_site('TN1', 'TEST3', $$Test site 3$$, 175.79019, -42.21496, -999.99, 0.0);
 
 insert into fits.unit(symbol, name) VALUES ('m', 'metre');
 insert into fits.unit(symbol, name) VALUES ('K', 'Kelvin');
