@@ -101,9 +101,9 @@ func TestRoutes(t *testing.T) {
 
 	r.Test(ts, t)
 
-	// Routes that should 404
+	// CSV routes that should 404
 	r = webtest.Route{
-		Accept:     web.V1JSON,
+		Accept:     web.V1CSV,
 		Content:    web.ErrContent,
 		Cache:      web.MaxAge10,
 		Surrogate:  web.MaxAge10,
