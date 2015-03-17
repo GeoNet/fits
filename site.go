@@ -92,13 +92,13 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 var siteTypeQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
-	Title:       "Observation Type",
-	Description: "Find sites that have an observation type available at them.",
+	Title:       "Observation and Method",
+	Description: "Filter sites by observation type and method.",
 	Example:     "/site?typeID=e",
 	ExampleHost: exHost,
 	URI:         "/site?typeID=(typeID)",
 	Params: map[string]template.HTML{
-		"typeID": `the observation type.`,
+		"typeID": `Optional.  Find sites with observations of type typeID e.g., <code>e</code>.`,
 	},
 	Props: map[string]template.HTML{
 		"groundRelationship": `the ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
@@ -118,26 +118,36 @@ func (q *siteTypeQuery) Doc() *apidoc.Query {
 }
 
 func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch {
-	case len(r.URL.Query()) != 1:
+	rl := r.URL.Query()
+
+	if rl.Get("typeID") != "" {
+		q.typeID = rl.Get("typeID")
+
+		if !validType(w, r, q.typeID) {
+			return false
+		}
+	}
+
+	// delete any query params we know how to handle and there should be nothing left.
+	rl.Del("typeID")
+	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
-	case !web.ParamsExist(w, r, "typeID"):
 		return false
 	}
 
-	q.typeID = r.URL.Query().Get("typeID")
-
-	return validType(w, r, q.typeID)
+	return true
 }
 
 func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
 	var d string
+	var err error
 
-	err := db.QueryRow(
-		`SELECT row_to_json(fc)
+	switch {
+	case q.typeID != "":
+		err = db.QueryRow(
+			`SELECT row_to_json(fc)
                          FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
                          FROM (SELECT 'Feature' as type,
                          ST_AsGeoJSON(s.location)::json as geometry,
@@ -153,6 +163,23 @@ func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
                          )) as properties FROM (fits.site join fits.network using (networkpk)) as s where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))
                          ) As f )  as fc`, q.typeID).Scan(&d)
+	case q.typeID == "":
+		err = db.QueryRow(
+			`SELECT row_to_json(fc)
+                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
+                         FROM (SELECT 'Feature' as type,
+                         ST_AsGeoJSON(s.location)::json as geometry,
+                         row_to_json((SELECT l FROM 
+                         	(
+                         		SELECT 
+                         		siteid AS "siteID",
+                                height,
+                                ground_relationship AS "groundRelationship",
+                                name,
+                                networkID as "networkID"
+                           ) as l
+                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s) As f )  as fc`).Scan(&d)
+	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return

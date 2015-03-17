@@ -53,11 +53,11 @@ func router(w http.ResponseWriter, r *http.Request) {
 			api.Serve(q, w, r)
 		}
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
-		if len(r.URL.Query()) == 1 {
-			q := &siteTypeQuery{}
+		if r.URL.Query().Get("siteID") != "" {
+			q := &siteQuery{}
 			api.Serve(q, w, r)
 		} else {
-			q := &siteQuery{}
+			q := &siteTypeQuery{}
 			api.Serve(q, w, r)
 		}
 	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
