@@ -32,6 +32,8 @@ var spatialObsD = &apidoc.Query{
 		defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
 		(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
 		<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.`,
+		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
+		for the typeID.`,
 	},
 	Props: map[string]template.HTML{
 		"column 1": `The networkID for the siteID e.g., <code>VO</code>.`,
@@ -47,7 +49,7 @@ var spatialObsD = &apidoc.Query{
 }
 
 type spatialObs struct {
-	typeID            string
+	typeID, methodID  string
 	days              int
 	start, end        time.Time
 	srsName, authName string
@@ -107,6 +109,13 @@ func (q *spatialObs) Validate(w http.ResponseWriter, r *http.Request) bool {
 
 	q.typeID = rl.Get("typeID")
 
+	if rl.Get("methodID") != "" {
+		q.methodID = rl.Get("methodID")
+		if !validTypeMethod(w, r, q.typeID, q.methodID) {
+			return false
+		}
+	}
+
 	if rl.Get("within") != "" {
 		q.within = strings.Replace(rl.Get("within"), "+", "", -1)
 		if !validPoly(w, r, q.within) {
@@ -120,6 +129,7 @@ func (q *spatialObs) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("start")
 	rl.Del("srsName")
 	rl.Del("within")
+	rl.Del("methodID")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
@@ -146,7 +156,8 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 	var d string
 	var rows *sql.Rows
 
-	if q.within == "" {
+	switch {
+	case q.within == "" && q.methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
@@ -154,7 +165,7 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) AND 
 		time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid)
-	} else {
+	case q.within != "" && q.methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
@@ -163,6 +174,25 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
 		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.within)
+	case q.within == "" && q.methodID != "":
+		rows, err = db.Query(
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
+		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
+		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $5)
+		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.methodID)
+	case q.within != "" && q.methodID != "":
+		rows, err = db.Query(
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
+		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
+		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $6)
+		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
+		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.within, q.methodID)
 	}
 	if err != nil {
 		// not sure what a transformation error would look like.
@@ -187,7 +217,11 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.typeID+`.csv"`)
+	if q.methodID != "" {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.typeID+`-`+q.methodID+`.csv"`)
+	} else {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.typeID+`.csv"`)
+	}
 
 	web.OkBuf(w, r, &b)
 }

@@ -41,6 +41,9 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1&methodID=m1&days=400")
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1&days=400")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2")
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m1")
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))&methodID=m1")
 
 	r.Test(ts, t)
 
@@ -112,6 +115,8 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=NO")
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1&methodID=m100")
 	r.Add("/observation?typeID=t1&siteID=TEST1&networkID=TN1&methodID=m100&days=100")
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m100")
+	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m100&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 
 	// r.Test(ts, t)
 
