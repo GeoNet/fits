@@ -35,7 +35,9 @@ var observationQueryD = &apidoc.Query{
 		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
 		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
 		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
-		"days":      `optional.  The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
+		"days":      `Optional.  The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
+		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
+		for the typeID.`,
 	},
 	Props: map[string]template.HTML{
 		"column 1": `The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.`,
@@ -45,8 +47,8 @@ var observationQueryD = &apidoc.Query{
 }
 
 type observationQuery struct {
-	typeID, networkID, siteID string
-	days                      int
+	typeID, networkID, siteID, methodID string
+	days                                int
 }
 
 func (q *observationQuery) Doc() *apidoc.Query {
@@ -54,35 +56,49 @@ func (q *observationQuery) Doc() *apidoc.Query {
 }
 
 func (q *observationQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch len(r.URL.Query()) {
-	case 3:
-		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
-			return false
-		}
-	case 4:
-		if !web.ParamsExist(w, r, "typeID", "networkID", "siteID", "days") {
-			return false
-		}
+	// values needed for all queries
+	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
+		return false
+	}
+
+	rl := r.URL.Query()
+
+	q.typeID = rl.Get("typeID")
+	q.networkID = rl.Get("networkID")
+	q.siteID = rl.Get("siteID")
+
+	if !validType(w, r, q.typeID) {
+		return false
+	}
+
+	if rl.Get("days") != "" {
 		var err error
-		q.days, err = strconv.Atoi(r.URL.Query().Get("days"))
-		if err != nil {
+		q.days, err = strconv.Atoi(rl.Get("days"))
+		if err != nil || q.days > 365000 {
 			web.BadRequest(w, r, "Invalid days query param.")
 			return false
 		}
-		if q.days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
+	}
+
+	if rl.Get("methodID") != "" {
+		q.methodID = rl.Get("methodID")
+		if !validTypeMethod(w, r, q.typeID, q.methodID) {
 			return false
 		}
-	default:
+	}
+
+	// delete any query params we know how to handle and there should be nothing left.
+	rl.Del("typeID")
+	rl.Del("siteID")
+	rl.Del("networkID")
+	rl.Del("days")
+	rl.Del("methodID")
+	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
 	}
 
-	q.typeID = r.URL.Query().Get("typeID")
-	q.networkID = r.URL.Query().Get("networkID")
-	q.siteID = r.URL.Query().Get("siteID")
-
-	return (validSite(w, r, q.networkID, q.siteID) && validType(w, r, q.typeID))
+	return validSite(w, r, q.networkID, q.siteID)
 }
 
 func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
@@ -103,8 +119,8 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	var d string
 	var rows *sql.Rows
 
-	switch q.days {
-	case 0:
+	switch {
+	case q.days == 0 && q.methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -115,7 +131,7 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
                                                         SELECT typepk FROM fits.type WHERE typeid = $3
                                                        ) 
                                  ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID)
-	default:
+	case q.days != 0 && q.methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -127,6 +143,35 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
                                                        ) 
                                 AND time > (now() - interval '`+strconv.Itoa(q.days)+` days')
                   		ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID)
+	case q.days == 0 && q.methodID != "":
+		rows, err = db.Query(
+			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
+                           WHERE 
+                               sitepk = (
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                            )
+                               AND typepk = (
+                                                         SELECT typepk FROM fits.type WHERE typeid = $3
+                                                       ) 
+			AND methodpk = (
+					SELECT methodpk FROM fits.method WHERE methodid = $4
+				)
+                                 ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID, q.methodID)
+	case q.days != 0 && q.methodID != "":
+		rows, err = db.Query(
+			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
+                           WHERE 
+                               sitepk = (
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                            )
+                               AND typepk = (
+                                                         SELECT typepk FROM fits.type WHERE typeid = $3
+                                                       ) 
+		AND methodpk = (
+					SELECT methodpk FROM fits.method WHERE methodid = $4
+				)
+                                AND time > (now() - interval '`+strconv.Itoa(q.days)+` days')
+                  		ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID, q.methodID)
 	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
@@ -151,7 +196,11 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`.csv"`)
+	if q.methodID != "" {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`-`+q.methodID+`.csv"`)
+	} else {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`.csv"`)
+	}
 
 	web.OkBuf(w, r, &b)
 }

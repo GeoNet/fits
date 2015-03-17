@@ -82,3 +82,21 @@ func validType(w http.ResponseWriter, r *http.Request, typeID string) bool {
 
 	return true
 }
+
+// validTypeMethod checks that the typeID and methodID exists in the DB
+// and are a valid combination.
+func validTypeMethod(w http.ResponseWriter, r *http.Request, typeID, methodID string) bool {
+	var d string
+
+	err := db.QueryRow("SELECT typepk FROM fits.type join fits.type_method using (typepk) join fits.method using (methodpk)  WHERE typeid = $1 and methodid = $2", typeID, methodID).Scan(&d)
+	if err == sql.ErrNoRows {
+		web.NotFound(w, r, "invalid methodID for typeID: "+methodID+" "+typeID)
+		return false
+	}
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return false
+	}
+
+	return true
+}
