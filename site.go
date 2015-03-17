@@ -99,6 +99,8 @@ var siteTypeQueryD = &apidoc.Query{
 	URI:         "/site?typeID=(typeID)",
 	Params: map[string]template.HTML{
 		"typeID": `Optional.  Find sites with observations of type typeID e.g., <code>e</code>.`,
+		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
+		for the typeID.`,
 	},
 	Props: map[string]template.HTML{
 		"groundRelationship": `the ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
@@ -110,7 +112,7 @@ var siteTypeQueryD = &apidoc.Query{
 }
 
 type siteTypeQuery struct {
-	typeID string
+	typeID, methodID string
 }
 
 func (q *siteTypeQuery) Doc() *apidoc.Query {
@@ -126,10 +128,18 @@ func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 		if !validType(w, r, q.typeID) {
 			return false
 		}
+
+		if rl.Get("methodID") != "" {
+			q.methodID = rl.Get("methodID")
+			if !validTypeMethod(w, r, q.typeID, q.methodID) {
+				return false
+			}
+		}
 	}
 
 	// delete any query params we know how to handle and there should be nothing left.
 	rl.Del("typeID")
+	rl.Del("methodID")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
@@ -145,7 +155,7 @@ func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	switch {
-	case q.typeID != "":
+	case q.typeID != "" && q.methodID == "":
 		err = db.QueryRow(
 			`SELECT row_to_json(fc)
                          FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
@@ -163,7 +173,27 @@ func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
                          )) as properties FROM (fits.site join fits.network using (networkpk)) as s where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))
                          ) As f )  as fc`, q.typeID).Scan(&d)
-	case q.typeID == "":
+	case q.typeID != "" && q.methodID != "":
+		err = db.QueryRow(
+			`SELECT row_to_json(fc)
+                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
+                         FROM (SELECT 'Feature' as type,
+                         ST_AsGeoJSON(s.location)::json as geometry,
+                         row_to_json((SELECT l FROM 
+                         	(
+                         		SELECT 
+                         		siteid AS "siteID",
+                                height,
+                                ground_relationship AS "groundRelationship",
+                                name,
+                                networkID as "networkID"
+                           ) as l
+                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s where sitepk IN
+(select distinct on (sitepk) sitepk from fits.observation where 
+	observation.typepk = (select typepk from fits.type where typeid = $1)
+	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))
+                         ) As f )  as fc`, q.typeID, q.methodID).Scan(&d)
+	case q.typeID == "" && q.methodID == "":
 		err = db.QueryRow(
 			`SELECT row_to_json(fc)
                          FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
