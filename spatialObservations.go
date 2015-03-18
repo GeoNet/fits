@@ -18,33 +18,29 @@ var spatialObsD = &apidoc.Query{
 	Description: "Spatial observations as CSV",
 	Example:     "/observation?typeID=CO2-flux-e&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:27200&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))",
 	ExampleHost: exHost,
-	URI:         "/observation?typeID=(typeID)&start=(ISO8601 date time)&days=(int)&srsName=(CRS)&within=POLYGON((...))",
+	URI:         "/observation?typeID=(typeID)&start=(ISO8601 date time)&days=(int)&[srsName=(CRS)]&[within=POLYGON((...))]&[methodID=(methodID)]",
 	Params: map[string]template.HTML{
-		"typeID": `typeID for the observations to be retrieved e.g., <code>e</code>.`,
+		"typeID": typeIDDoc,
 		"days":   `The number of days of data to select from the start e.g., <code>1</code>.  Range is 1-7.`,
 		"start":  `the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.`,
-		"srsName": `Optional (default EPSG:4326). Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
+		"srsName": optDoc + `  Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
 		(<a href="http://spatialreference.org/ref/epsg/nzgd49-new-zealand-map-grid/">New Zealand Map Grid</a>).  
 		Site locations are stored as a geography.  For projection they are cast to a geometry and then projected using 
 		<a href ="http://postgis.net/docs/ST_Transform.html">ST_Transform</a>.  Behaviour of projection is not defined outside the bounds of the SRS.  
 		For further details please refer to the PostGis manual: <a href="http://postgis.org/docs/using_postgis_dbmanagement.html#spatial_ref_sys">4.3.1. The SPATIAL_REF_SYS Table and Spatial Reference Systems</a>.`,
-		"within": `Optional.  Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
-		defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
-		(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
-		<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.`,
-		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
-		for the typeID.`,
+		"within":   optDoc + `  ` + withinDoc,
+		"methodID": optDoc + `  ` + methodIDDoc,
 	},
 	Props: map[string]template.HTML{
-		"column 1": `The networkID for the siteID e.g., <code>VO</code>.`,
-		"column 2": `The siteID  e.g., <code>WI034</code>.`,
+		"column 1": networkIDDoc,
+		"column 2": siteIDDoc,
 		"column 3": `The longitude (X) of the observation site.`,
 		"column 4": `The latitude (Y) of the observation site.`,
-		"column 5": `The height of the site (m).`,
-		"column 6": `The ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
-		"column 7": `The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.`,
-		"column 8": `The observation value.`,
-		"column 9": `The observation error.  0 is used for an unknown error.`,
+		"column 5": heightDoc,
+		"column 6": grelDoc,
+		"column 7": obsDTDoc,
+		"column 8": obsValDoc,
+		"column 9": obsErrDoc,
 	},
 }
 

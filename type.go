@@ -26,10 +26,10 @@ var typeQueryD = &apidoc.Query{
 		"none": `no query parameters are required.`,
 	},
 	Props: map[string]template.HTML{
-		"description": `a description of the type.`,
-		"name":        `a short name for the type.`,
-		"typeID":      `the type identifier.`,
-		"unit":        `the unit for the type.`,
+		"description": `Type description e.g., <code>displacement from initial position</code>`,
+		"name":        `Type name e.g., <code>east</code>`,
+		"typeID":      typeIDDoc,
+		"unit":        `Type unit e.g., <code>mm</code>.`,
 	},
 }
 

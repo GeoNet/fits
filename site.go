@@ -37,22 +37,16 @@ var siteDoc = apidoc.Endpoint{Title: "Site",
 
 var siteQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
-	Title:       "Site Information",
+	Title:       "Site",
 	Description: "Find information for individual sites.",
 	Example:     "/site?siteID=HOLD&networkID=CG",
 	ExampleHost: exHost,
 	URI:         "/site?siteID=(siteID)&networkID=(networkID)",
 	Params: map[string]template.HTML{
-		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
-		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
+		"siteID":    siteIDDoc,
+		"networkID": networkIDDoc,
 	},
-	Props: map[string]template.HTML{
-		"groundRelationship": `the ground relationship (m) for the site.  Site above ground level have a negative ground relationship.`,
-		"height":             `the height of the site (m).`,
-		"name":               `the name of the site.`,
-		"neworkID":           `the identifier for the network the site is in.`,
-		"siteID":             `a short identifier for the site.`,
-	},
+	Props: siteProps,
 }
 
 type siteQuery struct {
@@ -96,27 +90,17 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 var siteTypeQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
-	Title:       "Observation and Method",
-	Description: "Filter sites by observation type and method.",
+	Title:       "Sites",
+	Description: "Filter sites by observation type, method, and location.",
 	Example:     "/site?typeID=e",
 	ExampleHost: exHost,
-	URI:         "/site?typeID=(typeID)",
+	URI:         "/site?[typeID=(typeID)]&[methodID=(methodID)]&[within=POLYGON((...))]",
 	Params: map[string]template.HTML{
-		"typeID": `Optional.  Find sites with observations of type typeID e.g., <code>e</code>.`,
-		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
-		for the typeID.`,
-		"within": `Optional.  Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
-		defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
-		(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
-		<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.`,
+		"typeID":   optDoc + `  ` + typeIDDoc,
+		"methodID": optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
+		"within":   optDoc + `  ` + withinDoc,
 	},
-	Props: map[string]template.HTML{
-		"groundRelationship": `the ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
-		"height":             `the height of the site (m).`,
-		"name":               `the name of the site.`,
-		"neworkID":           `the identifier for the network the site is in.`,
-		"siteID":             `a short identifier for the site.`,
-	},
+	Props: siteProps,
 }
 
 type siteTypeQuery struct {

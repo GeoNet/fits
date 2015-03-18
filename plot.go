@@ -26,9 +26,9 @@ var plotQueryD = &apidoc.Query{
 	Title:       "Observations SVG",
 	Description: "Plot observations as Scalable Vector Graphic (SVG)",
 	Discussion: `<p><b><i>Caution:</i></b> these plots should be used with caution
-	and some understanding of the underlying data.  FITS data is unevenly sampled and often has a wider time range than
-	can be represented accurately in these plots.  No down sampling of any kind is attempted for plotting.  Data points
-	are joined with straight lines.  There is potential for artifacts or for signal to be obscured.  If you think you have seen 
+	and some understanding of the underlying data.  FITS data is often unevenly sampled.  The requested data range may not be 
+	accurately represented at the resolution of these plots.  No down sampling of any kind is attempted for plotting.  Data points
+	are joined with straight lines.  There is potential for signal to be obscured or visual artifacts created.  If you think you have seen 
 	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
@@ -49,14 +49,14 @@ var plotQueryD = &apidoc.Query{
 	<br />Not all observations have an associated error estimate.
 	</p>
             `,
-	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)[&days=int][&yrange=float64]",
+	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]",
 	Params: map[string]template.HTML{
-		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
-		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
-		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
-		"days": `Optional.  The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
+		"typeID":    typeIDDoc,
+		"siteID":    siteIDDoc,
+		"networkID": networkIDDoc,
+		"days": optDoc + `  The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
 		x-axis which may not be the same as the data.  Maximum value is 365000.`,
-		"yrange": `Optional.  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
+		"yrange": optDoc + `  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
 		data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
 		the y-axis range will be -20 to 60.  yrange must be > 0`,
 	},

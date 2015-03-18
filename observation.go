@@ -30,19 +30,18 @@ var observationQueryD = &apidoc.Query{
 	Description: "Observations as CSV",
 	Example:     "/observation?typeID=e&siteID=HOLD&networkID=CG",
 	ExampleHost: exHost,
-	URI:         "/observation?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)",
+	URI:         "/observation?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[methodID=(methodID)]",
 	Params: map[string]template.HTML{
-		"typeID":    `typeID for the observations to be retrieved e.g., <code>e</code>.`,
-		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
-		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
-		"days":      `Optional.  The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
-		"methodID": `Optional. Return only observations where the typeID has the provided methodID.  methodID must be a valid method
-		for the typeID.`,
+		"typeID":    typeIDDoc,
+		"siteID":    siteIDDoc,
+		"networkID": networkIDDoc,
+		"days":      optDoc + `  The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
+		"methodID":  optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
 	},
 	Props: map[string]template.HTML{
-		"column 1": `The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.`,
-		"column 2": `The observation value.`,
-		"column 3": `The observation error.  0 is used for an unknown error.`,
+		"column 1": obsDTDoc,
+		"column 2": obsValDoc,
+		"column 3": obsErrDoc,
 	},
 }
 
