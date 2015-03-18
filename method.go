@@ -20,15 +20,15 @@ var methodQueryD = &apidoc.Query{
 	Description: "Look up method information.",
 	Example:     "/method?typeID=e",
 	ExampleHost: exHost,
-	URI:         "/method?typeID=(typeID)",
+	URI:         "/method?[typeID=(typeID)]",
 	Params: map[string]template.HTML{
-		"typeID": `a valid type identifier.  Optional.`,
+		"typeID": optDoc + `  ` + typeIDDoc,
 	},
 	Props: map[string]template.HTML{
-		"description": `a description of the method.`,
-		"methodID":    `the method identifier.`,
-		"name":        `the method name.`,
-		"reference":   `a link to further information about the method.`,
+		"description": `A description of the method e.g., <code>Bernese v5.0 GNS processing software</code>.`,
+		"methodID":    methodIDDoc,
+		"name":        `The method name e.g., <code>Bernese v5.0</code>.`,
+		"reference":   `A link to further information about the method.`,
 	},
 }
 

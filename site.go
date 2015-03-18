@@ -6,6 +6,25 @@ import (
 	"github.com/GeoNet/app/web/api/apidoc"
 	"html/template"
 	"net/http"
+	"strings"
+)
+
+const (
+	siteGeoJSON = `SELECT row_to_json(fc)
+                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
+                         FROM (SELECT 'Feature' as type,
+                         ST_AsGeoJSON(s.location)::json as geometry,
+                         row_to_json((SELECT l FROM 
+                         	(
+                         		SELECT 
+                         		siteid AS "siteID",
+                                height,
+                                ground_relationship AS "groundRelationship",
+                                name,
+                                networkID as "networkID"
+                           ) as l
+                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s `
+	fc = ` ) As f )  as fc`
 )
 
 var siteDoc = apidoc.Endpoint{Title: "Site",
@@ -18,22 +37,16 @@ var siteDoc = apidoc.Endpoint{Title: "Site",
 
 var siteQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
-	Title:       "Site Information",
+	Title:       "Site",
 	Description: "Find information for individual sites.",
 	Example:     "/site?siteID=HOLD&networkID=CG",
 	ExampleHost: exHost,
 	URI:         "/site?siteID=(siteID)&networkID=(networkID)",
 	Params: map[string]template.HTML{
-		"siteID":    `the siteID to retrieve observations for e.g., <code>HOLD</code>`,
-		"networkID": `the networkID for the siteID e.g., <code>CG</code>.`,
+		"siteID":    siteIDDoc,
+		"networkID": networkIDDoc,
 	},
-	Props: map[string]template.HTML{
-		"groundRelationship": `the ground relationship (m) for the site.  Site above ground level have a negative ground relationship.`,
-		"height":             `the height of the site (m).`,
-		"name":               `the name of the site.`,
-		"neworkID":           `the identifier for the network the site is in.`,
-		"siteID":             `a short identifier for the site.`,
-	},
+	Props: siteProps,
 }
 
 type siteQuery struct {
@@ -65,22 +78,7 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	var d string
 
 	err := db.QueryRow(
-		`SELECT row_to_json(fc)
-                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
-                         FROM (SELECT 'Feature' as type,
-                         ST_AsGeoJSON(s.location)::json as geometry,
-                         row_to_json((SELECT l FROM 
-                         	(
-                         		SELECT 
-                         		siteid AS "siteID",
-                                height,
-                                ground_relationship AS "groundRelationship",
-                                name,
-                                networkID as "networkID"
-                           ) as l
-                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s
-		WHERE siteid = $1 and networkid = $2
-                         ) As f )  as fc`, q.siteID, q.networkID).Scan(&d)
+		siteGeoJSON+` WHERE siteid = $1 and networkid = $2`+fc, q.siteID, q.networkID).Scan(&d)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -92,25 +90,21 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 
 var siteTypeQueryD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
-	Title:       "Observation Type",
-	Description: "Find sites that have an observation type available at them.",
+	Title:       "Sites",
+	Description: "Filter sites by observation type, method, and location.",
 	Example:     "/site?typeID=e",
 	ExampleHost: exHost,
-	URI:         "/site?typeID=(typeID)",
+	URI:         "/site?[typeID=(typeID)]&[methodID=(methodID)]&[within=POLYGON((...))]",
 	Params: map[string]template.HTML{
-		"typeID": `the observation type.`,
+		"typeID":   optDoc + `  ` + typeIDDoc,
+		"methodID": optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
+		"within":   optDoc + `  ` + withinDoc,
 	},
-	Props: map[string]template.HTML{
-		"groundRelationship": `the ground relationship (m) for the site.  Sites above ground level have a negative ground relationship.`,
-		"height":             `the height of the site (m).`,
-		"name":               `the name of the site.`,
-		"neworkID":           `the identifier for the network the site is in.`,
-		"siteID":             `a short identifier for the site.`,
-	},
+	Props: siteProps,
 }
 
 type siteTypeQuery struct {
-	typeID string
+	typeID, methodID, within string
 }
 
 func (q *siteTypeQuery) Doc() *apidoc.Query {
@@ -118,41 +112,90 @@ func (q *siteTypeQuery) Doc() *apidoc.Query {
 }
 
 func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch {
-	case len(r.URL.Query()) != 1:
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
-	case !web.ParamsExist(w, r, "typeID"):
+	rl := r.URL.Query()
+
+	if rl.Get("methodID") != "" && rl.Get("typeID") == "" {
+		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
 		return false
 	}
 
-	q.typeID = r.URL.Query().Get("typeID")
+	if rl.Get("typeID") != "" {
+		q.typeID = rl.Get("typeID")
 
-	return validType(w, r, q.typeID)
+		if !validType(w, r, q.typeID) {
+			return false
+		}
+
+		if rl.Get("methodID") != "" {
+			q.methodID = rl.Get("methodID")
+			if !validTypeMethod(w, r, q.typeID, q.methodID) {
+				return false
+			}
+		}
+	}
+
+	if rl.Get("within") != "" {
+		q.within = strings.Replace(rl.Get("within"), "+", "", -1)
+		if !validPoly(w, r, q.within) {
+			return false
+		}
+	}
+
+	// delete any query params we know how to handle and there should be nothing left.
+	rl.Del("typeID")
+	rl.Del("methodID")
+	rl.Del("within")
+	if len(rl) > 0 {
+		web.BadRequest(w, r, "incorrect number of query params.")
+		return false
+	}
+
+	return true
 }
 
 func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
 	var d string
+	var err error
 
-	err := db.QueryRow(
-		`SELECT row_to_json(fc)
-                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
-                         FROM (SELECT 'Feature' as type,
-                         ST_AsGeoJSON(s.location)::json as geometry,
-                         row_to_json((SELECT l FROM 
-                         	(
-                         		SELECT 
-                         		siteid AS "siteID",
-                                height,
-                                ground_relationship AS "groundRelationship",
-                                name,
-                                networkID as "networkID"
-                           ) as l
-                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s where sitepk IN
-(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))
-                         ) As f )  as fc`, q.typeID).Scan(&d)
+	switch {
+	case q.typeID == "" && q.methodID == "" && q.within == "":
+		err = db.QueryRow(
+			siteGeoJSON + fc).Scan(&d)
+	case q.typeID == "" && q.methodID == "" && q.within != "":
+		err = db.QueryRow(
+			siteGeoJSON+
+				`where ST_Within(location::geometry, ST_GeomFromText($1, 4326))`+
+				fc, q.within).Scan(&d)
+	case q.typeID != "" && q.methodID == "" && q.within == "":
+		err = db.QueryRow(
+			siteGeoJSON+
+				` where sitepk IN
+(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))`+fc, q.typeID).Scan(&d)
+	case q.typeID != "" && q.methodID == "" && q.within != "":
+		err = db.QueryRow(
+			siteGeoJSON+
+				` where sitepk IN
+(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1)) 
+ AND ST_Within(location::geometry, ST_GeomFromText($2, 4326))`+fc, q.typeID, q.within).Scan(&d)
+	case q.typeID != "" && q.methodID != "" && q.within == "":
+		err = db.QueryRow(
+			siteGeoJSON+
+				` where sitepk IN
+(select distinct on (sitepk) sitepk from fits.observation where 
+	observation.typepk = (select typepk from fits.type where typeid = $1)
+	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))`+fc, q.typeID, q.methodID).Scan(&d)
+	case q.typeID != "" && q.methodID != "" && q.within != "":
+		err = db.QueryRow(
+			siteGeoJSON+
+				` where sitepk IN
+(select distinct on (sitepk) sitepk from fits.observation where 
+	observation.typepk = (select typepk from fits.type where typeid = $1)
+	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))
+		 AND ST_Within(location::geometry, ST_GeomFromText($3, 4326))`+fc, q.typeID, q.methodID, q.within).Scan(&d)
+	}
+
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return

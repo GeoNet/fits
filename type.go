@@ -26,10 +26,10 @@ var typeQueryD = &apidoc.Query{
 		"none": `no query parameters are required.`,
 	},
 	Props: map[string]template.HTML{
-		"description": `a description of the type.`,
-		"name":        `a short name for the type.`,
-		"typeID":      `the type identifier.`,
-		"unit":        `the unit for the type.`,
+		"description": `Type description e.g., <code>displacement from initial position</code>`,
+		"name":        `Type name e.g., <code>east</code>`,
+		"typeID":      typeIDDoc,
+		"unit":        `Type unit e.g., <code>mm</code>.`,
 	},
 }
 
@@ -73,6 +73,24 @@ func validType(w http.ResponseWriter, r *http.Request, typeID string) bool {
 	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", typeID).Scan(&d)
 	if err == sql.ErrNoRows {
 		web.NotFound(w, r, "invalid typeID: "+typeID)
+		return false
+	}
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return false
+	}
+
+	return true
+}
+
+// validTypeMethod checks that the typeID and methodID exists in the DB
+// and are a valid combination.
+func validTypeMethod(w http.ResponseWriter, r *http.Request, typeID, methodID string) bool {
+	var d string
+
+	err := db.QueryRow("SELECT typepk FROM fits.type join fits.type_method using (typepk) join fits.method using (methodpk)  WHERE typeid = $1 and methodid = $2", typeID, methodID).Scan(&d)
+	if err == sql.ErrNoRows {
+		web.NotFound(w, r, "invalid methodID for typeID: "+methodID+" "+typeID)
 		return false
 	}
 	if err != nil {

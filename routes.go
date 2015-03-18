@@ -45,14 +45,19 @@ func router(w http.ResponseWriter, r *http.Request) {
 		q := &plotQuery{}
 		api.Serve(q, w, r)
 	case r.URL.Path == "/observation" && (accept == web.V1CSV || latest):
-		q := &observationQuery{}
-		api.Serve(q, w, r)
-	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
-		if len(r.URL.Query()) == 1 {
-			q := &siteTypeQuery{}
+		if r.URL.Query().Get("siteID") != "" {
+			q := &observationQuery{}
 			api.Serve(q, w, r)
 		} else {
+			q := &spatialObs{}
+			api.Serve(q, w, r)
+		}
+	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
+		if r.URL.Query().Get("siteID") != "" {
 			q := &siteQuery{}
+			api.Serve(q, w, r)
+		} else {
+			q := &siteTypeQuery{}
 			api.Serve(q, w, r)
 		}
 	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
