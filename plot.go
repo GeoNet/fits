@@ -27,26 +27,40 @@ var plotQueryD = &apidoc.Query{
 	Description: "Plot observations as Scalable Vector Graphic (SVG)",
 	Discussion: `<p><b><i>Caution:</i></b> these plots should be used with caution
 	and some understanding of the underlying data.  FITS data is often unevenly sampled.  The requested data range may not be 
-	accurately represented at the resolution of these plots.  No down sampling of any kind is attempted for plotting.  Data points
-	are joined with straight lines.  There is potential for signal to be obscured or visual artifacts created.  If you think you have seen 
+	accurately represented at the resolution of these plots.  No down sampling of any kind is attempted for plotting.  There is 
+	potential for signal to be obscured or visual artifacts created.  If you think you have seen 
 	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
 	<br/>Plots show data with errors.  The minimum, maximum, and latest values are labeled.  The plot can be 
-	used in an html img tag e.g., <code>&lt;img src="/plot?networkID=LI&siteID=GISB&typeID=e"/></code> or as
+	used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e"/></code> or as
 	an object or inline depending on your needs.
 	</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
-	<br/>The number of days displayed can be changed with the <code>days</code> query parameter.
+	<br/>The number of days displayed can be changed with the <code>days</code> query parameter. 
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300"/></code>
 	</p>
 	<p>
 	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50" style="width: 100% \9" class="img-responsive" />
 	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf&yrange=50" style="width: 100% \9" class="img-responsive" />
 	<br />Not all observations have an associated error estimate.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e_rf&days=300"/></code>
+	</p>
+	<p>
+	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter" style="width: 100% \9" class="img-responsive" />
+	<br />Scatter plots may be more appropriate for some observations.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter"/></code>
+	</p>
+	<p>
+	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
+	<br />If <code>yrange</code> is set and data values would be out of range the background colour of the plot changes.  This happens
+	with <code>line</code> and <code>scatter</code> plots.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
 	</p>
             `,
 	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]",
@@ -58,7 +72,9 @@ var plotQueryD = &apidoc.Query{
 		x-axis which may not be the same as the data.  Maximum value is 365000.`,
 		"yrange": optDoc + `  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
 		data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
-		the y-axis range will be -20 to 60.  yrange must be > 0`,
+		the y-axis range will be -20 to 60.  yrange must be > 0.  If there are data in the time range that would be out of range on the plot then the background
+		colour of the plot is changed.`,
+		"type": optDoc + `  Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
 	},
 	Props: map[string]template.HTML{
 		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
@@ -106,12 +122,26 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 		}
 	}
 
+	if rl.Get("type") != "" {
+		q.plot.pType = rl.Get("type")
+
+		if q.plot.pType == "scatter" || q.plot.pType == "line" {
+		} else {
+			web.BadRequest(w, r, "invalid plot type")
+			return false
+		}
+
+	} else {
+		q.plot.pType = "line"
+	}
+
 	// delete any query params we know how to handle and there should be nothing left.
 	rl.Del("typeID")
 	rl.Del("networkID")
 	rl.Del("siteID")
 	rl.Del("days")
 	rl.Del("yrange")
+	rl.Del("type")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
@@ -136,14 +166,18 @@ const (
 	titleFont = "text-anchor:start;font-size:16px;font-weight:bold;" + font
 	cFont     = "text-anchor:start;font-size:10px;" + font
 
-	errPoly  = `fill:paleturquoise;opacity:1;stroke:paleturquoise;stroke-width:1;`
-	dataLine = `fill:none;stroke:darkslategray;stroke-width:0.5;`
+	errPoly   = `fill:paleturquoise;opacity:1;stroke:paleturquoise;stroke-width:1;`
+	alertPoly = `fill:mistyrose;opacity:1;stroke:mistyrose;stroke-width:1;`
+	dataLine  = `fill:none;stroke:darkslategray;stroke-width:0.5;`
+	errorLine = `fill:none;stroke:paleturquoise;stroke-width:1;`
 
 	markerFont   = font + `font-size:14px;`
 	markerFontE  = "text-anchor:end;" + markerFont
 	markerFontS  = "text-anchor:start;" + markerFont
 	valMarker    = `fill:mediumblue;opacity:0.5;stroke:none`
 	latestMarker = `fill:red;opacity:0.5;stroke:none`
+	dataMarker   = `fill:darkslategray;opacity:0.8;stroke:none`
+	dataSize     = 2
 	markerSize   = 8
 	markerOffset = 10 // offsets the marker label from the marker
 
@@ -181,6 +215,8 @@ type plot struct {
 	yrange                                    float64
 	siteName, typeName, typeDescription, unit string
 	hasData                                   bool
+	pType                                     string // line || scatter
+	rangeAlert                                bool
 }
 
 func (v *val) label() string {
@@ -315,6 +351,14 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 			v.y = pHeight - int(((v.v-ymin)*dy)+0.5) + top
 			v.ey = int(v.e * dy)
 		}
+
+		if p.min.y > pHeight+top {
+			p.rangeAlert = true
+		}
+		if p.max.y < top {
+			p.rangeAlert = true
+		}
+
 	}
 
 	return true
@@ -325,39 +369,57 @@ func (p *plot) svg() *bytes.Buffer {
 	s := svg.New(&b)
 
 	s.Start(width, height)
+
+	if p.rangeAlert {
+		s.Rect(0, 0, width, height, alertPoly)
+	}
+
 	s.Title("FITS: " + p.networkID + "." + p.siteID + " " + p.typeID)
 
 	if p.hasData {
-		var x, y []int
+		switch p.pType {
+		case "line":
+			var x, y []int
 
-		for _, v := range p.data {
-			x = append(x, v.x)
-			y = append(y, v.y)
-		}
-
-		if p.hasErrors {
-			var xErr, yErr []int
-			// the first half of the error polygon - left to right and above the value.
 			for _, v := range p.data {
-
-				xErr = append(xErr, v.x)
-				yErr = append(yErr, v.y-v.ey)
-			}
-			// the second half of the error polygon - right to left and below the value
-			for i := len(p.data) - 1; i >= 0; i-- {
-				xErr = append(xErr, p.data[i].x)
-				yErr = append(yErr, p.data[i].y+p.data[i].ey)
+				x = append(x, v.x)
+				y = append(y, v.y)
 			}
 
-			s.Polygon(xErr, yErr, errPoly)
+			if p.hasErrors {
+				var xErr, yErr []int
+				// the first half of the error polygon - left to right and above the value.
+				for _, v := range p.data {
+
+					xErr = append(xErr, v.x)
+					yErr = append(yErr, v.y-v.ey)
+
+				}
+				// the second half of the error polygon - right to left and below the value
+				for i := len(p.data) - 1; i >= 0; i-- {
+					xErr = append(xErr, p.data[i].x)
+					yErr = append(yErr, p.data[i].y+p.data[i].ey)
+				}
+
+				s.Polygon(xErr, yErr, errPoly)
+			}
+
+			s.Polyline(x, y, dataLine)
+
+		case "scatter":
+			for _, v := range p.data {
+				s.Line(v.x, v.y+v.ey, v.x, v.y-v.ey, errorLine)
+			}
+			for _, v := range p.data {
+				s.Circle(v.x, v.y, dataSize, dataMarker)
+			}
 		}
-
-		s.Polyline(x, y, dataLine)
-		marker(s, p.min.x, p.min.y, p.min.label())
-		marker(s, p.max.x, p.max.y, p.max.label())
-		s.Circle(p.end.x, p.end.y, markerSize, latestMarker)
-		s.Text(p.end.x+markerOffset, p.end.y, p.end.label(), markerFontS)
 	}
+
+	marker(s, p.min.x, p.min.y, p.min.label())
+	marker(s, p.max.x, p.max.y, p.max.label())
+	s.Circle(p.end.x, p.end.y, markerSize, latestMarker)
+	s.Text(p.end.x+markerOffset, p.end.y, p.end.label(), markerFontS)
 
 	// axes
 	s.Line(left, top, left, pBottom+5, axisLine)
@@ -386,10 +448,15 @@ func (p *plot) svg() *bytes.Buffer {
 	return &b
 }
 
-// marker draws the data marker at x y with the label to left or right depending on which
-// half of the plot the maker is in.
+// marker draws the data marker at x y with the label to left or right and above
+// or below depending on which half of the plot the maker is in.
 func marker(s *svg.SVG, x, y int, l string) {
 	s.Circle(x, y, markerSize, valMarker)
+
+	if y-top > pHeight/2 {
+		y = y + 10
+	}
+
 	if x > pWidth/2 {
 		s.Text(x-markerOffset, y, l, markerFontE)
 	} else {
