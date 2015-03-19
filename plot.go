@@ -63,7 +63,7 @@ var plotQueryD = &apidoc.Query{
 	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
 	</p>
             `,
-	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]",
+	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]&[type=(line|scatter)]",
 	Params: map[string]template.HTML{
 		"typeID":    typeIDDoc,
 		"siteID":    siteIDDoc,
