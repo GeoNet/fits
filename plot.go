@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"math"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -56,6 +57,10 @@ var plotQueryD = &apidoc.Query{
 	<br />Scatter plots may be more appropriate for some observations.
 	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter"/></code>
 	</p>
+	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true" style="width: 100% \9" class="img-responsive" />
+	<br />The method used for an observation type can also be indicated on a scatter plot.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true"/></code>
+	</p>
 	<p>
 	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
 	<br />If <code>yrange</code> is set and data values would be out of range the background colour of the plot changes.  This happens
@@ -63,7 +68,7 @@ var plotQueryD = &apidoc.Query{
 	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
 	</p>
             `,
-	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]&[type=(line|scatter)]",
+	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]&[type=(line|scatter)&[showMethod=true]]",
 	Params: map[string]template.HTML{
 		"typeID":    typeIDDoc,
 		"siteID":    siteIDDoc,
@@ -75,6 +80,8 @@ var plotQueryD = &apidoc.Query{
 		the y-axis range will be -20 to 60.  yrange must be > 0.  If there are data in the time range that would be out of range on the plot then the background
 		colour of the plot is changed.`,
 		"type": optDoc + `  Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
+		"showMethod": optDoc + `  If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
+		markers based on methodID.`,
 	},
 	Props: map[string]template.HTML{
 		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
@@ -135,6 +142,10 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 		q.plot.pType = "line"
 	}
 
+	if q.plot.pType == "scatter" && rl.Get("showMethod") == "true" {
+		q.plot.showMethod = true
+	}
+
 	// delete any query params we know how to handle and there should be nothing left.
 	rl.Del("typeID")
 	rl.Del("networkID")
@@ -142,6 +153,7 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("days")
 	rl.Del("yrange")
 	rl.Del("type")
+	rl.Del("showMethod")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
 		return false
@@ -199,9 +211,24 @@ const (
 	pBottom = height - bottom       // bottom of plot
 )
 
+var methodColours []string
+
+func init() {
+	methodColours = make([]string, 8)
+	methodColours[0] = "mediumblue"
+	methodColours[1] = "red"
+	methodColours[2] = "lawngreen"
+	methodColours[3] = "gold"
+	methodColours[4] = "orangered"
+	methodColours[5] = "darkcyan"
+	methodColours[6] = "forestgreen"
+	methodColours[7] = "mediumslateblue"
+}
+
 type val struct {
 	t        time.Time
 	e, v     float64
+	m        int // methodPK
 	ey, x, y int // represent t,v,e in graphics space.
 }
 
@@ -217,6 +244,9 @@ type plot struct {
 	hasData                                   bool
 	pType                                     string // line || scatter
 	rangeAlert                                bool
+	showMethod                                bool
+	methodColours                             map[int]string
+	methodNames                               map[int]string
 }
 
 func (v *val) label() string {
@@ -230,6 +260,7 @@ func (v *val) date() string {
 func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	var datetime string
 	var value, er float64
+	var mpk int
 
 	// load observations from the DB
 	var rows *sql.Rows
@@ -237,7 +268,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 
 	if p.days == 0 {
 		rows, err = db.Query(
-			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
+			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error, methodpk FROM fits.observation 
 		WHERE 
 		sitepk = (
 			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
@@ -248,7 +279,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID)
 	} else {
 		rows, err = db.Query(
-			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error FROM fits.observation 
+			`SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as datetime, value, error, methodpk FROM fits.observation 
 		WHERE 
 		sitepk = (
 			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
@@ -265,7 +296,7 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&datetime, &value, &er)
+		err = rows.Scan(&datetime, &value, &er, &mpk)
 		if err != nil {
 			web.ServiceUnavailable(w, r, err)
 			return false
@@ -279,9 +310,53 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 		}
 		v.v = value
 		v.e = er
+		v.m = mpk
 		p.data = append(p.data, &v)
 	}
 	rows.Close()
+
+	if p.showMethod {
+		p.methodColours = make(map[int]string)
+		p.methodNames = make(map[int]string)
+		var i int
+		var n string
+		rows, err = db.Query(`select methodpk, method.name from 
+			fits.method join fits.type_method using (methodpk) join fits.type using (typepk) 
+			where typeid=$1 ORDER BY methodpk ASC`, p.typeID)
+		if err != nil {
+			web.ServiceUnavailable(w, r, err)
+			return false
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err = rows.Scan(&i, &n)
+			if err != nil {
+				web.ServiceUnavailable(w, r, err)
+				return false
+			}
+			p.methodNames[i] = n
+			p.methodColours[i] = n
+		}
+		rows.Close()
+
+		i = 0
+		mc := len(methodColours)
+		// make sure the same methods get the same colours between
+		// plot redraws
+		var keys []int
+		for k := range p.methodColours {
+			keys = append(keys, k)
+		}
+		sort.Ints(keys)
+		for _, j := range keys {
+			if i < mc {
+				p.methodColours[j] = methodColours[i]
+			} else {
+				p.methodColours[j] = methodColours[0]
+			}
+			i++
+		}
+	}
 
 	// Additional plot labels
 	err = db.QueryRow("select site.name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
@@ -410,8 +485,14 @@ func (p *plot) svg() *bytes.Buffer {
 			for _, v := range p.data {
 				s.Line(v.x, v.y+v.ey, v.x, v.y-v.ey, errorLine)
 			}
-			for _, v := range p.data {
-				s.Circle(v.x, v.y, dataSize, dataMarker)
+			if p.showMethod {
+				for _, v := range p.data {
+					s.Circle(v.x, v.y, dataSize, `opacity:0.8;stroke:none;fill:`+p.methodColours[v.m])
+				}
+			} else {
+				for _, v := range p.data {
+					s.Circle(v.x, v.y, dataSize, dataMarker)
+				}
 			}
 		}
 	}
@@ -420,6 +501,21 @@ func (p *plot) svg() *bytes.Buffer {
 	marker(s, p.max.x, p.max.y, p.max.label())
 	s.Circle(p.end.x, p.end.y, markerSize, latestMarker)
 	s.Text(p.end.x+markerOffset, p.end.y, p.end.label(), markerFontS)
+
+	if p.showMethod {
+		// Draw the methodID key in the top or bottom
+		// right hand side of the plot depending on the
+		// location of the latest value and it's label
+		my := top + 10
+		if p.end.y-top < pHeight/2 {
+			my = pHeight / 2
+		}
+		for i, m := range p.methodColours {
+			s.Circle(pWidth+left+25, my, dataSize, `opacity:0.8;stroke:none;fill:`+m)
+			s.Text(pWidth+left+30, my+4, p.methodNames[i], axisFont)
+			my = my + 12
+		}
+	}
 
 	// axes
 	s.Line(left, top, left, pBottom+5, axisLine)
