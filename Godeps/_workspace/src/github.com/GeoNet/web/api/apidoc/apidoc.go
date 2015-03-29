@@ -3,7 +3,7 @@ package apidoc
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/GeoNet/app/web"
+	"github.com/GeoNet/web"
 	"html/template"
 	"io/ioutil"
 	"net/http"

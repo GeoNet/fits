@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/app/cfg"
-	"github.com/GeoNet/app/log/logentries"
-	"github.com/GeoNet/app/web"
+	"github.com/GeoNet/cfg"
+	"github.com/GeoNet/log/logentries"
+	"github.com/GeoNet/web"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"

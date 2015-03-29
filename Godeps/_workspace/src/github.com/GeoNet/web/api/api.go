@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/GeoNet/app/web/api/apidoc"
+	"github.com/GeoNet/web/api/apidoc"
 	"net/http"
 )
 

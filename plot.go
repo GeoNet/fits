@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	"github.com/GeoNet/app/web"
-	"github.com/GeoNet/app/web/api/apidoc"
+	"github.com/GeoNet/web"
+	"github.com/GeoNet/web/api/apidoc"
 	"github.com/ajstarks/svgo"
 	"html/template"
 	"math"

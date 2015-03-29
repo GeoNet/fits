@@ -3,20 +3,20 @@
 	"GoVersion": "go1.4.1",
 	"Deps": [
 		{
-			"ImportPath": "github.com/GeoNet/app/cfg",
-			"Rev": "78b2c110c11ea31529216c173b8a5f5545bd8457"
+			"ImportPath": "github.com/GeoNet/cfg",
+			"Rev": "58a4576e2010db7bc7d9f866a30d8ce59f637f71"
 		},
 		{
-			"ImportPath": "github.com/GeoNet/app/log/logentries",
-			"Rev": "78b2c110c11ea31529216c173b8a5f5545bd8457"
+			"ImportPath": "github.com/GeoNet/log/logentries",
+			"Rev": "18c2731b9dd6d1f74215d1018b21f7b8d270d4fe"
 		},
 		{
-			"ImportPath": "github.com/GeoNet/app/metrics",
-			"Rev": "78b2c110c11ea31529216c173b8a5f5545bd8457"
+			"ImportPath": "github.com/GeoNet/metrics",
+			"Rev": "8f789f3b7a5463772d54dac9c7e0075f82fb088a"
 		},
 		{
-			"ImportPath": "github.com/GeoNet/app/web",
-			"Rev": "78b2c110c11ea31529216c173b8a5f5545bd8457"
+			"ImportPath": "github.com/GeoNet/web",
+			"Rev": "46aa000ec3f10f84cdcc3a00f01768587a142bf8"
 		},
 		{
 			"ImportPath": "github.com/ajstarks/svgo",

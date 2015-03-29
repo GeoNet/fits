@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/GeoNet/app/web"
-	"github.com/GeoNet/app/web/api"
-	"github.com/GeoNet/app/web/api/apidoc"
+	"github.com/GeoNet/web"
+	"github.com/GeoNet/web/api"
+	"github.com/GeoNet/web/api/apidoc"
 	"net/http"
 	"strings"
 )

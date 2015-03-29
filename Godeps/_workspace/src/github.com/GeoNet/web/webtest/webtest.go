@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/GeoNet/app/web"
+	"github.com/GeoNet/web"
 	"io/ioutil"
 	"log"
 	"net/http"

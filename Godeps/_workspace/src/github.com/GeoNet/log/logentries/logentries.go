@@ -1,4 +1,4 @@
-// Package logentries send log messages to Logentries using TLS.
+// Package logentries sends log messages to Logentries.com using TLS.
 package logentries
 
 import (
@@ -85,10 +85,10 @@ var le chan string
 
 var std = os.Stderr
 
-// Init reconfigures the logger to send to Logentries using TLS as well as
-// continuing to write to std err.  The send to Logentries is via a buffered chan and
+// Init reconfigures the logger to send to Logentries using TLS.
+// The send to Logentries is via a buffered chan and
 // messages will not be sent to Logentries if the chan is full.
-// Call with an empty token no-ops.
+// Calls with an empty token no-op.
 func Init(token string) {
 	if token == "" {
 		log.Println("Not sending to Logentries - empty token.")
