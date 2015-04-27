@@ -75,16 +75,12 @@ func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
-	var d string
-
-	err := db.QueryRow(
-		siteGeoJSON+` WHERE siteid = $1 and networkid = $2`+fc, q.siteID, q.networkID).Scan(&d)
+	b, err := geoJSONSite(q.networkID, q.siteID)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
 	}
 
-	b := []byte(d)
 	web.Ok(w, r, &b)
 }
 
@@ -156,6 +152,40 @@ func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
+	b, err := q.geoJSONSites()
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return
+	}
+	web.Ok(w, r, &b)
+}
+
+// validSite checks that the siteID and networkID combination exists in the DB.
+func validSite(w http.ResponseWriter, r *http.Request, networkID, siteID string) bool {
+	var d string
+
+	err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", networkID, siteID).Scan(&d)
+	if err == sql.ErrNoRows {
+		web.NotFound(w, r, "invalid siteID and networkID combination: "+siteID+" "+networkID)
+		return false
+	}
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return false
+	}
+
+	return true
+}
+
+func geoJSONSite(networkID, siteID string) ([]byte, error) {
+	var d string
+	err := db.QueryRow(
+		siteGeoJSON+` WHERE siteid = $1 and networkid = $2`+fc, siteID, networkID).Scan(&d)
+
+	return []byte(d), err
+}
+
+func (q *siteTypeQuery) geoJSONSites() ([]byte, error) {
 	var d string
 	var err error
 
@@ -196,28 +226,5 @@ func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))`+fc, q.typeID, q.methodID, q.within).Scan(&d)
 	}
 
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
-	}
-
-	b := []byte(d)
-	web.Ok(w, r, &b)
-}
-
-// validSite checks that the siteID and networkID combination exists in the DB.
-func validSite(w http.ResponseWriter, r *http.Request, networkID, siteID string) bool {
-	var d string
-
-	err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", networkID, siteID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid siteID and networkID combination: "+siteID+" "+networkID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
-	}
-
-	return true
+	return []byte(d), err
 }
