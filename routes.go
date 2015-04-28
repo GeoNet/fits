@@ -26,6 +26,8 @@ func init() {
 	docs.AddEndpoint("type", &typeDoc)
 	docs.AddEndpoint("plot", &plotDoc)
 	docs.AddEndpoint("map", &mapDoc)
+	docs.AddEndpoint("spark", &sparkDoc)
+
 }
 
 var exHost = "http://localhost:" + config.WebServer.Port
@@ -44,6 +46,9 @@ func router(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.URL.Path == "/plot":
 		q := &plotQuery{}
+		api.Serve(q, w, r)
+	case r.URL.Path == "/spark":
+		q := &sparkQuery{}
 		api.Serve(q, w, r)
 	case r.URL.Path == "/map/site":
 		if r.URL.Query().Get("siteID") != "" {
