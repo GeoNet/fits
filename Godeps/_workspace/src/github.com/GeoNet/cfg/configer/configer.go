@@ -13,7 +13,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/GeoNet/app/cfg"
+	"github.com/GeoNet/cfg"
 	"io/ioutil"
 	"log"
 	"os"

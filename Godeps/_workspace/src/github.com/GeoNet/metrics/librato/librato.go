@@ -1,6 +1,5 @@
+// Librato sends metrics to Librato Metrics
 package librato
-
-// Send to Librato Metrics
 
 import (
 	"bytes"

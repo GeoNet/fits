@@ -1,3 +1,4 @@
+// Webtest - help with testing a web api.
 package webtest
 
 import (

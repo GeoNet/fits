@@ -1,3 +1,4 @@
+// api defines an interface for writing web services.
 package api
 
 import (
