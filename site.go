@@ -11,7 +11,7 @@ import (
 
 const (
 	siteGeoJSON = `SELECT row_to_json(fc)
-                         FROM ( SELECT 'FeatureCollection' as type, array_to_json(array_agg(f)) as features
+                         FROM ( SELECT 'FeatureCollection' as type, COALESCE(array_to_json(array_agg(f)), '[]') as features
                          FROM (SELECT 'Feature' as type,
                          ST_AsGeoJSON(s.location)::json as geometry,
                          row_to_json((SELECT l FROM 

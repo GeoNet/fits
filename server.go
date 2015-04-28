@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/GeoNet/cfg"
 	"github.com/GeoNet/log/logentries"
+	"github.com/GeoNet/map180"
 	"github.com/GeoNet/web"
 	_ "github.com/lib/pq"
 	"log"
@@ -14,6 +15,7 @@ import (
 var (
 	config = cfg.Load()
 	db     *sql.DB
+	wm     *map180.Map180
 )
 
 var header = web.Header{
@@ -42,6 +44,12 @@ func main() {
 	err = db.Ping()
 	if err != nil {
 		log.Println("Error: problem pinging DB - is it up and contactable?  500s will be served")
+	}
+
+	// For map zoom regions other than NZ will need to read some config from somewhere.
+	wm, err = map180.Init(db, `public.map180_layers`, map180.Region(`newzealand`), 256000000)
+	if err != nil {
+		log.Fatalf("ERROR: problem with map180 config: %s", err)
 	}
 
 	http.Handle("/", handler())

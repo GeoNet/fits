@@ -25,6 +25,7 @@ func init() {
 	docs.AddEndpoint("method", &methodDoc)
 	docs.AddEndpoint("type", &typeDoc)
 	docs.AddEndpoint("plot", &plotDoc)
+	docs.AddEndpoint("map", &mapDoc)
 }
 
 var exHost = "http://localhost:" + config.WebServer.Port
@@ -44,6 +45,17 @@ func router(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/plot":
 		q := &plotQuery{}
 		api.Serve(q, w, r)
+	case r.URL.Path == "/map/site":
+		if r.URL.Query().Get("siteID") != "" {
+			q := &siteMapQuery{}
+			api.Serve(q, w, r)
+		} else if r.URL.Query().Get("sites") != "" {
+			q := &siteMapQuery{}
+			api.Serve(q, w, r)
+		} else {
+			q := &siteTypeMapQuery{}
+			api.Serve(q, w, r)
+		}
 	case r.URL.Path == "/observation" && (accept == web.V1CSV || latest):
 		if r.URL.Query().Get("siteID") != "" {
 			q := &observationQuery{}
