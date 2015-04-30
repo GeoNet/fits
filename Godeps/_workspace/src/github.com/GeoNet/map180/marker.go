@@ -59,13 +59,14 @@ type SVGMarker func(Marker, *bytes.Buffer)
 func SVGTriangle(m Marker, b *bytes.Buffer) {
 	w := int(m.size / 2)
 	h := w * 2
+	c := int(float64(h) * 0.33)
 
 	b.WriteString(fmt.Sprintf("<g id=\"%s\"><path d=\"M%d %d l%d 0 l-%d -%d l-%d %d Z\" fill=\"%s\" opacity=\"0.5\">",
-		m.id, int(m.x), int(m.y), w, w, h, w, h, m.svgColour))
+		m.id, int(m.x), int(m.y)+c, w, w, h, w, h, m.svgColour))
 	b.WriteString(`<desc>` + m.label + `.</desc>`)
 	b.WriteString(fmt.Sprint(`<set attributeName="opacity" from="0.5" to="1" begin="mouseover" end="mouseout"  dur="2s"/></path>`))
 	b.WriteString(fmt.Sprintf("<path d=\"M%d %d l%d 0 l-%d -%d l-%d %d Z\" stroke=\"%s\" stroke-width=\"1\" fill=\"none\" opacity=\"1\" /></g>",
-		int(m.x), int(m.y), w, w, h, w, h, m.svgColour))
+		int(m.x), int(m.y)+c, w, w, h, w, h, m.svgColour))
 }
 
 // puts the label or short label on the SVG image all at the same place.
