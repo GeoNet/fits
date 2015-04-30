@@ -4,24 +4,36 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/GeoNet/cfg",
-			"Rev": "58a4576e2010db7bc7d9f866a30d8ce59f637f71"
+			"Rev": "d7bd752242f533840471ef8e5de680028f9069a9"
 		},
 		{
 			"ImportPath": "github.com/GeoNet/log/logentries",
 			"Rev": "18c2731b9dd6d1f74215d1018b21f7b8d270d4fe"
 		},
 		{
+			"ImportPath": "github.com/GeoNet/map180",
+			"Rev": "04b489deddf18314843c00b8b0bb5043b7c045af"
+		},
+		{
 			"ImportPath": "github.com/GeoNet/metrics",
-			"Rev": "8f789f3b7a5463772d54dac9c7e0075f82fb088a"
+			"Rev": "5161e09d1ca5d85798d090752c2f7d5ab9ab6e17"
 		},
 		{
 			"ImportPath": "github.com/GeoNet/web",
-			"Rev": "46aa000ec3f10f84cdcc3a00f01768587a142bf8"
+			"Rev": "d538dd67872a5d98d74ea4137d929f007a43ee38"
 		},
 		{
 			"ImportPath": "github.com/ajstarks/svgo",
 			"Comment": "go.weekly.2012-01-27-94-g47ca2bb",
 			"Rev": "47ca2bbf229311c9b8b96a9188ae37790250757b"
+		},
+		{
+			"ImportPath": "github.com/golang/groupcache",
+			"Rev": "604ed5785183e59ae2789449d89e73f3a2a77987"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "655cdfa588ea190e901bc5590e65d5621688847c"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",

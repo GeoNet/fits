@@ -1,3 +1,4 @@
+// Apidoc is a package for documenting web apis in a standard way.
 package apidoc
 
 import (

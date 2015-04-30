@@ -1,6 +1,6 @@
-// Provides http handlers for writing responses to clients.  Metrics and logging about requests and reponses.
-//
-// If the environment variables LIBRATO_USER and LIBRATO_KEY are found then metrics are also send to Librato.
+// Web provides
+// * http handlers for writing responses to clients.
+// * Metrics and logging about requests and reponses.
 package web
 
 import (

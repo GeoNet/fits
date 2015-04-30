@@ -25,6 +25,8 @@ type Config struct {
 	Librato    *Librato
 	Logentries *Logentries
 	HeartBeat  *HeartBeat
+	PagerDuty  *PagerDuty
+	SMTP       *SMTP
 }
 
 // DataBase for database config.  Elements with an env tag can be overidden via env var.  See Load.
@@ -52,11 +54,13 @@ type WebServer struct {
 
 // SQS for AWS SQS config.  Elements with an env tag can be overidden via env var.  See Load.
 type SQS struct {
-	AWSRegion         string `doc:"SQS region e.g., ap-southeast-2." env:"${PREFIX}_SQS_AWS_REGION"`
-	QueueName         string `doc:"SQS queue name." env:"${PREFIX}_SQS_QUEUE_NAME"`
-	AccessKey         string `doc:"SQS queue user access key." env:"${PREFIX}_SQS_ACCESS_KEY"`
-	SecretKey         string `doc:"SQS queue user secret." env:"${PREFIX}_SQS_SECRET_KEY"`
-	NumberOfListeners int    `doc:"number of SQS listeners." env:"${PREFIX}_SQS_NUMBER_OF_LISTENERS"`
+	AWSRegion           string `doc:"SQS region e.g., ap-southeast-2." env:"${PREFIX}_SQS_AWS_REGION"`
+	QueueName           string `doc:"SQS queue name." env:"${PREFIX}_SQS_QUEUE_NAME"`
+	AccessKey           string `doc:"SQS queue user access key." env:"${PREFIX}_SQS_ACCESS_KEY"`
+	SecretKey           string `doc:"SQS queue user secret." env:"${PREFIX}_SQS_SECRET_KEY"`
+	MaxNumberOfMessages int    `doc:"Number of messages to try to receive from SQS, 1 - 10."`
+	VisibilityTimeout   int    `doc:"Message visibility time out."`
+	WaitTimeSeconds     int    `doc: Wait time for receiving messages.  Max 20.`
 }
 
 type SNS struct {
@@ -85,6 +89,20 @@ type Logentries struct {
 	Token string `doc:"token for Logentries." env:"${PREFIX}_LOGENTRIES_TOKEN"`
 }
 
+type PagerDuty struct {
+	ApiToken   string `doc:"PagerDuty api token as per https://developer.pagerduty.com/documentation/rest/authentication" env:"${PREFIX}_PAGERDUTY_TOKEN"`
+	ServiceKey string `doc:"PagerDuty service GUID as per https://developer.pagerduty.com/documentation/integration/events/trigger" env:"${PREFIX}_PAGERDUTY_SERVICE"`
+}
+
+type SMTP struct {
+	Host     string `doc:"The SMTP host." env:"${PREFIX}_SMTP_HOST"`
+	Port     int    `doc:"The SMTP port." env:"${PREFIX}_SMTP_PORT"`
+	UserName string `doc:"The SMTP user." env:"${PREFIX}_SMTP_USER"`
+	Password string `doc:"The SMTP password." env:"${PREFIX}_SMTP_PASSWORD"`
+	From     string `doc:"The from email address" env:"${PREFIX}_SMTP_FROM"`
+	To       string `doc:"The to email address" env:"${PREFIX}_SMTP_TO"`
+}
+
 func (c *Config) env() {
 	if c.Env != nil {
 		env(c.Env.Prefix, c.DataBase)
@@ -95,6 +113,8 @@ func (c *Config) env() {
 		env(c.Env.Prefix, c.SNS)
 		env(c.Env.Prefix, c.HeartBeat)
 		env(c.Env.Prefix, c.SC3)
+		env(c.Env.Prefix, c.PagerDuty)
+		env(c.Env.Prefix, c.SMTP)
 	}
 }
 
@@ -114,12 +134,7 @@ func (c *Config) env() {
 //   var config = cfg.Load()
 //
 // If override of config from
-// environment vars would change application behaviour then it may be appropriate to override config elements after Load e.g.,
-//   var config = cfg.Load()
-//
-//   func init() {
-//	config.SQS.NumberOfListeners = 1
-//     }
+// environment vars would change application behaviour then it may be appropriate to override config elements after Load.
 //
 // The config file should be JSON that will parse into Config.  A complete example is shown below.  Objects can be omitted
 // if not required e.g., if there is no SQS object in the JSON then Config will have a nil SQS pointer.  Elements of objects that
@@ -140,8 +155,10 @@ func (c *Config) env() {
 // 		"AWSRegion": "ap-southeast-2",
 // 		"QueueName": "XXX",
 // 		"AccessKey": "XXX",
-// 		"SecretKey": "XXX",
-// 		"NumberOfListeners": 1
+// 		"SecretKey": "XXX"
+// 		"MaxNumberOfMessages": 1,
+// 		"VisibilityTimeout": 600,
+// 		"WaitTimeSeconds": 20,
 // 	},
 // 	"WebServer": {
 // 		"Port": "8080",
@@ -268,6 +285,8 @@ func (c *Config) EnvDoc() (d []EnvDoc, err error) {
 		d = append(d, envDoc(c.Env.Prefix, c.SNS)...)
 		d = append(d, envDoc(c.Env.Prefix, c.HeartBeat)...)
 		d = append(d, envDoc(c.Env.Prefix, c.SC3)...)
+		d = append(d, envDoc(c.Env.Prefix, c.PagerDuty)...)
+		d = append(d, envDoc(c.Env.Prefix, c.SMTP)...)
 	} else {
 		err = fmt.Errorf("Found nil Prefix in the config.  Don't know how to read env var.")
 	}
