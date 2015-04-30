@@ -24,7 +24,7 @@ var siteMapQueryD = &apidoc.Query{
 	Description: "Maps of specific sites",
 	Discussion: `<p>A minimal query specifies a single site by <code>networkID</code> and <code>siteID</code>.  The map bounds 
 	are calculated to suit the selected site and keep New Zealand in the map.  The site is marked with a red triangle with the 
-	site at the center of the base.  Width defaults to 130 and the height is calculated from the map bounds and width.  If the map is included in
+	site at the center.  Width defaults to 130 and the height is calculated from the map bounds and width.  If the map is included in
 	a page using an object tag (and viewed using a recent web browser) then when the site marker is moused over a label for 
 	the site is briefly displayed.  If the image is included in an img tag the mouse over functionality is not available.</p>
 	<p>
