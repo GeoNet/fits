@@ -1,8 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
     "Image": {
-      "Name": "quay.io/geonet/fits",
-      "Update": "false"
+      "Name": "quay.io/geonet/fits"
       },
       "Ports": [
       {
