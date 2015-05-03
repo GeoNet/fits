@@ -19,27 +19,7 @@ See the Go docs for further details.
 
 Postgres 9.* with Postgis 2.*
 
-### Load Map Layers Table
-
-Create a table public.map180_layers and give all users of the database SELECT access:
-
-```
-CREATE TABLE public.map180_layers (
-	mapPK SERIAL PRIMARY KEY,
-	region INT NOT NULL,
-	zoom INT NOT NULL,
-	type INT NOT NULL
-);
-
-SELECT addgeometrycolumn('public', 'map180_layers', 'geom', 3857, 'MULTIPOLYGON', 2);
-
-CREATE INDEX ON public.map180_layers (zoom);
-CREATE INDEX ON public.map180_layers (region);
-CREATE INDEX ON public.map180_layers (type);
-CREATE INDEX ON public.map180_layers USING gist (geom);
-
-GRANT SELECT ON public.map180_layers TO PUBLIC;
-```
+### Load Map Layers and Labels Tables
 
 Load data for the New Zealand region (assumes a database called `fits`).  See data assembly if you want to use a different region.
 
@@ -51,16 +31,16 @@ If necessary change the schema, table, and user access as required.  They can be
 
 ## Data Assembly
 
-The goal is to end up with land and lakes multi polygon on EPSG:3857 entered into `public.map180_layers`.  The zoom region
-should include data for your region of interest at higher zoom levels.  
+The goal is to end up with land and lakes multi polygon on EPSG:3857 entered into `public.map180_layers` and labels in 
+`public.map180_labels`.  The zoom region should include data for your region of interest at higher zoom levels.  
 
 The assembled New Zealand data set (`data/new_zealand_map_layers.ddl`) 
-was made from shape files that where loaded into the DB and then cut and transformed into `public.map180_layers`.  
+was made from shape files that where loaded into the DB and then cut and transformed into `public.map180_layers` and `public.map180_layers`.  
 
 The files `etc/load-nz-shp.sh` and `etc/nz_map180_layer.ddl` document the process of creating `public.map180_layers`.  This was then dumped using:
 
 ```
-pg_dump -h 127.0.0.1 -t fits.map_layers --data-only -U postgres  fits -f data/new_zealand_map_layers.ddl
+pg_dump -h 127.0.0.1 --table=public.map180_layers --table=public.map180_labels --data-only -U postgres  fits -f data/new_zealand_map_layers.ddl
 ```
 
 The assembled New Zealand data set uses data sourced from:

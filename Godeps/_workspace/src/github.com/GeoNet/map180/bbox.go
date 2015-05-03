@@ -219,10 +219,11 @@ func (b *bbox) newMap3857(width int) (m map3857, err error) {
 
 	m.region = b.region
 
+	mPix := x / float64(m.width) // m per pixel
+
 	// region 1 has higher zoom data.
 	switch m.region {
 	case 1:
-		mPix := x / float64(m.width) // m per pixel
 		switch {
 		case mPix < 50:
 			m.zoom = 3
@@ -233,6 +234,7 @@ func (b *bbox) newMap3857(width int) (m map3857, err error) {
 		default:
 			m.zoom = 0
 		}
+
 	case 0:
 		m.zoom = 0
 	}

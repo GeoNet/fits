@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// For map zoom regions other than NZ will need to read some config from somewhere.
-	wm, err = map180.Init(db, `public.map180_layers`, map180.Region(`newzealand`), 256000000)
+	wm, err = map180.Init(db, map180.Region(`newzealand`), 256000000)
 	if err != nil {
 		log.Fatalf("ERROR: problem with map180 config: %s", err)
 	}

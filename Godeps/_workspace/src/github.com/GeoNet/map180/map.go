@@ -17,15 +17,18 @@ import (
 )
 
 const (
-	width3857 = 40075016.6855785
-	left3857  = width3857 / 2
-	right3857 = left3857 * -1.0
+	width3857    = 40075016.6855785
+	left3857     = width3857 / 2
+	right3857    = left3857 * -1.0
+	svgPolyQuery = `select array_to_string(array_agg(
+		ST_AsSVG(st_transScale(ST_Intersection(ST_MakeEnvelope($1,$2,$3,$4, 3857), geom), $5, $6, $7, $8 ),0,1)
+		), ' ')
+	 from public.map180_layers where zoom = $9 and type = $10 and region = $11`
 )
 
 var (
 	empty          *regexp.Regexp
 	db             *sql.DB
-	svgPolyQuery   string
 	zoomRegion     bbox
 	mapBounds      []bbox
 	namedMapBounds map[string]bbox
@@ -55,16 +58,16 @@ func init() {
 }
 
 /*
-Init returns an initialised Map180. d must have read access to the schema qualified
-layersTable that stores the map data.  cacheBytes is the size of the memory cache
+Init returns an initialised Map180. d must have access to the map180 tables in the
+public schema.  cacheBytes is the size of the memory cache
 for land and lake layers.  region must be a valid Region.  Cache stats are logged once
 per minute.
 
 Example:
 
-   wm, err = map180.Init(db, `fits.map_layers`, map180.Region(`newzealand`), 256000000)
+   wm, err = map180.Init(db, map180.Region(`newzealand`), 256000000)
 */
-func Init(d *sql.DB, layersTable string, region Region, cacheBytes int64) (*Map180, error) {
+func Init(d *sql.DB, region Region, cacheBytes int64) (*Map180, error) {
 	w := &Map180{}
 
 	var err error
@@ -87,11 +90,6 @@ func Init(d *sql.DB, layersTable string, region Region, cacheBytes int64) (*Map1
 	mapBounds = allMapBounds[region]
 	namedMapBounds = allNamedMapBounds[region]
 
-	svgPolyQuery = `select array_to_string(array_agg(
-		ST_AsSVG(st_transScale(ST_Intersection(ST_MakeEnvelope($1,$2,$3,$4, 3857), geom), $5, $6, $7, $8 ),0,1)
-		), ' ')
-	 from ` + layersTable + ` where zoom = $9 and type = $10 and region = $11`
-
 	db = d
 
 	mapLayers = groupcache.NewGroup("mapLayers", cacheBytes, groupcache.GetterFunc(layerGetter))
@@ -107,7 +105,7 @@ Width is the SVG image width in pixels (height is calculated).
 If boundingBox is the empty string then the map bounds are calculated from the markers.
 See ValidBbox for boundingBox options.
 */
-func (w *Map180) SVG(boundingBox string, width int, markers []Marker) (buf bytes.Buffer, err error) {
+func (w *Map180) SVG(boundingBox string, width int, markers []Marker, insetBbox string) (buf bytes.Buffer, err error) {
 	// If the bbox is zero type then figure it out from the markers.
 	var b bbox
 	if boundingBox == "" {
@@ -146,6 +144,60 @@ func (w *Map180) SVG(boundingBox string, width int, markers []Marker) (buf bytes
 	}
 
 	buf.WriteString(landLakes)
+
+	if insetBbox != "" {
+		var inset bbox
+		inset, err = newBbox(insetBbox)
+		if err != nil {
+			return
+		}
+		var in map3857
+		in, err = inset.newMap3857(80)
+		if err != nil {
+			return
+		}
+
+		var insetMap string
+		err = mapLayers.Get(nil, in.toKey(), groupcache.StringSink(&insetMap))
+		if err != nil {
+			return
+		}
+
+		// use 2 markers to put a the main map bbox as a rect
+		ibboxul := NewMarker(b.llx, b.ury, ``, ``, ``)
+		err = in.marker3857(&ibboxul)
+		if err != nil {
+			return
+		}
+
+		ibboxlr := NewMarker(b.urx, b.lly, ``, ``, ``)
+		err = in.marker3857(&ibboxlr)
+		if err != nil {
+			return
+		}
+
+		// if bbox rect is tiny make it bigger and shift it a little.
+		iw := int(ibboxlr.x - ibboxul.x)
+		if iw < 5 {
+			iw = 5
+			ibboxul.x = ibboxul.x - 2
+		}
+
+		ih := int(ibboxlr.y - ibboxul.y)
+		if ih < 5 {
+			ih = 5
+			ibboxul.y = ibboxul.y - 2
+		}
+
+		buf.WriteString(fmt.Sprintf("<g transform=\"translate(10,10)\"><rect x=\"-3\" y=\"-3\" width=\"%d\" height=\"%d\" rx=\"10\" ry=\"10\" fill=\"white\"/>",
+			in.width+6, in.height+6))
+
+		buf.WriteString(insetMap)
+
+		buf.WriteString(fmt.Sprintf("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"red\" opacity=\"0.5\"/>",
+			int(ibboxul.x), int(ibboxul.y), iw, ih) + `</g>`)
+
+	} // end of inset
 
 	err = m.drawMarkers(markers, &buf)
 	if err != nil {
@@ -214,8 +266,28 @@ func layerGetter(ctx groupcache.Context, key string, dest groupcache.Sink) error
 		return err
 	}
 
-	return dest.SetString(fmt.Sprintf("<path fill=\"#F5F5F5\" stroke-width=\"1\"  stroke=\"#063254\" stroke-opacity=\"0.6\" d=\"%s\"/>", land) +
-		fmt.Sprintf("<path fill=\"azure\" stroke-width=\"1\"  stroke=\"#063254\" stroke-opacity=\"0.6\" d=\"%s\"/>", lakes))
+	stdDev := 4
+	coast := 10
+
+	if m.width > 150 {
+		stdDev = 10
+		coast = 30
+	}
+
+	l, err := m.labels()
+	if err != nil {
+		return err
+	}
+
+	var b bytes.Buffer
+
+	b.WriteString(fmt.Sprintf("<defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"%d\" /></filter></defs>", stdDev))
+	b.WriteString(fmt.Sprintf("<path stroke-width=\"%d\" stroke-linejoin=\"round\" filter=\"url(#f1)\" stroke=\"azure\" d=\"%s\"/>", coast, land))
+	b.WriteString(fmt.Sprintf("<path fill=\"whitesmoke\" stroke-width=\"1\"  stroke-linejoin=\"round\" stroke=\"lightslategrey\" d=\"%s\"/>", land))
+	b.WriteString(fmt.Sprintf("<path fill=\"azure\" stroke-width=\"1\"  stroke=\"lightslategrey\" d=\"%s\"/>", lakes))
+	b.WriteString(labelsToSVG(l))
+
+	return dest.SetString(b.String())
 }
 
 func (m *map3857) toKey() string {

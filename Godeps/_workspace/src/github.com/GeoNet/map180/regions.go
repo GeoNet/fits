@@ -55,12 +55,13 @@ var allMapBounds = map[Region][]bbox{
 // every Region must have an entry but it could be "    " and bbox{}.
 var allNamedMapBounds = map[Region]map[string]bbox{
 	NewZealand: map[string]bbox{
-		"LakeTaupo":        bbox{llx: 175.70, lly: -39.00, urx: 176.15, ury: -38.63, region: 1, crosses180: false},
-		"WhiteIsland":      bbox{llx: 177.164, lly: -37.54, urx: 177.20, ury: -37.505, region: 1, crosses180: false},
-		"RaoulIsland":      bbox{llx: -178, lly: -29.32, urx: -177.86, ury: -29.22, region: 1, crosses180: false},
-		"ChathamIsland":    bbox{llx: -176.95, lly: -44.42, urx: -176.1, ury: -43.65, region: 1, crosses180: false},
-		"NewZealand":       bbox{llx: 165.0, lly: -48.0, urx: 179.0, ury: -34.0, region: 1, crosses180: false},
-		"NewZealandRegion": bbox{llx: 165.0, lly: -48.0, urx: -175.0, ury: -28.0, region: 1, crosses180: true},
+		"LakeTaupo":               bbox{llx: 175.64, lly: -39.00, urx: 176.15, ury: -38.61, region: 1, crosses180: false},
+		"WhiteIsland":             bbox{llx: 177.164, lly: -37.54, urx: 177.20, ury: -37.505, region: 1, crosses180: false},
+		"RaoulIsland":             bbox{llx: -178.02, lly: -29.32, urx: -177.86, ury: -29.22, region: 1, crosses180: false},
+		"ChathamIsland":           bbox{llx: -177.2, lly: -44.22, urx: -176.1, ury: -43.65, region: 1, crosses180: false},
+		"NewZealand":              bbox{llx: 165.0, lly: -48.0, urx: 179.0, ury: -34.0, region: 1, crosses180: false},
+		"NewZealandChathamIsland": bbox{llx: 165.0, lly: -48.0, urx: -175.0, ury: -34.0, region: 1, crosses180: true},
+		"NewZealandRegion":        bbox{llx: 165.0, lly: -48.0, urx: -175.0, ury: -28.0, region: 1, crosses180: true},
 	},
 }
 

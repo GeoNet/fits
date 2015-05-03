@@ -73,6 +73,8 @@ var siteMapQueryD = &apidoc.Query{
 		and <code>siteID</code> joined with a <code>.</code> e.g., <code>LI.GISB,LI.TAUP</code>.`,
 		"width": optDoc + widthDoc,
 		"bbox":  optDoc + bboxDoc,
+		"insetBbox": optDoc + ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
+		giving context to zoomed in regions.  Same specification options as <code>bbox</code>.`,
 	},
 }
 
@@ -81,9 +83,9 @@ type site struct {
 }
 
 type siteMapQuery struct {
-	bbox  string
-	width int
-	s     []site
+	bbox, insetBbox string
+	width           int
+	s               []site
 }
 
 func (q *siteMapQuery) Doc() *apidoc.Query {
@@ -95,6 +97,7 @@ func (q *siteMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 
 	rl.Del("width")
 	rl.Del("bbox")
+	rl.Del("insetBbox")
 	rl.Del("siteID")
 	rl.Del("networkID")
 	rl.Del("sites")
@@ -106,6 +109,16 @@ func (q *siteMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl = r.URL.Query()
 
 	q.bbox = rl.Get("bbox")
+
+	if rl.Get("insetBbox") != "" {
+		q.insetBbox = rl.Get("insetBbox")
+
+		err := map180.ValidBbox(q.insetBbox)
+		if err != nil {
+			web.BadRequest(w, r, err.Error())
+			return false
+		}
+	}
 
 	if rl.Get("sites") == "" && (rl.Get("siteID") == "" && rl.Get("networkID") == "") {
 		web.BadRequest(w, r, "please specify sites or networkID and siteID")
@@ -180,7 +193,7 @@ func (q *siteMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		markers = append(markers, m...)
 	}
 
-	b, err := wm.SVG(q.bbox, q.width, markers)
+	b, err := wm.SVG(q.bbox, q.width, markers, q.insetBbox)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -204,16 +217,16 @@ var siteTypeMapQueryD = &apidoc.Query{
 	<br />
 	</p>
 	<p>
-	<object data="/map/site?typeID=z&width=400&bbox=LakeTaupo" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?typeID=z&width=400&bbox=LakeTaupo" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?typeID=z&width=500&bbox=LakeTaupo&insetBbox=NewZealand" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?typeID=z&width=500&bbox=LakeTaupo&insetBbox=NewZealand" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
 	<object data="/map/site?typeID=SO2-flux-a&methodID=mdoas-m" type="image/svg+xml"></object><br/><br/>
 	<code>&lt;object data="http://fits.geonet.org.nz/map/site?typeID=SO2-flux-a&methodID=mdoas-m" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
-	<object data="/map/site?typeID=t&width=400&bbox=WhiteIsland" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?typeID=t&width=400&bbox=WhiteIsland" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?typeID=t&width=500&bbox=WhiteIsland&insetBbox=NewZealand" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?typeID=t&width=500&bbox=WhiteIsland&insetBbox=NewZealand" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
 	<object data="/map/site?typeID=t&methodID=thermcoup&bbox=177.185,-37.531,177.197,-37.52&width=400&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))" type="image/svg+xml"></object><br/><br/>
@@ -227,13 +240,15 @@ var siteTypeMapQueryD = &apidoc.Query{
 		"within":   optDoc + `  ` + withinDoc,
 		"width":    optDoc + widthDoc,
 		"bbox":     optDoc + bboxDoc,
+		"insetBbox": optDoc + ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
+		giving context to zoomed in regions.  Same specification options as <code>bbox</code>.`,
 	},
 }
 
 type siteTypeMapQuery struct {
-	bbox  string
-	width int
-	s     siteTypeQuery
+	bbox, insetBbox string
+	width           int
+	s               siteTypeQuery
 }
 
 func (q *siteTypeMapQuery) Doc() *apidoc.Query {
@@ -249,6 +264,16 @@ func (q *siteTypeMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool
 	if err != nil {
 		web.BadRequest(w, r, err.Error())
 		return false
+	}
+
+	if rl.Get("insetBbox") != "" {
+		q.insetBbox = rl.Get("insetBbox")
+
+		err := map180.ValidBbox(q.insetBbox)
+		if err != nil {
+			web.BadRequest(w, r, err.Error())
+			return false
+		}
 	}
 
 	if rl.Get("width") != "" {
@@ -296,6 +321,7 @@ func (q *siteTypeMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool
 	}
 
 	rl.Del("bbox")
+	rl.Del("insetBbox")
 	rl.Del("width")
 	rl.Del("typeID")
 	rl.Del("methodID")
@@ -321,7 +347,7 @@ func (q *siteTypeMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := wm.SVG(q.bbox, q.width, m)
+	b, err := wm.SVG(q.bbox, q.width, m, q.insetBbox)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
