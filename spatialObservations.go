@@ -44,78 +44,70 @@ var spatialObsD = &apidoc.Query{
 	},
 }
 
-type spatialObs struct {
-	typeID, methodID  string
-	days              int
-	start, end        time.Time
-	srsName, authName string
-	srid              int
-	within            string
-}
-
-func (q *spatialObs) Doc() *apidoc.Query {
-	return spatialObsD
-}
-
-func (q *spatialObs) Validate(w http.ResponseWriter, r *http.Request) bool {
+func spatialObs(w http.ResponseWriter, r *http.Request) {
 	// values needed for all queries
 	if !web.ParamsExist(w, r, "typeID", "days", "start") {
-		return false
+		return
 	}
 
 	rl := r.URL.Query()
 
 	var err error
-	q.days, err = strconv.Atoi(rl.Get("days"))
-	if err != nil || q.days > 7 || q.days <= 0 {
+	var days int
+	days, err = strconv.Atoi(rl.Get("days"))
+	if err != nil || days > 7 || days <= 0 {
 		web.BadRequest(w, r, "Invalid days query param.")
-		return false
+		return
 	}
 
-	q.start, err = time.Parse(time.RFC3339, rl.Get("start"))
+	start, err := time.Parse(time.RFC3339, rl.Get("start"))
 	if err != nil {
 		web.BadRequest(w, r, "Invalid start query param.")
-		return false
+		return
 	}
 
-	q.end = q.start.Add(time.Duration(q.days) * time.Hour * 24)
+	end := start.Add(time.Duration(days) * time.Hour * 24)
 
+	var srsName, authName string
+	var srid int
 	if rl.Get("srsName") != "" {
-		q.srsName = rl.Get("srsName")
-		srs := strings.Split(q.srsName, ":")
+		srsName = rl.Get("srsName")
+		srs := strings.Split(srsName, ":")
 		if len(srs) != 2 {
 			web.BadRequest(w, r, "Invalid srsName.")
-			return false
+			return
 		}
-		q.authName = srs[0]
+		authName = srs[0]
 		var err error
-		q.srid, err = strconv.Atoi(srs[1])
+		srid, err = strconv.Atoi(srs[1])
 		if err != nil {
 			web.BadRequest(w, r, "Invalid srsName.")
-			return false
+			return
 		}
-		if !validSrs(w, r, q.authName, q.srid) {
-			return false
+		if !validSrs(w, r, authName, srid) {
+			return
 		}
 	} else {
-		q.srid = 4326
-		q.authName = "EPSG"
-		q.srsName = "EPSG:4326"
+		srid = 4326
+		authName = "EPSG"
+		srsName = "EPSG:4326"
 	}
 
-	q.typeID = rl.Get("typeID")
+	typeID := rl.Get("typeID")
 
+	var methodID string
 	if rl.Get("methodID") != "" {
-		q.methodID = rl.Get("methodID")
-		if !validTypeMethod(w, r, q.typeID, q.methodID) {
-			return false
+		methodID = rl.Get("methodID")
+		if !validTypeMethod(w, r, typeID, methodID) {
+			return
 		}
 	}
 
+	var within string
 	if rl.Get("within") != "" {
-		q.within = strings.Replace(rl.Get("within"), "+", "", -1)
-		if !validPoly(w, r, q.within) {
-			return false
+		within = strings.Replace(rl.Get("within"), "+", "", -1)
+		if !validPoly(w, r, within) {
+			return
 		}
 	}
 
@@ -128,20 +120,13 @@ func (q *spatialObs) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("methodID")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
-	return validType(w, r, q.typeID)
-}
-
-func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", web.V1CSV)
-
-	// Find the unit for the CSV header
 	var unit string
-	err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", q.typeID).Scan(&unit)
+	err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit)
 	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "unit not found for typeID: "+q.typeID)
+		web.NotFound(w, r, "unit not found for typeID: "+typeID)
 		return
 	}
 	if err != nil {
@@ -153,15 +138,15 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 
 	switch {
-	case q.within == "" && q.methodID == "":
+	case within == "" && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
 		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) AND 
-		time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid)
-	case q.within != "" && q.methodID == "":
+		time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid)
+	case within != "" && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
@@ -169,8 +154,8 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
-		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.within)
-	case q.within == "" && q.methodID != "":
+		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, within)
+	case within == "" && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
@@ -178,8 +163,8 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $5)
-		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.methodID)
-	case q.within != "" && q.methodID != "":
+		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, methodID)
+	case within != "" && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
@@ -188,7 +173,7 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $6)
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
-		AND time >= $2 and time < $3 order by siteid asc`, q.typeID, q.start, q.end, q.srid, q.within, q.methodID)
+		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, within, methodID)
 	}
 	if err != nil {
 		// not sure what a transformation error would look like.
@@ -200,7 +185,7 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var b bytes.Buffer
-	b.Write([]byte("networkID, siteID, X (" + q.srsName + "), Y (" + q.srsName + "), height, groundRelationship, date-time, " + q.typeID + " (" + unit + "), error (" + unit + ")"))
+	b.Write([]byte("networkID, siteID, X (" + srsName + "), Y (" + srsName + "), height, groundRelationship, date-time, " + typeID + " (" + unit + "), error (" + unit + ")"))
 	b.Write(eol)
 	for rows.Next() {
 		err := rows.Scan(&d)
@@ -213,13 +198,15 @@ func (q *spatialObs) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	if q.methodID != "" {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.typeID+`-`+q.methodID+`.csv"`)
+	w.Header().Set("Content-Type", web.V1CSV)
+	if methodID != "" {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.typeID+`.csv"`)
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+typeID+`.csv"`)
 	}
 
 	web.OkBuf(w, r, &b)
+
 }
 
 // validSrs checks that the srs represented by auth and srid exists in the DB.

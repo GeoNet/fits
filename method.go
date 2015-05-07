@@ -10,11 +10,11 @@ import (
 var methodDoc = apidoc.Endpoint{Title: "Method",
 	Description: `Look up method information.`,
 	Queries: []*apidoc.Query{
-		new(methodQuery).Doc(),
+		methodD,
 	},
 }
 
-var methodQueryD = &apidoc.Query{
+var methodD = &apidoc.Query{
 	Accept:      web.V1JSON,
 	Title:       "Method",
 	Description: "Look up method information.",
@@ -32,37 +32,25 @@ var methodQueryD = &apidoc.Query{
 	},
 }
 
-type methodQuery struct {
-	typeID string
-}
+func method(w http.ResponseWriter, r *http.Request) {
+	rl := r.URL.Query()
 
-func (q *methodQuery) Doc() *apidoc.Query {
-	return methodQueryD
-}
+	typeID := rl.Get("typeID")
 
-func (q *methodQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	switch {
-	case len(r.URL.Query()) == 1:
-		if !web.ParamsExist(w, r, "typeID") {
-			return false
-		}
-		q.typeID = r.URL.Query().Get("typeID")
-		return validType(w, r, q.typeID)
-	case len(r.URL.Query()) == 0:
-		return true
-	default:
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+	if typeID != "" && !validType(w, r, typeID) {
+		return
 	}
-}
 
-func (q *methodQuery) Handle(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", web.V1JSON)
+	rl.Del("typeID")
+	if len(rl) > 0 {
+		web.BadRequest(w, r, "incorrect number of query params.")
+		return
+	}
 
 	var d string
 	var err error
 
-	switch q.typeID {
+	switch typeID {
 	case "":
 		err = db.QueryRow(
 			`select row_to_json(fc) from (select array_to_json(array_agg(m)) as method  
@@ -77,13 +65,15 @@ func (q *methodQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		             from 
 		             fits.type join fits.type_method using (typepk) 
 			join fits.method using (methodpk) 
-			where type.typeID = $1) as m) as fc`, q.typeID).Scan(&d)
+			where type.typeID = $1) as m) as fc`, typeID).Scan(&d)
 	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
 
 	}
+
+	w.Header().Set("Content-Type", web.V1JSON)
 
 	b := []byte(d)
 	web.Ok(w, r, &b)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api"
 	"github.com/GeoNet/web/api/apidoc"
 	"net/http"
 	"strings"
@@ -27,7 +26,6 @@ func init() {
 	docs.AddEndpoint("plot", &plotDoc)
 	docs.AddEndpoint("map", &mapDoc)
 	docs.AddEndpoint("spark", &sparkDoc)
-
 }
 
 var exHost = "http://localhost:" + config.WebServer.Port
@@ -45,44 +43,33 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case r.URL.Path == "/plot":
-		q := &plotQuery{}
-		api.Serve(q, w, r)
+		plot(w, r)
 	case r.URL.Path == "/spark":
-		q := &sparkQuery{}
-		api.Serve(q, w, r)
+		spark(w, r)
 	case r.URL.Path == "/map/site":
 		if r.URL.Query().Get("siteID") != "" {
-			q := &siteMapQuery{}
-			api.Serve(q, w, r)
+			siteMap(w, r)
 		} else if r.URL.Query().Get("sites") != "" {
-			q := &siteMapQuery{}
-			api.Serve(q, w, r)
+			siteMap(w, r)
 		} else {
-			q := &siteTypeMapQuery{}
-			api.Serve(q, w, r)
+			siteTypeMap(w, r)
 		}
 	case r.URL.Path == "/observation" && (accept == web.V1CSV || latest):
 		if r.URL.Query().Get("siteID") != "" {
-			q := &observationQuery{}
-			api.Serve(q, w, r)
+			observation(w, r)
 		} else {
-			q := &spatialObs{}
-			api.Serve(q, w, r)
+			spatialObs(w, r)
 		}
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
 		if r.URL.Query().Get("siteID") != "" {
-			q := &siteQuery{}
-			api.Serve(q, w, r)
+			site(w, r)
 		} else {
-			q := &siteTypeQuery{}
-			api.Serve(q, w, r)
+			siteType(w, r)
 		}
 	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
-		q := &typeQuery{}
-		api.Serve(q, w, r)
+		typeH(w, r)
 	case r.URL.Path == "/method" && (accept == web.V1JSON || latest):
-		q := &methodQuery{}
-		api.Serve(q, w, r)
+		method(w, r)
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:

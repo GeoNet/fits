@@ -18,11 +18,11 @@ import (
 var sparkDoc = apidoc.Endpoint{Title: "Spark Lines",
 	Description: `Simple spark lines of recent observations.`,
 	Queries: []*apidoc.Query{
-		new(sparkQuery).Doc(),
+		sparkD,
 	},
 }
 
-var sparkQueryD = &apidoc.Query{
+var sparkD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Sparklines SVG",
 	Description: "Sparklines of observations as Scalable Vector Graphic (SVG)",
@@ -70,47 +70,41 @@ var sparkQueryD = &apidoc.Query{
 	},
 }
 
-type sparkQuery struct {
-	spark spark
-}
-
-func (q *sparkQuery) Doc() *apidoc.Query {
-	return sparkQueryD
-}
-
-func (q *sparkQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func spark(w http.ResponseWriter, r *http.Request) {
 	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
-		return false
+		return
 	}
 
 	rl := r.URL.Query()
 
-	q.spark.typeID = rl.Get("typeID")
-	q.spark.networkID = rl.Get("networkID")
-	q.spark.siteID = rl.Get("siteID")
+	s := sprk{}
 
-	q.spark.tmax = time.Now().UTC()
-	q.spark.tmin = q.spark.tmax.Add(time.Duration(-365) * time.Hour * 24)
+	s.typeID = rl.Get("typeID")
+	s.networkID = rl.Get("networkID")
+	s.siteID = rl.Get("siteID")
+
+	s.tmax = time.Now().UTC()
+	s.tmin = s.tmax.Add(time.Duration(-365) * time.Hour * 24)
 
 	if rl.Get("yrange") != "" {
 		var err error
-		q.spark.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
-		if err != nil || q.spark.yrange <= 0 {
+		s.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
+		if err != nil || s.yrange <= 0 {
 			web.BadRequest(w, r, "invalid yrange query param.")
-			return false
+			return
 		}
 	}
 
 	switch rl.Get("type") {
 	case "":
-		q.spark.pType = "line"
+		s.pType = "line"
 	case "line":
-		q.spark.pType = "line"
+		s.pType = "line"
 	case "scatter":
-		q.spark.pType = "scatter"
+		s.pType = "scatter"
 	default:
 		web.BadRequest(w, r, "invalid plot type")
-		return false
+		return
 	}
 
 	// delete any query params we know how to handle and there should be nothing left.
@@ -121,19 +115,20 @@ func (q *sparkQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("type")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
-	return (validSite(w, r, q.spark.networkID, q.spark.siteID) && validType(w, r, q.spark.typeID))
-}
+	if !(validSite(w, r, s.networkID, s.siteID) && validType(w, r, s.typeID)) {
+		return
+	}
 
-func (q *sparkQuery) Handle(w http.ResponseWriter, r *http.Request) {
-	if !q.spark.loadData(w, r) {
+	if err := s.loadData(); err != nil {
+		web.ServiceUnavailable(w, r, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "image/svg+xml")
-	web.OkBuf(w, r, q.spark.svg())
+	web.OkBuf(w, r, s.svg())
 }
 
 // things for making the plot
@@ -161,7 +156,7 @@ func (v *valSpark) date() string {
 	return strings.Split(v.t.Format(time.RFC3339), "T")[0]
 }
 
-type spark struct {
+type sprk struct {
 	data                      []*valSpark
 	start, end, max, min      *valSpark
 	tmin, tmax                time.Time // x min and max for query
@@ -173,7 +168,7 @@ type spark struct {
 	pType                     string // line || scatter
 }
 
-func (p *spark) loadData(w http.ResponseWriter, r *http.Request) bool {
+func (p *sprk) loadData() (err error) {
 	rows, err := db.Query(
 		`SELECT time, value FROM fits.observation 
 		WHERE 
@@ -186,16 +181,14 @@ func (p *spark) loadData(w http.ResponseWriter, r *http.Request) bool {
 	AND time > $4
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID, p.tmin)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+		return
 	}
 	defer rows.Close()
 	for rows.Next() {
 		v := valSpark{}
 		err = rows.Scan(&v.t, &v.v)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return false
+			return
 		}
 
 		p.data = append(p.data, &v)
@@ -205,8 +198,7 @@ func (p *spark) loadData(w http.ResponseWriter, r *http.Request) bool {
 	err = db.QueryRow("select type.name, unit.symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
 		p.typeID).Scan(&p.typeName, &p.unit)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+		return
 	}
 
 	// If there is enough data to spark then calculate graphics x,y for data
@@ -258,10 +250,10 @@ func (p *spark) loadData(w http.ResponseWriter, r *http.Request) bool {
 
 	}
 
-	return true
+	return
 }
 
-func (p *spark) svg() *bytes.Buffer {
+func (p *sprk) svg() *bytes.Buffer {
 	var b bytes.Buffer
 	s := svg.New(&b)
 

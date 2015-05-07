@@ -18,11 +18,11 @@ import (
 var plotDoc = apidoc.Endpoint{Title: "Plot",
 	Description: `Simple plots of observations.`,
 	Queries: []*apidoc.Query{
-		new(plotQuery).Doc(),
+		pltD,
 	},
 }
 
-var plotQueryD = &apidoc.Query{
+var pltD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Observations SVG",
 	Description: "Plot observations as Scalable Vector Graphic (SVG)",
@@ -88,65 +88,13 @@ var plotQueryD = &apidoc.Query{
 	},
 }
 
-type plotQuery struct {
-	plot plot
-}
-
-func (q *plotQuery) Doc() *apidoc.Query {
-	return plotQueryD
-}
-
-func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
-	// values needed for all queries
+func plot(w http.ResponseWriter, r *http.Request) {
 	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
-		return false
+		return
 	}
 
 	rl := r.URL.Query()
 
-	q.plot.typeID = rl.Get("typeID")
-	q.plot.networkID = rl.Get("networkID")
-	q.plot.siteID = rl.Get("siteID")
-
-	if rl.Get("days") != "" {
-		var err error
-		q.plot.days, err = strconv.Atoi(rl.Get("days"))
-		if err != nil || q.plot.days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return false
-		}
-
-		q.plot.tmax = time.Now().UTC()
-		q.plot.tmin = q.plot.tmax.Add(time.Duration(q.plot.days*-1) * time.Hour * 24)
-	}
-
-	if rl.Get("yrange") != "" {
-		var err error
-		q.plot.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
-		if err != nil || q.plot.yrange <= 0 {
-			web.BadRequest(w, r, "invalid yrange query param.")
-			return false
-		}
-	}
-
-	if rl.Get("type") != "" {
-		q.plot.pType = rl.Get("type")
-
-		if q.plot.pType == "scatter" || q.plot.pType == "line" {
-		} else {
-			web.BadRequest(w, r, "invalid plot type")
-			return false
-		}
-
-	} else {
-		q.plot.pType = "line"
-	}
-
-	if q.plot.pType == "scatter" && rl.Get("showMethod") == "true" {
-		q.plot.showMethod = true
-	}
-
-	// delete any query params we know how to handle and there should be nothing left.
 	rl.Del("typeID")
 	rl.Del("networkID")
 	rl.Del("siteID")
@@ -156,19 +104,61 @@ func (q *plotQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("showMethod")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
-	}
-
-	return (validSite(w, r, q.plot.networkID, q.plot.siteID) && validType(w, r, q.plot.typeID))
-}
-
-func (q *plotQuery) Handle(w http.ResponseWriter, r *http.Request) {
-	if !q.plot.loadData(w, r) {
 		return
 	}
 
+	rl = r.URL.Query()
+
+	p := plt{
+		typeID:    rl.Get("typeID"),
+		networkID: rl.Get("networkID"),
+		siteID:    rl.Get("siteID"),
+		pType:     "line",
+	}
+	var err error
+
+	if rl.Get("days") != "" {
+		p.days, err = strconv.Atoi(rl.Get("days"))
+		if err != nil || p.days > 365000 {
+			web.BadRequest(w, r, "Invalid days query param.")
+			return
+		}
+
+		p.tmax = time.Now().UTC()
+		p.tmin = p.tmax.Add(time.Duration(p.days*-1) * time.Hour * 24)
+	}
+
+	if rl.Get("yrange") != "" {
+		p.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
+		if err != nil || p.yrange <= 0 {
+			web.BadRequest(w, r, "invalid yrange query param.")
+			return
+		}
+	}
+
+	if rl.Get("type") != "" {
+		p.pType = rl.Get("type")
+
+		if !(p.pType == "scatter" || p.pType == "line") {
+			web.BadRequest(w, r, "invalid plot type")
+			return
+		}
+	}
+
+	if p.pType == "scatter" && rl.Get("showMethod") == "true" {
+		p.showMethod = true
+	}
+
+	if !(validSite(w, r, p.networkID, p.siteID) && validType(w, r, p.typeID)) {
+		return
+	}
+
+	if err := p.loadData(); err != nil {
+		web.BadRequest(w, r, err.Error())
+	}
+
 	w.Header().Set("Content-Type", "image/svg+xml")
-	web.OkBuf(w, r, q.plot.svg())
+	web.OkBuf(w, r, p.svg())
 }
 
 // things for making the plot
@@ -232,7 +222,7 @@ type val struct {
 	ey, x, y int // represent t,v,e in graphics space.
 }
 
-type plot struct {
+type plt struct {
 	data                                      []*val
 	hasErrors                                 bool // some data has no errors e.g., 0.0
 	start, end, max, min                      *val
@@ -257,14 +247,13 @@ func (v *val) date() string {
 	return strings.Split(v.t.Format(time.RFC3339), "T")[0]
 }
 
-func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
+func (p *plt) loadData() (err error) {
 	var datetime string
 	var value, er float64
 	var mpk int
 
 	// load observations from the DB
 	var rows *sql.Rows
-	var err error
 
 	if p.days == 0 {
 		rows, err = db.Query(
@@ -291,22 +280,19 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	ORDER BY time ASC;`, p.networkID, p.siteID, p.typeID, p.tmin)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+		return
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&datetime, &value, &er, &mpk)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return false
+			return
 		}
 		v := val{}
 
 		v.t, err = time.Parse(time.RFC3339Nano, datetime)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return false
+			return
 		}
 		v.v = value
 		v.e = er
@@ -324,15 +310,13 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 			fits.method join fits.type_method using (methodpk) join fits.type using (typepk) 
 			where typeid=$1 ORDER BY methodpk ASC`, p.typeID)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return false
+			return
 		}
 		defer rows.Close()
 		for rows.Next() {
 			err = rows.Scan(&i, &n)
 			if err != nil {
-				web.ServiceUnavailable(w, r, err)
-				return false
+				return
 			}
 			p.methodNames[i] = n
 			p.methodColours[i] = n
@@ -362,15 +346,13 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 	err = db.QueryRow("select site.name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
 		p.networkID, p.siteID).Scan(&p.siteName)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+		return
 	}
 
 	err = db.QueryRow("select type.name, type.description, unit.symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
 		p.typeID).Scan(&p.typeName, &p.typeDescription, &p.unit)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+		return
 	}
 
 	// If there is enough data to plot then calculate graphics x,y for data
@@ -436,10 +418,10 @@ func (p *plot) loadData(w http.ResponseWriter, r *http.Request) bool {
 
 	}
 
-	return true
+	return
 }
 
-func (p *plot) svg() *bytes.Buffer {
+func (p *plt) svg() *bytes.Buffer {
 	var b bytes.Buffer
 	s := svg.New(&b)
 

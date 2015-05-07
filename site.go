@@ -30,12 +30,12 @@ const (
 var siteDoc = apidoc.Endpoint{Title: "Site",
 	Description: `Look up site information.`,
 	Queries: []*apidoc.Query{
-		new(siteTypeQuery).Doc(),
-		new(siteQuery).Doc(),
+		siteTypeD,
+		siteD,
 	},
 }
 
-var siteQueryD = &apidoc.Query{
+var siteD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
 	Title:       "Site",
 	Description: "Find information for individual sites.",
@@ -49,33 +49,25 @@ var siteQueryD = &apidoc.Query{
 	Props: siteProps,
 }
 
-type siteQuery struct {
-	siteID, networkID string
-}
-
-func (q *siteQuery) Doc() *apidoc.Query {
-	return siteQueryD
-}
-
-func (q *siteQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func site(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case len(r.URL.Query()) != 2:
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	case !web.ParamsExist(w, r, "siteID", "networkID"):
-		return false
+		return
 	}
 
-	q.networkID = r.URL.Query().Get("networkID")
-	q.siteID = r.URL.Query().Get("siteID")
+	networkID := r.URL.Query().Get("networkID")
+	siteID := r.URL.Query().Get("siteID")
 
-	return validSite(w, r, q.networkID, q.siteID)
-}
+	if !validSite(w, r, networkID, siteID) {
+		return
+	}
 
-func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
-	b, err := geoJSONSite(q.networkID, q.siteID)
+	b, err := geoJSONSite(networkID, siteID)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -84,7 +76,7 @@ func (q *siteQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	web.Ok(w, r, &b)
 }
 
-var siteTypeQueryD = &apidoc.Query{
+var siteTypeD = &apidoc.Query{
 	Accept:      web.V1GeoJSON,
 	Title:       "Sites",
 	Description: "Filter sites by observation type, method, and location.",
@@ -99,41 +91,35 @@ var siteTypeQueryD = &apidoc.Query{
 	Props: siteProps,
 }
 
-type siteTypeQuery struct {
-	typeID, methodID, within string
-}
-
-func (q *siteTypeQuery) Doc() *apidoc.Query {
-	return siteTypeQueryD
-}
-
-func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func siteType(w http.ResponseWriter, r *http.Request) {
 	rl := r.URL.Query()
 
 	if rl.Get("methodID") != "" && rl.Get("typeID") == "" {
 		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
-		return false
+		return
 	}
 
-	if rl.Get("typeID") != "" {
-		q.typeID = rl.Get("typeID")
+	var typeID, methodID, within string
 
-		if !validType(w, r, q.typeID) {
-			return false
+	if rl.Get("typeID") != "" {
+		typeID = rl.Get("typeID")
+
+		if !validType(w, r, typeID) {
+			return
 		}
 
 		if rl.Get("methodID") != "" {
-			q.methodID = rl.Get("methodID")
-			if !validTypeMethod(w, r, q.typeID, q.methodID) {
-				return false
+			methodID = rl.Get("methodID")
+			if !validTypeMethod(w, r, typeID, methodID) {
+				return
 			}
 		}
 	}
 
 	if rl.Get("within") != "" {
-		q.within = strings.Replace(rl.Get("within"), "+", "", -1)
-		if !validPoly(w, r, q.within) {
-			return false
+		within = strings.Replace(rl.Get("within"), "+", "", -1)
+		if !validPoly(w, r, within) {
+			return
 		}
 	}
 
@@ -143,21 +129,18 @@ func (q *siteTypeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("within")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
-	return true
-}
-
-func (q *siteTypeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1GeoJSON)
 
-	b, err := q.geoJSONSites()
+	b, err := geoJSONSites(typeID, methodID, within)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
 	}
 	web.Ok(w, r, &b)
+
 }
 
 // validSite checks that the siteID and networkID combination exists in the DB.
@@ -185,45 +168,45 @@ func geoJSONSite(networkID, siteID string) ([]byte, error) {
 	return []byte(d), err
 }
 
-func (q *siteTypeQuery) geoJSONSites() ([]byte, error) {
+func geoJSONSites(typeID, methodID, within string) ([]byte, error) {
 	var d string
 	var err error
 
 	switch {
-	case q.typeID == "" && q.methodID == "" && q.within == "":
+	case typeID == "" && methodID == "" && within == "":
 		err = db.QueryRow(
 			siteGeoJSON + fc).Scan(&d)
-	case q.typeID == "" && q.methodID == "" && q.within != "":
+	case typeID == "" && methodID == "" && within != "":
 		err = db.QueryRow(
 			siteGeoJSON+
 				`where ST_Within(location::geometry, ST_GeomFromText($1, 4326))`+
-				fc, q.within).Scan(&d)
-	case q.typeID != "" && q.methodID == "" && q.within == "":
+				fc, within).Scan(&d)
+	case typeID != "" && methodID == "" && within == "":
 		err = db.QueryRow(
 			siteGeoJSON+
 				` where sitepk IN
-(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))`+fc, q.typeID).Scan(&d)
-	case q.typeID != "" && q.methodID == "" && q.within != "":
+(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))`+fc, typeID).Scan(&d)
+	case typeID != "" && methodID == "" && within != "":
 		err = db.QueryRow(
 			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1)) 
- AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($2, 4326)))`+fc, q.typeID, q.within).Scan(&d)
-	case q.typeID != "" && q.methodID != "" && q.within == "":
+ AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($2, 4326)))`+fc, typeID, within).Scan(&d)
+	case typeID != "" && methodID != "" && within == "":
 		err = db.QueryRow(
 			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where 
 	observation.typepk = (select typepk from fits.type where typeid = $1)
-	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))`+fc, q.typeID, q.methodID).Scan(&d)
-	case q.typeID != "" && q.methodID != "" && q.within != "":
+	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))`+fc, typeID, methodID).Scan(&d)
+	case typeID != "" && methodID != "" && within != "":
 		err = db.QueryRow(
 			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where 
 	observation.typepk = (select typepk from fits.type where typeid = $1)
 	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))
-		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))`+fc, q.typeID, q.methodID, q.within).Scan(&d)
+		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))`+fc, typeID, methodID, within).Scan(&d)
 	}
 
 	return []byte(d), err

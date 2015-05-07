@@ -13,12 +13,12 @@ import (
 var mapDoc = apidoc.Endpoint{Title: "Maps",
 	Description: `Simple maps of sites.`,
 	Queries: []*apidoc.Query{
-		new(siteMapQuery).Doc(),
-		new(siteTypeMapQuery).Doc(),
+		siteMapD,
+		siteTypeMapD,
 	},
 }
 
-var siteMapQueryD = &apidoc.Query{
+var siteMapD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Site Maps",
 	Description: "Maps of specific sites",
@@ -78,21 +78,11 @@ var siteMapQueryD = &apidoc.Query{
 	},
 }
 
-type site struct {
+type st struct {
 	networkID, siteID string
 }
 
-type siteMapQuery struct {
-	bbox, insetBbox string
-	width           int
-	s               []site
-}
-
-func (q *siteMapQuery) Doc() *apidoc.Query {
-	return siteMapQueryD
-}
-
-func (q *siteMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func siteMap(w http.ResponseWriter, r *http.Request) {
 	rl := r.URL.Query()
 
 	rl.Del("width")
@@ -103,82 +93,79 @@ func (q *siteMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
 	rl.Del("sites")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
 	rl = r.URL.Query()
 
-	q.bbox = rl.Get("bbox")
+	bbox := rl.Get("bbox")
+
+	var insetBbox string
 
 	if rl.Get("insetBbox") != "" {
-		q.insetBbox = rl.Get("insetBbox")
+		insetBbox = rl.Get("insetBbox")
 
-		err := map180.ValidBbox(q.insetBbox)
+		err := map180.ValidBbox(insetBbox)
 		if err != nil {
 			web.BadRequest(w, r, err.Error())
-			return false
+			return
 		}
 	}
 
 	if rl.Get("sites") == "" && (rl.Get("siteID") == "" && rl.Get("networkID") == "") {
 		web.BadRequest(w, r, "please specify sites or networkID and siteID")
-		return false
+		return
 	}
 
 	if rl.Get("sites") != "" && (rl.Get("siteID") != "" || rl.Get("networkID") != "") {
 		web.BadRequest(w, r, "please specify either sites or networkID and siteID")
-		return false
+		return
 	}
 
 	if rl.Get("sites") == "" && (rl.Get("siteID") == "" || rl.Get("networkID") == "") {
 		web.BadRequest(w, r, "please specify networkID and siteID")
-		return false
+		return
 	}
 
-	err := map180.ValidBbox(q.bbox)
+	err := map180.ValidBbox(bbox)
 	if err != nil {
 		web.BadRequest(w, r, err.Error())
-		return false
+		return
 	}
+
+	width := 130
 
 	if rl.Get("width") != "" {
-
-		q.width, err = strconv.Atoi(rl.Get("width"))
+		width, err = strconv.Atoi(rl.Get("width"))
 		if err != nil {
 			web.BadRequest(w, r, "invalid width.")
-			return false
+			return
 		}
-	} else {
-		q.width = 130
 	}
+
+	var s []st
 
 	if rl.Get("sites") != "" {
 		for _, ns := range strings.Split(rl.Get("sites"), ",") {
 			nss := strings.Split(ns, ".")
 			if len(nss) != 2 {
 				web.BadRequest(w, r, "invalid sites query.")
-				return false
+				return
 			}
-			q.s = append(q.s, site{networkID: nss[0], siteID: nss[1]})
+			s = append(s, st{networkID: nss[0], siteID: nss[1]})
 		}
 	} else {
-		q.s = append(q.s, site{networkID: rl.Get("networkID"),
+		s = append(s, st{networkID: rl.Get("networkID"),
 			siteID: rl.Get("siteID")})
 	}
 
-	for _, site := range q.s {
-		if !validSite(w, r, site.networkID, site.siteID) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (q *siteMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	markers := make([]map180.Marker, 0)
 
-	for _, site := range q.s {
+	for _, site := range s {
+		if !validSite(w, r, site.networkID, site.siteID) {
+			return
+		}
+
 		g, err := geoJSONSite(site.networkID, site.siteID)
 		if err != nil {
 			web.ServiceUnavailable(w, r, err)
@@ -191,9 +178,10 @@ func (q *siteMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		markers = append(markers, m...)
+
 	}
 
-	b, err := wm.SVG(q.bbox, q.width, markers, q.insetBbox)
+	b, err := wm.SVG(bbox, width, markers, insetBbox)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -203,9 +191,7 @@ func (q *siteMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	web.OkBuf(w, r, &b)
 }
 
-// sites by type
-
-var siteTypeMapQueryD = &apidoc.Query{
+var siteTypeMapD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Site Type Maps",
 	Description: "Maps of sites filtered by observation type, method, and location.",
@@ -245,78 +231,67 @@ var siteTypeMapQueryD = &apidoc.Query{
 	},
 }
 
-type siteTypeMapQuery struct {
-	bbox, insetBbox string
-	width           int
-	s               siteTypeQuery
-}
-
-func (q *siteTypeMapQuery) Doc() *apidoc.Query {
-	return siteTypeMapQueryD
-}
-
-func (q *siteTypeMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func siteTypeMap(w http.ResponseWriter, r *http.Request) {
 	rl := r.URL.Query()
 
-	q.bbox = rl.Get("bbox")
+	bbox := rl.Get("bbox")
 
-	err := map180.ValidBbox(q.bbox)
+	err := map180.ValidBbox(bbox)
 	if err != nil {
 		web.BadRequest(w, r, err.Error())
-		return false
+		return
 	}
 
-	if rl.Get("insetBbox") != "" {
-		q.insetBbox = rl.Get("insetBbox")
+	var insetBbox, typeID, methodID, within string
+	width := 130
 
-		err := map180.ValidBbox(q.insetBbox)
+	if rl.Get("insetBbox") != "" {
+		insetBbox = rl.Get("insetBbox")
+
+		err := map180.ValidBbox(insetBbox)
 		if err != nil {
 			web.BadRequest(w, r, err.Error())
-			return false
+			return
 		}
 	}
 
 	if rl.Get("width") != "" {
-
-		q.width, err = strconv.Atoi(rl.Get("width"))
+		width, err = strconv.Atoi(rl.Get("width"))
 		if err != nil {
 			web.BadRequest(w, r, "invalid width.")
-			return false
+			return
 		}
-	} else {
-		q.width = 130
 	}
-
 	if rl.Get("methodID") != "" && rl.Get("typeID") == "" {
 		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
-		return false
+		return
 	}
 
 	if rl.Get("typeID") != "" {
-		q.s.typeID = rl.Get("typeID")
+		typeID = rl.Get("typeID")
 
-		if !validType(w, r, q.s.typeID) {
-			return false
+		if !validType(w, r, typeID) {
+			return
 		}
 
 		if rl.Get("methodID") != "" {
-			q.s.methodID = rl.Get("methodID")
-			if !validTypeMethod(w, r, q.s.typeID, q.s.methodID) {
-				return false
+			methodID = rl.Get("methodID")
+			if !validTypeMethod(w, r, typeID, methodID) {
+				return
 			}
 		}
 	}
 
 	if rl.Get("within") != "" {
-		q.s.within = strings.Replace(rl.Get("within"), "+", "", -1)
-		if !validPoly(w, r, q.s.within) {
-			return false
+		within = strings.Replace(rl.Get("within"), "+", "", -1)
+		if !validPoly(w, r, within) {
+			return
 		}
-	} else if q.bbox != "" {
-		q.s.within, err = map180.BboxToWKTPolygon(q.bbox)
+	} else if bbox != "" {
+		within, err = map180.BboxToWKTPolygon(bbox)
 		if err != nil {
 			web.ServiceUnavailable(w, r, err)
-			return false
+			return
 		}
 	}
 
@@ -328,14 +303,10 @@ func (q *siteTypeMapQuery) Validate(w http.ResponseWriter, r *http.Request) bool
 	rl.Del("within")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
-	return true
-}
-
-func (q *siteTypeMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
-	g, err := q.s.geoJSONSites()
+	g, err := geoJSONSites(typeID, methodID, within)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -347,11 +318,12 @@ func (q *siteTypeMapQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := wm.SVG(q.bbox, q.width, m, q.insetBbox)
+	b, err := wm.SVG(bbox, width, m, insetBbox)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
 	}
 
+	w.Header().Set("Content-Type", "image/svg+xml")
 	web.OkBuf(w, r, &b)
 }

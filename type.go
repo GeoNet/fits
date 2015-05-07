@@ -11,11 +11,11 @@ import (
 var typeDoc = apidoc.Endpoint{Title: "Type",
 	Description: `Look up observation type information.`,
 	Queries: []*apidoc.Query{
-		new(typeQuery).Doc(),
+		typeD,
 	},
 }
 
-var typeQueryD = &apidoc.Query{
+var typeD = &apidoc.Query{
 	Accept:      web.V1JSON,
 	Title:       "Type",
 	Description: "List all observation types.",
@@ -33,22 +33,12 @@ var typeQueryD = &apidoc.Query{
 	},
 }
 
-func (q *typeQuery) Doc() *apidoc.Query {
-	return typeQueryD
-}
-
-type typeQuery struct{}
-
-func (q *typeQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func typeH(w http.ResponseWriter, r *http.Request) {
 	if len(r.URL.Query()) != 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
 
-	return true
-}
-
-func (q *typeQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", web.V1JSON)
 
 	var d string

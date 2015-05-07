@@ -19,12 +19,12 @@ func init() {
 var observationDoc = apidoc.Endpoint{Title: "Observation",
 	Description: `Look up observations.`,
 	Queries: []*apidoc.Query{
-		new(observationQuery).Doc(),
-		new(spatialObs).Doc(),
+		observationD,
+		spatialObsD,
 	},
 }
 
-var observationQueryD = &apidoc.Query{
+var observationD = &apidoc.Query{
 	Accept:      web.V1CSV,
 	Title:       "Observation",
 	Description: "Observations as CSV",
@@ -45,44 +45,39 @@ var observationQueryD = &apidoc.Query{
 	},
 }
 
-type observationQuery struct {
-	typeID, networkID, siteID, methodID string
-	days                                int
-}
-
-func (q *observationQuery) Doc() *apidoc.Query {
-	return observationQueryD
-}
-
-func (q *observationQuery) Validate(w http.ResponseWriter, r *http.Request) bool {
+func observation(w http.ResponseWriter, r *http.Request) {
 	// values needed for all queries
 	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
-		return false
+		return
 	}
 
 	rl := r.URL.Query()
 
-	q.typeID = rl.Get("typeID")
-	q.networkID = rl.Get("networkID")
-	q.siteID = rl.Get("siteID")
+	typeID := rl.Get("typeID")
+	networkID := rl.Get("networkID")
+	siteID := rl.Get("siteID")
 
-	if !validType(w, r, q.typeID) {
-		return false
+	if !validType(w, r, typeID) {
+		return
 	}
+
+	var days int
 
 	if rl.Get("days") != "" {
 		var err error
-		q.days, err = strconv.Atoi(rl.Get("days"))
-		if err != nil || q.days > 365000 {
+		days, err = strconv.Atoi(rl.Get("days"))
+		if err != nil || days > 365000 {
 			web.BadRequest(w, r, "Invalid days query param.")
-			return false
+			return
 		}
 	}
 
+	var methodID string
+
 	if rl.Get("methodID") != "" {
-		q.methodID = rl.Get("methodID")
-		if !validTypeMethod(w, r, q.typeID, q.methodID) {
-			return false
+		methodID = rl.Get("methodID")
+		if !validTypeMethod(w, r, typeID, methodID) {
+			return
 		}
 	}
 
@@ -94,20 +89,14 @@ func (q *observationQuery) Validate(w http.ResponseWriter, r *http.Request) bool
 	rl.Del("methodID")
 	if len(rl) > 0 {
 		web.BadRequest(w, r, "incorrect number of query params.")
-		return false
+		return
 	}
-
-	return validSite(w, r, q.networkID, q.siteID)
-}
-
-func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", web.V1CSV)
 
 	// Find the unit for the CSV header
 	var unit string
-	err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", q.typeID).Scan(&unit)
+	err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit)
 	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "unit not found for typeID: "+q.typeID)
+		web.NotFound(w, r, "unit not found for typeID: "+typeID)
 		return
 	}
 	if err != nil {
@@ -119,7 +108,7 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 
 	switch {
-	case q.days == 0 && q.methodID == "":
+	case days == 0 && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -129,8 +118,8 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
                                AND typepk = (
                                                         SELECT typepk FROM fits.type WHERE typeid = $3
                                                        ) 
-                                 ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID)
-	case q.days != 0 && q.methodID == "":
+                                 ORDER BY time ASC;`, networkID, siteID, typeID)
+	case days != 0 && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -140,9 +129,9 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
                                AND typepk = (
                                                         SELECT typepk FROM fits.type WHERE typeid = $3
                                                        ) 
-                                AND time > (now() - interval '`+strconv.Itoa(q.days)+` days')
-                  		ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID)
-	case q.days == 0 && q.methodID != "":
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
+                  		ORDER BY time ASC;`, networkID, siteID, typeID)
+	case days == 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -155,8 +144,8 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 			AND methodpk = (
 					SELECT methodpk FROM fits.method WHERE methodid = $4
 				)
-                                 ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID, q.methodID)
-	case q.days != 0 && q.methodID != "":
+                                 ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+	case days != 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
@@ -169,8 +158,8 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 		AND methodpk = (
 					SELECT methodpk FROM fits.method WHERE methodid = $4
 				)
-                                AND time > (now() - interval '`+strconv.Itoa(q.days)+` days')
-                  		ORDER BY time ASC;`, q.networkID, q.siteID, q.typeID, q.methodID)
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
+                  		ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
 	}
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
@@ -182,7 +171,7 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	// is an error we can let the client know without sending
 	// a partial data response.
 	var b bytes.Buffer
-	b.Write([]byte("date-time, " + q.typeID + " (" + unit + "), error (" + unit + ")"))
+	b.Write([]byte("date-time, " + typeID + " (" + unit + "), error (" + unit + ")"))
 	b.Write(eol)
 	for rows.Next() {
 		err := rows.Scan(&d)
@@ -195,11 +184,12 @@ func (q *observationQuery) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	rows.Close()
 
-	if q.methodID != "" {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`-`+q.methodID+`.csv"`)
+	if methodID != "" {
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+q.networkID+`-`+q.siteID+`-`+q.typeID+`.csv"`)
+		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`.csv"`)
 	}
 
+	w.Header().Set("Content-Type", web.V1CSV)
 	web.OkBuf(w, r, &b)
 }
