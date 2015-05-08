@@ -18,11 +18,11 @@ import (
 var plotDoc = apidoc.Endpoint{Title: "Plot",
 	Description: `Simple plots of observations.`,
 	Queries: []*apidoc.Query{
-		pltD,
+		plotD,
 	},
 }
 
-var pltD = &apidoc.Query{
+var plotD = &apidoc.Query{
 	Accept:      "",
 	Title:       "Observations SVG",
 	Description: "Plot observations as Scalable Vector Graphic (SVG)",
@@ -69,18 +69,20 @@ var pltD = &apidoc.Query{
 	</p>
             `,
 	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]&[type=(line|scatter)&[showMethod=true]]",
-	Params: map[string]template.HTML{
+	Required: map[string]template.HTML{
 		"typeID":    typeIDDoc,
 		"siteID":    siteIDDoc,
 		"networkID": networkIDDoc,
-		"days": optDoc + `  The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
+	},
+	Optional: map[string]template.HTML{
+		"days": `The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
 		x-axis which may not be the same as the data.  Maximum value is 365000.`,
-		"yrange": optDoc + `  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
+		"yrange": `Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
 		data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
 		the y-axis range will be -20 to 60.  yrange must be > 0.  If there are data in the time range that would be out of range on the plot then the background
 		colour of the plot is changed.`,
-		"type": optDoc + `  Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
-		"showMethod": optDoc + `  If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
+		"type": `Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
+		"showMethod": `If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
 		markers based on methodID.`,
 	},
 	Props: map[string]template.HTML{
@@ -89,36 +91,23 @@ var pltD = &apidoc.Query{
 }
 
 func plot(w http.ResponseWriter, r *http.Request) {
-	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
+	if err := plotD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl := r.URL.Query()
-
-	rl.Del("typeID")
-	rl.Del("networkID")
-	rl.Del("siteID")
-	rl.Del("days")
-	rl.Del("yrange")
-	rl.Del("type")
-	rl.Del("showMethod")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
-	}
-
-	rl = r.URL.Query()
+	v := r.URL.Query()
 
 	p := plt{
-		typeID:    rl.Get("typeID"),
-		networkID: rl.Get("networkID"),
-		siteID:    rl.Get("siteID"),
+		typeID:    v.Get("typeID"),
+		networkID: v.Get("networkID"),
+		siteID:    v.Get("siteID"),
 		pType:     "line",
 	}
 	var err error
 
-	if rl.Get("days") != "" {
-		p.days, err = strconv.Atoi(rl.Get("days"))
+	if v.Get("days") != "" {
+		p.days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || p.days > 365000 {
 			web.BadRequest(w, r, "Invalid days query param.")
 			return
@@ -128,16 +117,16 @@ func plot(w http.ResponseWriter, r *http.Request) {
 		p.tmin = p.tmax.Add(time.Duration(p.days*-1) * time.Hour * 24)
 	}
 
-	if rl.Get("yrange") != "" {
-		p.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
+	if v.Get("yrange") != "" {
+		p.yrange, err = strconv.ParseFloat(v.Get("yrange"), 64)
 		if err != nil || p.yrange <= 0 {
 			web.BadRequest(w, r, "invalid yrange query param.")
 			return
 		}
 	}
 
-	if rl.Get("type") != "" {
-		p.pType = rl.Get("type")
+	if v.Get("type") != "" {
+		p.pType = v.Get("type")
 
 		if !(p.pType == "scatter" || p.pType == "line") {
 			web.BadRequest(w, r, "invalid plot type")
@@ -145,7 +134,7 @@ func plot(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if p.pType == "scatter" && rl.Get("showMethod") == "true" {
+	if p.pType == "scatter" && v.Get("showMethod") == "true" {
 		p.showMethod = true
 	}
 

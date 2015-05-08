@@ -31,12 +31,14 @@ var observationD = &apidoc.Query{
 	Example:     "/observation?typeID=e&siteID=HOLD&networkID=CG",
 	ExampleHost: exHost,
 	URI:         "/observation?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[methodID=(methodID)]",
-	Params: map[string]template.HTML{
+	Required: map[string]template.HTML{
 		"typeID":    typeIDDoc,
 		"siteID":    siteIDDoc,
 		"networkID": networkIDDoc,
-		"days":      optDoc + `  The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
-		"methodID":  optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
+	},
+	Optional: map[string]template.HTML{
+		"days":     `The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
+		"methodID": methodIDDoc + `  typeID must be specified as well.`,
 	},
 	Props: map[string]template.HTML{
 		"column 1": obsDTDoc,
@@ -46,16 +48,16 @@ var observationD = &apidoc.Query{
 }
 
 func observation(w http.ResponseWriter, r *http.Request) {
-	// values needed for all queries
-	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
+	if err := observationD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl := r.URL.Query()
+	v := r.URL.Query()
 
-	typeID := rl.Get("typeID")
-	networkID := rl.Get("networkID")
-	siteID := rl.Get("siteID")
+	typeID := v.Get("typeID")
+	networkID := v.Get("networkID")
+	siteID := v.Get("siteID")
 
 	if !validType(w, r, typeID) {
 		return
@@ -63,9 +65,9 @@ func observation(w http.ResponseWriter, r *http.Request) {
 
 	var days int
 
-	if rl.Get("days") != "" {
+	if v.Get("days") != "" {
 		var err error
-		days, err = strconv.Atoi(rl.Get("days"))
+		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
 			web.BadRequest(w, r, "Invalid days query param.")
 			return
@@ -74,22 +76,11 @@ func observation(w http.ResponseWriter, r *http.Request) {
 
 	var methodID string
 
-	if rl.Get("methodID") != "" {
-		methodID = rl.Get("methodID")
+	if v.Get("methodID") != "" {
+		methodID = v.Get("methodID")
 		if !validTypeMethod(w, r, typeID, methodID) {
 			return
 		}
-	}
-
-	// delete any query params we know how to handle and there should be nothing left.
-	rl.Del("typeID")
-	rl.Del("siteID")
-	rl.Del("networkID")
-	rl.Del("days")
-	rl.Del("methodID")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
 	}
 
 	// Find the unit for the CSV header

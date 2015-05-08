@@ -42,7 +42,7 @@ var siteD = &apidoc.Query{
 	Example:     "/site?siteID=HOLD&networkID=CG",
 	ExampleHost: exHost,
 	URI:         "/site?siteID=(siteID)&networkID=(networkID)",
-	Params: map[string]template.HTML{
+	Required: map[string]template.HTML{
 		"siteID":    siteIDDoc,
 		"networkID": networkIDDoc,
 	},
@@ -50,11 +50,8 @@ var siteD = &apidoc.Query{
 }
 
 func site(w http.ResponseWriter, r *http.Request) {
-	switch {
-	case len(r.URL.Query()) != 2:
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
-	case !web.ParamsExist(w, r, "siteID", "networkID"):
+	if err := siteD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
@@ -83,53 +80,49 @@ var siteTypeD = &apidoc.Query{
 	Example:     "/site?typeID=e",
 	ExampleHost: exHost,
 	URI:         "/site?[typeID=(typeID)]&[methodID=(methodID)]&[within=POLYGON((...))]",
-	Params: map[string]template.HTML{
-		"typeID":   optDoc + `  ` + typeIDDoc,
-		"methodID": optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
-		"within":   optDoc + `  ` + withinDoc,
+	Optional: map[string]template.HTML{
+		"typeID":   typeIDDoc,
+		"methodID": methodIDDoc + `  typeID must be specified as well.`,
+		"within":   withinDoc,
 	},
 	Props: siteProps,
 }
 
 func siteType(w http.ResponseWriter, r *http.Request) {
-	rl := r.URL.Query()
+	if err := siteTypeD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
+		return
+	}
 
-	if rl.Get("methodID") != "" && rl.Get("typeID") == "" {
+	v := r.URL.Query()
+
+	if v.Get("methodID") != "" && v.Get("typeID") == "" {
 		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
 		return
 	}
 
 	var typeID, methodID, within string
 
-	if rl.Get("typeID") != "" {
-		typeID = rl.Get("typeID")
+	if v.Get("typeID") != "" {
+		typeID = v.Get("typeID")
 
 		if !validType(w, r, typeID) {
 			return
 		}
 
-		if rl.Get("methodID") != "" {
-			methodID = rl.Get("methodID")
+		if v.Get("methodID") != "" {
+			methodID = v.Get("methodID")
 			if !validTypeMethod(w, r, typeID, methodID) {
 				return
 			}
 		}
 	}
 
-	if rl.Get("within") != "" {
-		within = strings.Replace(rl.Get("within"), "+", "", -1)
+	if v.Get("within") != "" {
+		within = strings.Replace(v.Get("within"), "+", "", -1)
 		if !validPoly(w, r, within) {
 			return
 		}
-	}
-
-	// delete any query params we know how to handle and there should be nothing left.
-	rl.Del("typeID")
-	rl.Del("methodID")
-	rl.Del("within")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
 	}
 
 	w.Header().Set("Content-Type", web.V1GeoJSON)

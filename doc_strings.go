@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	optDoc    template.HTML = `<mark>Optional.</mark> `
 	withinDoc template.HTML = `Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
 		defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
 		(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 

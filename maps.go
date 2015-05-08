@@ -66,14 +66,14 @@ var siteMapD = &apidoc.Query{
 	</p>
 	`,
 	URI: `/map/site?(networkID=(string)&siteID=(string)|&sites=(networkID.siteID,...))[&bbox=(float,float,float,float)|string][&width=(int)]`,
-	Params: map[string]template.HTML{
-		"networkID": optDoc + networkIDDoc + `  Specify <code>networkID</code> and <code>siteID</code> or <code>sites</code>`,
-		"siteID":    optDoc + siteIDDoc,
-		"sites": optDoc + `A comma separated list of sites specified by the <code>networkID</code> 
+	Optional: map[string]template.HTML{
+		"networkID": networkIDDoc + `  Specify <code>networkID</code> and <code>siteID</code> or <code>sites</code>`,
+		"siteID":    siteIDDoc,
+		"sites": `A comma separated list of sites specified by the <code>networkID</code> 
 		and <code>siteID</code> joined with a <code>.</code> e.g., <code>LI.GISB,LI.TAUP</code>.`,
-		"width": optDoc + widthDoc,
-		"bbox":  optDoc + bboxDoc,
-		"insetBbox": optDoc + ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
+		"width": widthDoc,
+		"bbox":  bboxDoc,
+		"insetBbox": ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
 		giving context to zoomed in regions.  Same specification options as <code>bbox</code>.`,
 	},
 }
@@ -83,27 +83,19 @@ type st struct {
 }
 
 func siteMap(w http.ResponseWriter, r *http.Request) {
-	rl := r.URL.Query()
-
-	rl.Del("width")
-	rl.Del("bbox")
-	rl.Del("insetBbox")
-	rl.Del("siteID")
-	rl.Del("networkID")
-	rl.Del("sites")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
+	if err := siteMapD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl = r.URL.Query()
+	v := r.URL.Query()
 
-	bbox := rl.Get("bbox")
+	bbox := v.Get("bbox")
 
 	var insetBbox string
 
-	if rl.Get("insetBbox") != "" {
-		insetBbox = rl.Get("insetBbox")
+	if v.Get("insetBbox") != "" {
+		insetBbox = v.Get("insetBbox")
 
 		err := map180.ValidBbox(insetBbox)
 		if err != nil {
@@ -112,17 +104,17 @@ func siteMap(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if rl.Get("sites") == "" && (rl.Get("siteID") == "" && rl.Get("networkID") == "") {
+	if v.Get("sites") == "" && (v.Get("siteID") == "" && v.Get("networkID") == "") {
 		web.BadRequest(w, r, "please specify sites or networkID and siteID")
 		return
 	}
 
-	if rl.Get("sites") != "" && (rl.Get("siteID") != "" || rl.Get("networkID") != "") {
+	if v.Get("sites") != "" && (v.Get("siteID") != "" || v.Get("networkID") != "") {
 		web.BadRequest(w, r, "please specify either sites or networkID and siteID")
 		return
 	}
 
-	if rl.Get("sites") == "" && (rl.Get("siteID") == "" || rl.Get("networkID") == "") {
+	if v.Get("sites") == "" && (v.Get("siteID") == "" || v.Get("networkID") == "") {
 		web.BadRequest(w, r, "please specify networkID and siteID")
 		return
 	}
@@ -135,8 +127,8 @@ func siteMap(w http.ResponseWriter, r *http.Request) {
 
 	width := 130
 
-	if rl.Get("width") != "" {
-		width, err = strconv.Atoi(rl.Get("width"))
+	if v.Get("width") != "" {
+		width, err = strconv.Atoi(v.Get("width"))
 		if err != nil {
 			web.BadRequest(w, r, "invalid width.")
 			return
@@ -145,8 +137,8 @@ func siteMap(w http.ResponseWriter, r *http.Request) {
 
 	var s []st
 
-	if rl.Get("sites") != "" {
-		for _, ns := range strings.Split(rl.Get("sites"), ",") {
+	if v.Get("sites") != "" {
+		for _, ns := range strings.Split(v.Get("sites"), ",") {
 			nss := strings.Split(ns, ".")
 			if len(nss) != 2 {
 				web.BadRequest(w, r, "invalid sites query.")
@@ -155,8 +147,8 @@ func siteMap(w http.ResponseWriter, r *http.Request) {
 			s = append(s, st{networkID: nss[0], siteID: nss[1]})
 		}
 	} else {
-		s = append(s, st{networkID: rl.Get("networkID"),
-			siteID: rl.Get("siteID")})
+		s = append(s, st{networkID: v.Get("networkID"),
+			siteID: v.Get("siteID")})
 	}
 
 	markers := make([]map180.Marker, 0)
@@ -220,21 +212,26 @@ var siteTypeMapD = &apidoc.Query{
 	</p>
 	`,
 	URI: `/map/site?[typeID=(typeID)]&[methodID=(methodID)]&[within=POLYGON((...))][&bbox=(float,float,float,float)|string][&width=(int)]`,
-	Params: map[string]template.HTML{
-		"typeID":   optDoc + `  ` + typeIDDoc,
-		"methodID": optDoc + `  ` + methodIDDoc + `  typeID must be specified as well.`,
-		"within":   optDoc + `  ` + withinDoc,
-		"width":    optDoc + widthDoc,
-		"bbox":     optDoc + bboxDoc,
-		"insetBbox": optDoc + ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
+	Optional: map[string]template.HTML{
+		"typeID":   typeIDDoc,
+		"methodID": methodIDDoc + `  typeID must be specified as well.`,
+		"within":   withinDoc,
+		"width":    widthDoc,
+		"bbox":     bboxDoc,
+		"insetBbox": ` If specified then is used to draw a small inset map in the upper left corner.  Useful for
 		giving context to zoomed in regions.  Same specification options as <code>bbox</code>.`,
 	},
 }
 
 func siteTypeMap(w http.ResponseWriter, r *http.Request) {
-	rl := r.URL.Query()
+	if err := siteTypeMapD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
+		return
+	}
 
-	bbox := rl.Get("bbox")
+	v := r.URL.Query()
+
+	bbox := v.Get("bbox")
 
 	err := map180.ValidBbox(bbox)
 	if err != nil {
@@ -245,8 +242,8 @@ func siteTypeMap(w http.ResponseWriter, r *http.Request) {
 	var insetBbox, typeID, methodID, within string
 	width := 130
 
-	if rl.Get("insetBbox") != "" {
-		insetBbox = rl.Get("insetBbox")
+	if v.Get("insetBbox") != "" {
+		insetBbox = v.Get("insetBbox")
 
 		err := map180.ValidBbox(insetBbox)
 		if err != nil {
@@ -255,35 +252,35 @@ func siteTypeMap(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if rl.Get("width") != "" {
-		width, err = strconv.Atoi(rl.Get("width"))
+	if v.Get("width") != "" {
+		width, err = strconv.Atoi(v.Get("width"))
 		if err != nil {
 			web.BadRequest(w, r, "invalid width.")
 			return
 		}
 	}
-	if rl.Get("methodID") != "" && rl.Get("typeID") == "" {
+	if v.Get("methodID") != "" && v.Get("typeID") == "" {
 		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
 		return
 	}
 
-	if rl.Get("typeID") != "" {
-		typeID = rl.Get("typeID")
+	if v.Get("typeID") != "" {
+		typeID = v.Get("typeID")
 
 		if !validType(w, r, typeID) {
 			return
 		}
 
-		if rl.Get("methodID") != "" {
-			methodID = rl.Get("methodID")
+		if v.Get("methodID") != "" {
+			methodID = v.Get("methodID")
 			if !validTypeMethod(w, r, typeID, methodID) {
 				return
 			}
 		}
 	}
 
-	if rl.Get("within") != "" {
-		within = strings.Replace(rl.Get("within"), "+", "", -1)
+	if v.Get("within") != "" {
+		within = strings.Replace(v.Get("within"), "+", "", -1)
 		if !validPoly(w, r, within) {
 			return
 		}
@@ -293,17 +290,6 @@ func siteTypeMap(w http.ResponseWriter, r *http.Request) {
 			web.ServiceUnavailable(w, r, err)
 			return
 		}
-	}
-
-	rl.Del("bbox")
-	rl.Del("insetBbox")
-	rl.Del("width")
-	rl.Del("typeID")
-	rl.Del("methodID")
-	rl.Del("within")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
 	}
 
 	g, err := geoJSONSites(typeID, methodID, within)

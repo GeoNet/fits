@@ -22,9 +22,6 @@ var typeD = &apidoc.Query{
 	Example:     "/type",
 	ExampleHost: exHost,
 	URI:         "/type",
-	Params: map[string]template.HTML{
-		"none": `no query parameters are required.`,
-	},
 	Props: map[string]template.HTML{
 		"description": `Type description e.g., <code>displacement from initial position</code>`,
 		"name":        `Type name e.g., <code>east</code>`,

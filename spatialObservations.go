@@ -19,17 +19,19 @@ var spatialObsD = &apidoc.Query{
 	Example:     "/observation?typeID=CO2-flux-e&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:27200&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))",
 	ExampleHost: exHost,
 	URI:         "/observation?typeID=(typeID)&start=(ISO8601 date time)&days=(int)&[srsName=(CRS)]&[within=POLYGON((...))]&[methodID=(methodID)]",
-	Params: map[string]template.HTML{
+	Required: map[string]template.HTML{
 		"typeID": typeIDDoc,
 		"days":   `The number of days of data to select from the start e.g., <code>1</code>.  Range is 1-7.`,
 		"start":  `the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.`,
-		"srsName": optDoc + `  Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
+	},
+	Optional: map[string]template.HTML{
+		"srsName": `Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
 		(<a href="http://spatialreference.org/ref/epsg/nzgd49-new-zealand-map-grid/">New Zealand Map Grid</a>).  
 		Site locations are stored as a geography.  For projection they are cast to a geometry and then projected using 
 		<a href ="http://postgis.net/docs/ST_Transform.html">ST_Transform</a>.  Behaviour of projection is not defined outside the bounds of the SRS.  
 		For further details please refer to the PostGis manual: <a href="http://postgis.org/docs/using_postgis_dbmanagement.html#spatial_ref_sys">4.3.1. The SPATIAL_REF_SYS Table and Spatial Reference Systems</a>.`,
-		"within":   optDoc + `  ` + withinDoc,
-		"methodID": optDoc + `  ` + methodIDDoc,
+		"within":   withinDoc,
+		"methodID": methodIDDoc,
 	},
 	Props: map[string]template.HTML{
 		"column 1": networkIDDoc,
@@ -45,22 +47,22 @@ var spatialObsD = &apidoc.Query{
 }
 
 func spatialObs(w http.ResponseWriter, r *http.Request) {
-	// values needed for all queries
-	if !web.ParamsExist(w, r, "typeID", "days", "start") {
+	if err := spatialObsD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl := r.URL.Query()
+	v := r.URL.Query()
 
 	var err error
 	var days int
-	days, err = strconv.Atoi(rl.Get("days"))
+	days, err = strconv.Atoi(v.Get("days"))
 	if err != nil || days > 7 || days <= 0 {
 		web.BadRequest(w, r, "Invalid days query param.")
 		return
 	}
 
-	start, err := time.Parse(time.RFC3339, rl.Get("start"))
+	start, err := time.Parse(time.RFC3339, v.Get("start"))
 	if err != nil {
 		web.BadRequest(w, r, "Invalid start query param.")
 		return
@@ -70,8 +72,8 @@ func spatialObs(w http.ResponseWriter, r *http.Request) {
 
 	var srsName, authName string
 	var srid int
-	if rl.Get("srsName") != "" {
-		srsName = rl.Get("srsName")
+	if v.Get("srsName") != "" {
+		srsName = v.Get("srsName")
 		srs := strings.Split(srsName, ":")
 		if len(srs) != 2 {
 			web.BadRequest(w, r, "Invalid srsName.")
@@ -93,34 +95,22 @@ func spatialObs(w http.ResponseWriter, r *http.Request) {
 		srsName = "EPSG:4326"
 	}
 
-	typeID := rl.Get("typeID")
+	typeID := v.Get("typeID")
 
 	var methodID string
-	if rl.Get("methodID") != "" {
-		methodID = rl.Get("methodID")
+	if v.Get("methodID") != "" {
+		methodID = v.Get("methodID")
 		if !validTypeMethod(w, r, typeID, methodID) {
 			return
 		}
 	}
 
 	var within string
-	if rl.Get("within") != "" {
-		within = strings.Replace(rl.Get("within"), "+", "", -1)
+	if v.Get("within") != "" {
+		within = strings.Replace(v.Get("within"), "+", "", -1)
 		if !validPoly(w, r, within) {
 			return
 		}
-	}
-
-	// delete any query params we know how to handle and there should be nothing left.
-	rl.Del("typeID")
-	rl.Del("days")
-	rl.Del("start")
-	rl.Del("srsName")
-	rl.Del("within")
-	rl.Del("methodID")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
 	}
 
 	var unit string

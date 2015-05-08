@@ -55,15 +55,17 @@ var sparkD = &apidoc.Query{
 	</p>`,
 
 	URI: "/spark?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[yrange=float64]&[type=(line|scatter)]",
-	Params: map[string]template.HTML{
+	Required: map[string]template.HTML{
 		"typeID":    typeIDDoc,
 		"siteID":    siteIDDoc,
 		"networkID": networkIDDoc,
-		"yrange": optDoc + `  Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
+	},
+	Optional: map[string]template.HTML{
+		"yrange": `Defines the y-axis range as the positive and negative range about the mid point of the minimum and maximum
 		data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
 		the y-axis range will be -20 to 60.  yrange must be > 0.  If there are data in the time range that would be out of range on the plot then the background
 		colour of the plot is changed.`,
-		"type": optDoc + `  Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
+		"type": `Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.`,
 	},
 	Props: map[string]template.HTML{
 		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
@@ -71,31 +73,32 @@ var sparkD = &apidoc.Query{
 }
 
 func spark(w http.ResponseWriter, r *http.Request) {
-	if !web.ParamsExist(w, r, "typeID", "networkID", "siteID") {
+	if err := sparkD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl := r.URL.Query()
+	v := r.URL.Query()
 
 	s := sprk{}
 
-	s.typeID = rl.Get("typeID")
-	s.networkID = rl.Get("networkID")
-	s.siteID = rl.Get("siteID")
+	s.typeID = v.Get("typeID")
+	s.networkID = v.Get("networkID")
+	s.siteID = v.Get("siteID")
 
 	s.tmax = time.Now().UTC()
 	s.tmin = s.tmax.Add(time.Duration(-365) * time.Hour * 24)
 
-	if rl.Get("yrange") != "" {
+	if v.Get("yrange") != "" {
 		var err error
-		s.yrange, err = strconv.ParseFloat(rl.Get("yrange"), 64)
+		s.yrange, err = strconv.ParseFloat(v.Get("yrange"), 64)
 		if err != nil || s.yrange <= 0 {
 			web.BadRequest(w, r, "invalid yrange query param.")
 			return
 		}
 	}
 
-	switch rl.Get("type") {
+	switch v.Get("type") {
 	case "":
 		s.pType = "line"
 	case "line":
@@ -104,17 +107,6 @@ func spark(w http.ResponseWriter, r *http.Request) {
 		s.pType = "scatter"
 	default:
 		web.BadRequest(w, r, "invalid plot type")
-		return
-	}
-
-	// delete any query params we know how to handle and there should be nothing left.
-	rl.Del("typeID")
-	rl.Del("networkID")
-	rl.Del("siteID")
-	rl.Del("yrange")
-	rl.Del("type")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
 		return
 	}
 

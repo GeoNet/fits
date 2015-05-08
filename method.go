@@ -21,8 +21,8 @@ var methodD = &apidoc.Query{
 	Example:     "/method?typeID=e",
 	ExampleHost: exHost,
 	URI:         "/method?[typeID=(typeID)]",
-	Params: map[string]template.HTML{
-		"typeID": optDoc + `  ` + typeIDDoc,
+	Optional: map[string]template.HTML{
+		"typeID": typeIDDoc,
 	},
 	Props: map[string]template.HTML{
 		"description": `A description of the method e.g., <code>Bernese v5.0 GNS processing software</code>.`,
@@ -33,17 +33,14 @@ var methodD = &apidoc.Query{
 }
 
 func method(w http.ResponseWriter, r *http.Request) {
-	rl := r.URL.Query()
-
-	typeID := rl.Get("typeID")
-
-	if typeID != "" && !validType(w, r, typeID) {
+	if err := methodD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
 		return
 	}
 
-	rl.Del("typeID")
-	if len(rl) > 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
+	typeID := r.URL.Query().Get("typeID")
+
+	if typeID != "" && !validType(w, r, typeID) {
 		return
 	}
 
