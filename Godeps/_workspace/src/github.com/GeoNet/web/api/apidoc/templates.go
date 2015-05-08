@@ -255,12 +255,24 @@ const (
 	</div>
 	</div>
 	<h4>Query Parameters</h4>
+	{{if .Required}}
+	<h5>Required:</h5>
 	<dl class="dl-horizontal">
-	{{range $k, $v := .Params}}
+	{{range $k, $v := .Required}}
 	<dt>{{$k}}</dt>
 	<dd>{{$v}}</dd>
 	{{end}}
 	</dl>
+	{{end}}
+	{{if .Optional}}
+	<h5>Optional:</h5>
+	<dl class="dl-horizontal">
+	{{range $k, $v := .Optional}}
+	<dt>{{$k}}</dt>
+	<dd>{{$v}}</dd>
+	{{end}}
+	</dl>
+	{{end}}
 	<h4>Response Properties</h4>
 	<dl class="dl-horizontal">
 	{{range $k, $v := .Props}}

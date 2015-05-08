@@ -4,10 +4,12 @@ package apidoc
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/GeoNet/web"
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -39,6 +41,8 @@ type Query struct {
 	Description string                   // a short description.
 	Discussion  template.HTML            // additional discussion.  Inserted as is.
 	Params      map[string]template.HTML // query parameters
+	Required    map[string]template.HTML // query parameters
+	Optional    map[string]template.HTML // query parameters
 	Props       map[string]template.HTML // response properties
 }
 
@@ -162,4 +166,49 @@ func (d *Docs) Serve(w http.ResponseWriter, r *http.Request) {
 	default:
 		web.NotFoundPage(w, r)
 	}
+}
+
+/*
+CheckParams checks that all q.Required params are present in v and if not returns an err.
+Checks that there are no addtional params (beyond q.Required and q.Optional) and if
+so returns an err.
+*/
+func (q *Query) CheckParams(v url.Values) (err error) {
+	if q.Required != nil {
+		var missing []string
+
+		for k, _ := range q.Required {
+			if v.Get(k) == "" {
+				missing = append(missing, k)
+
+			}
+		}
+
+		switch len(missing) {
+		case 0:
+		case 1:
+			err = fmt.Errorf("missing query parameter: " + missing[0])
+			return
+		default:
+			err = fmt.Errorf("missing query parameters: " + strings.Join(missing, ", "))
+			return
+		}
+
+		for k, _ := range q.Required {
+			v.Del(k)
+		}
+
+	}
+
+	if q.Optional != nil {
+		for k, _ := range q.Optional {
+			v.Del(k)
+		}
+	}
+
+	if len(v) > 0 {
+		err = fmt.Errorf("incorrect number of query params.")
+	}
+
+	return
 }

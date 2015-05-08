@@ -20,7 +20,7 @@
 		},
 		{
 			"ImportPath": "github.com/GeoNet/web",
-			"Rev": "d538dd67872a5d98d74ea4137d929f007a43ee38"
+			"Rev": "588a2cfe5e1bba4014838984ba81cbfc3aeb3ca3"
 		},
 		{
 			"ImportPath": "github.com/ajstarks/svgo",
