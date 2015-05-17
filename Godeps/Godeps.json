@@ -23,11 +23,6 @@
 			"Rev": "588a2cfe5e1bba4014838984ba81cbfc3aeb3ca3"
 		},
 		{
-			"ImportPath": "github.com/ajstarks/svgo",
-			"Comment": "go.weekly.2012-01-27-94-g47ca2bb",
-			"Rev": "47ca2bbf229311c9b8b96a9188ae37790250757b"
-		},
-		{
 			"ImportPath": "github.com/golang/groupcache",
 			"Rev": "604ed5785183e59ae2789449d89e73f3a2a77987"
 		},
