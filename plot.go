@@ -216,7 +216,7 @@ func plot(w http.ResponseWriter, r *http.Request) {
 				web.BadRequest(w, r, "invalid yrange query param.")
 				return
 			}
-			plt.SetYAxis(ymin, ymax)
+			plt.setYAxis(ymin, ymax)
 		} else {
 			var err error
 			yrange, err := strconv.ParseFloat(yr, 64)
@@ -224,14 +224,14 @@ func plot(w http.ResponseWriter, r *http.Request) {
 				web.BadRequest(w, r, "invalid yrange query param.")
 				return
 			}
-			plt.YRange(yrange)
+			plt.setYRange(yrange)
 		}
 	}
 
 	switch v.Get("type") {
 	case ``, `line`:
 	case `scatter`:
-		plt.Scatter()
+		plt.setScatter()
 	default:
 		web.BadRequest(w, r, "invalid plot type")
 		return
@@ -266,12 +266,12 @@ func plot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		plt.StdDev(mean, dev)
+		plt.setStdDev(mean, dev)
 	}
 
-	plt.Title(fmt.Sprintf("%s (%s) - %s", siteID, siteName, typeDescription))
-	plt.Unit(unit)
-	plt.YLabel(fmt.Sprintf("%s (%s)", typeName, unit))
+	plt.setTitle(fmt.Sprintf("%s (%s) - %s", siteID, siteName, typeDescription))
+	plt.setUnit(unit)
+	plt.setYLabel(fmt.Sprintf("%s (%s)", typeName, unit))
 
 	// load observations from the DB
 	var values []value
@@ -356,7 +356,7 @@ func plot(w http.ResponseWriter, r *http.Request) {
 			}
 			i++
 		}
-		plt.IdLabel(names, colours)
+		plt.setIdLabel(names, colours)
 	}
 
 	if days == 0 {
@@ -436,39 +436,37 @@ func newPlot() svgPlot {
 	return p
 }
 
-// TODO make these setters
-
-func (p *svgPlot) Scatter() {
+func (p *svgPlot) setScatter() {
 	p.plotType = `scatter`
 }
 
-func (p *svgPlot) YRange(y float64) {
+func (p *svgPlot) setYRange(y float64) {
 	p.yRange = y
 }
 
-func (p *svgPlot) SetYAxis(min, max float64) {
+func (p *svgPlot) setYAxis(min, max float64) {
 	p.yMin = min
 	p.yMax = max
 }
 
-func (p *svgPlot) Unit(u string) {
+func (p *svgPlot) setUnit(u string) {
 	p.unit = u
 }
 
-func (p *svgPlot) Title(t string) {
+func (p *svgPlot) setTitle(t string) {
 	p.title = t
 }
 
-func (p *svgPlot) YLabel(l string) {
+func (p *svgPlot) setYLabel(l string) {
 	p.yLabel = l
 }
 
-func (p *svgPlot) StdDev(mean, stddev float64) {
+func (p *svgPlot) setStdDev(mean, stddev float64) {
 	p.mean = value{V: mean}
 	p.stddev = value{V: stddev}
 }
 
-func (p *svgPlot) IdLabel(label map[int]string, colour map[int]string) {
+func (p *svgPlot) setIdLabel(label map[int]string, colour map[int]string) {
 	p.idL = label
 	p.idC = colour
 }
