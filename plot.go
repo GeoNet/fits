@@ -502,11 +502,19 @@ func (p *svgPlot) plotSVG(values []value, xMin, xMax time.Time) *bytes.Buffer {
 		}
 
 		// grid
-		for _, v := range major {
-			b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
-				0, v.y, 600, v.y))
-			b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.1f</text>", -7, v.y+4, v.V))
-
+		// if the yrange is small then use 2dp on the labels.
+		if math.Abs(p.yMax-p.yMin) > 0.1 {
+			for _, v := range major {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
+					0, v.y, 600, v.y))
+				b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.1f</text>", -7, v.y+4, v.V))
+			}
+		} else {
+			for _, v := range major {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
+					0, v.y, 600, v.y))
+				b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.2f</text>", -7, v.y+4, v.V))
+			}
 		}
 
 		for _, m := range year {
@@ -851,15 +859,12 @@ func (p *svgPlot) yAxis(height int) (major, minor []value) {
 	ma := math.Pow(10, e)
 	mi := math.Pow(10, e-1)
 
-	major = make([]value, 0)
+	// work through a range of values larger than the yrange in even spaced increments.
+	max := (math.Floor(p.yMax/ma) + 1) * ma
+	min := (math.Floor(p.yMin/ma) - 1) * ma
 
-	for i := ma; i < p.yMax; i = i + ma {
-		if i >= p.yMin && i <= p.yMax {
-			v := value{V: i}
-			major = append(major, v)
-		}
-	}
-	for i := 0.0; i >= p.yMin; i = i - ma {
+	major = make([]value, 0)
+	for i := min; i < max; i = i + ma {
 		if i >= p.yMin && i <= p.yMax {
 			v := value{V: i}
 			major = append(major, v)
@@ -867,13 +872,7 @@ func (p *svgPlot) yAxis(height int) (major, minor []value) {
 	}
 
 	minor = make([]value, 0)
-	for i := mi; i < p.yMax; i = i + mi {
-		if i >= p.yMin && i <= p.yMax {
-			v := value{V: i}
-			minor = append(minor, v)
-		}
-	}
-	for i := 0.0; i >= p.yMin; i = i - mi {
+	for i := min; i < max; i = i + mi {
 		if i >= p.yMin && i <= p.yMax {
 			v := value{V: i}
 			minor = append(minor, v)
