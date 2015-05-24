@@ -502,11 +502,19 @@ func (p *svgPlot) plotSVG(values []value, xMin, xMax time.Time) *bytes.Buffer {
 		}
 
 		// grid
-		for _, v := range major {
-			b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
-				0, v.y, 600, v.y))
-			b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.1f</text>", -7, v.y+4, v.V))
-
+		// if the yrange is small then use 2dp on the labels.
+		if math.Abs(p.yMax-p.yMin) > 0.1 {
+			for _, v := range major {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
+					0, v.y, 600, v.y))
+				b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.1f</text>", -7, v.y+4, v.V))
+			}
+		} else {
+			for _, v := range major {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
+					0, v.y, 600, v.y))
+				b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%.2f</text>", -7, v.y+4, v.V))
+			}
 		}
 
 		for _, m := range year {
@@ -643,9 +651,9 @@ func (p *svgPlot) plotSVG(values []value, xMin, xMax time.Time) *bytes.Buffer {
 		b.WriteString(`</g>`)
 
 		b.WriteString(`<text x="670" y="268" text-anchor="end" font-style="italic">`)
-		b.WriteString(fmt.Sprintf("latest: <tspan fill=\"red\">%.1f %s</tspan> (%s)", last.V, p.unit, last.date()))
-		b.WriteString(fmt.Sprintf(" min: <tspan fill=\"blue\">%.1f</tspan> (%s)", min.V, min.date()))
-		b.WriteString(fmt.Sprintf(" max: <tspan fill=\"blue\">%.1f</tspan> (%s)", max.V, min.date()))
+		b.WriteString(fmt.Sprintf("latest: <tspan fill=\"red\">%.2f %s</tspan> (%s)", last.V, p.unit, last.date()))
+		b.WriteString(fmt.Sprintf(" min: <tspan fill=\"blue\">%.2f</tspan> (%s)", min.V, min.date()))
+		b.WriteString(fmt.Sprintf(" max: <tspan fill=\"blue\">%.2f</tspan> (%s)", max.V, min.date()))
 		b.WriteString(`</text>`)
 
 		if p.idC != nil {
@@ -847,29 +855,28 @@ func xAxis(xMin, xMax time.Time, width int) (year, month []value) {
 }
 
 func (p *svgPlot) yAxis(height int) (major, minor []value) {
-	e := int(math.Log10(math.Max(math.Abs(p.yMin), math.Abs(p.yMax))))
-	ma := math.Pow10(e)
-	mi := math.Pow10(e - 1)
+	e := math.Floor(math.Log10(math.Abs(p.yMax - p.yMin)))
+	ma := math.Pow(10, e)
+	mi := math.Pow(10, e-1)
+
+	// work through a range of values larger than the yrange in even spaced increments.
+	max := (math.Floor(p.yMax/ma) + 1) * ma
+	min := (math.Floor(p.yMin/ma) - 1) * ma
 
 	major = make([]value, 0)
-
-	for i := ma; i < p.yMax; i = i + ma {
-		v := value{V: i}
-		major = append(major, v)
-	}
-	for i := 0.0; i >= p.yMin; i = i - ma {
-		v := value{V: i}
-		major = append(major, v)
+	for i := min; i < max; i = i + ma {
+		if i >= p.yMin && i <= p.yMax {
+			v := value{V: i}
+			major = append(major, v)
+		}
 	}
 
 	minor = make([]value, 0)
-	for i := mi; i < p.yMax; i = i + mi {
-		v := value{V: i}
-		minor = append(minor, v)
-	}
-	for i := 0.0; i >= p.yMin; i = i - mi {
-		v := value{V: i}
-		minor = append(minor, v)
+	for i := min; i < max; i = i + mi {
+		if i >= p.yMin && i <= p.yMax {
+			v := value{V: i}
+			minor = append(minor, v)
+		}
 	}
 
 	dy := float64(height) / math.Abs(p.yMax-p.yMin)
