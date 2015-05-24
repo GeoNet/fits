@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+const safeToDisplayAllXLabels = 12
+
 var plotDoc = apidoc.Endpoint{Title: "Plot",
 	Description: `Simple plots of observations.`,
 	Queries: []*apidoc.Query{
@@ -517,19 +519,40 @@ func (p *svgPlot) plotSVG(values []value, xMin, xMax time.Time) *bytes.Buffer {
 			}
 		}
 
-		for _, m := range year {
-			b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"2\" points=\"%d,%d %d,%d\"/>",
-				m.x, 0, m.x, 170))
-			b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d</text>", m.x, 190, m.T.Year()))
+		monthLabel := len(year) <= 3
+
+		// The "starting year label" below y axis line (if appropriate)
+		if !monthLabel && len(year) > 1 && year[0].T.Year()%5 > 0 {
+			b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%d</text>\n\n", 3, 190, year[0].T.Year()-1))
 		}
 
-		if len(year) <= 1 {
+		for _, m := range year {
+			i := int(m.T.Year())
+			if len(year) <= safeToDisplayAllXLabels || i%5 == 0 {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"4\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+				if !monthLabel {
+					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d</text>\n\n", m.x, 190, i))
+				}
+			} else {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"2\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+			}
+		}
+
+		if monthLabel {
+			// The "starting  month label" below y axis line (if appropriate)
+			if len(month) > 0 && month[0].T.Month()%6 > 1 {
+				startMonth := month[0].T.AddDate(0, -1, 0)
+				b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"end\">%d-%02d</text>\n\n",
+					3, 190, startMonth.Year(), startMonth.Month()))
+			}
 			for _, m := range month {
 				i := int(m.T.Month())
-				if i != 1 {
-					b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
-						m.x, 0, m.x, 170))
-					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d-%02d</text>",
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+				if len(month) <= safeToDisplayAllXLabels || i%6 == 1 {
+					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d-%02d</text>\n\n",
 						m.x, 190, m.T.Year(), i))
 				}
 			}
