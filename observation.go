@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+    "encoding/json"
 )
 
 var eol []byte
@@ -22,6 +23,13 @@ var observationDoc = apidoc.Endpoint{Title: "Observation",
 		observationD,
 		spatialObsD,
 	},
+}
+
+var observationStatsDoc = apidoc.Endpoint{Title: "Observation Statistics",
+    Description: `Get observation statistics.`,
+    Queries: []*apidoc.Query{
+        observationStatsD,
+    },
 }
 
 var observationD = &apidoc.Query{
@@ -45,6 +53,33 @@ var observationD = &apidoc.Query{
 		"column 2": obsValDoc,
 		"column 3": obsErrDoc,
 	},
+}
+
+var observationStatsD = &apidoc.Query{
+    Accept:      web.V1JSON,
+    Title:       "Observation Statistics",
+    Description: "Observations statisctics as JSON",
+    Example:     "/observation/stats?typeID=e&siteID=HOLD&networkID=CG",
+    ExampleHost: exHost,
+    URI:         "/observation/stats?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[methodID=(methodID)]",
+    Required: map[string]template.HTML{
+        "typeID":    typeIDDoc,
+        "siteID":    siteIDDoc,
+        "networkID": networkIDDoc,
+    },
+    Optional: map[string]template.HTML{
+        "days":     `The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
+        "methodID": methodIDDoc + `  typeID must be specified as well.`,
+    },
+    Props: map[string]template.HTML{
+        "Minimum" : obsMinDoc,
+        "maximum" : obsMaxDoc,
+        "First" : obsFirstDoc,
+        "Last" : obsLastDoc,
+        "Mean" : obsMeanDoc,
+        "StddevPopulation" : obsPstdDoc,
+        "Unit" : obsUnitDoc,
+    },
 }
 
 func observation(w http.ResponseWriter, r *http.Request) {
@@ -183,4 +218,167 @@ func observation(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", web.V1CSV)
 	web.OkBuf(w, r, &b)
+}
+
+/**
+ * query end point for observation statistics including: max, min, mean, std, first and last values
+ * http://fits.geonet.org.nz/observation/stats?typeID=e&siteID=HOLD&networkID=CG&days=100
+ */
+func observationStats(w http.ResponseWriter, r *http.Request) {
+    //1. check query parameters
+    if err := observationD.CheckParams(r.URL.Query()); err != nil {
+        web.BadRequest(w, r, err.Error())
+        return
+    }
+
+    v := r.URL.Query()
+    typeID := v.Get("typeID")
+    if !validType(w, r, typeID) {
+        return
+    }
+
+    //2. build DB query condition from http query patameters
+    var (queryCondition string
+        params int
+        args []interface{}
+    )
+    //required parameters: typeid, siteID, networkID
+    networkID := v.Get("networkID")
+    siteID := v.Get("siteID")
+    queryCondition = "  typepk = (SELECT typepk FROM fits.type WHERE typeid =$1) and sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid =$2 and networkid =$3) "
+    args = append(args, typeID, siteID, networkID)
+    params = 3;
+
+    //optional parameters: methodID, days
+    var methodID string
+    if v.Get("methodID") != "" {
+        methodID = v.Get("methodID")
+        if !validTypeMethod(w, r, typeID, methodID) {
+            return
+        }
+    }
+    if (methodID != "") {
+        params++;
+        queryCondition += " and methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $" + strconv.Itoa(params) + ")"
+        args = append(args, methodID)
+    }
+
+    var days int
+    if v.Get("days") != "" {
+        var err error
+        days, err = strconv.Atoi(v.Get("days"))
+        if err != nil || days > 365000 {
+            web.BadRequest(w, r, "Invalid days query param.")
+            return
+        }
+    }
+
+    if (days > 0) {
+        queryCondition += " and time > (now() - (interval '" + strconv.Itoa(days) + " days')) "
+    }
+
+    //3. Find the unit
+    var unit string
+    err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit)
+    if err == sql.ErrNoRows {
+        web.NotFound(w, r, "unit not found for typeID: "+typeID)
+        return
+    }
+    if err != nil {
+        web.ServiceUnavailable(w, r, err)
+        return
+    }
+
+    var (query string
+        stats Obstats
+        meanVal, stdDev, maxVal, minVal float64
+        firstTime, lastTime string
+    )
+
+    //4. get stats summary  from DB
+    query = `select avg(value) as meanVal, stddev_pop(value) as stdDev, max(value) as maxVal,  min(value) as minVal,
+             to_char(max(time), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as lastTime,  to_char(min(time), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as firstTime
+             from fits.observation where (` +  queryCondition + `)`
+    err = db.QueryRow(query, args...).Scan(&meanVal, &stdDev, &maxVal, &minVal, &lastTime, &firstTime)
+
+    if err != nil {
+        web.ServiceUnavailable(w, r, err)
+        return
+    }
+    stats =  Obstats{Unit:unit,
+        Mean: meanVal,
+        StddevPopulation: stdDev}
+
+    //5. get maximum, minimum, first, last values from DB
+    query = `SELECT to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as DateTime, value, error  FROM fits.observation
+                where (` + queryCondition + ` and ( value =$` + strconv.Itoa(params + 1) +  `
+                or value =$` + strconv.Itoa(params + 2) +  ` or time =$` + strconv.Itoa(params + 3) +  `::timestamptz
+                or time =$` + strconv.Itoa(params + 4) +  `::timestamptz)
+                )`
+
+    args = append(args, strconv.FormatFloat(maxVal, 'f', -1, 64),
+                  strconv.FormatFloat(minVal, 'f', -1, 64),
+                  firstTime, lastTime)
+
+    rows, err := db.Query(query, args...)
+    if err != nil {
+        web.ServiceUnavailable(w, r, err)
+        return
+    }
+    defer rows.Close()
+    var (
+        dateTime string
+        val, errorVal float64
+    )
+    //get the rows
+    for rows.Next() {
+        err = rows.Scan(&dateTime, &val, &errorVal)
+        if err != nil {
+            web.ServiceUnavailable(w, r, err)
+            return
+        }
+        if (val == maxVal) {
+            stats.Maximum =  ObsValue{DateTime: dateTime,
+                Value: val,
+                Error: errorVal}
+        } else if (val == minVal) {
+            stats.Minimum =  ObsValue{DateTime: dateTime,
+                Value: val,
+                Error: errorVal}
+        } else if (dateTime == firstTime) {
+            stats.First =  ObsValue{DateTime: dateTime,
+                Value: val,
+                Error: errorVal}
+        } else if (dateTime == lastTime) {
+            stats.Last =  ObsValue{DateTime: dateTime,
+                Value: val,
+                Error: errorVal}
+        }
+    }
+    err = rows.Err()
+    if err != nil {
+        web.ServiceUnavailable(w, r, err)
+        return
+    }
+
+    //6. send result response
+    w.Header().Set("Content-Type", web.V1JSON)
+    b, _ := json.Marshal(stats)
+    web.Ok(w, r, &b)
+}
+
+type Obstats struct {
+    Maximum   ObsValue
+    Minimum   ObsValue
+    First   ObsValue
+    Last   ObsValue
+    Mean float64
+    StddevPopulation float64
+    Unit string
+}
+
+type ObsValue struct {
+    DateTime string
+    Value float64
+    Error float64
 }
