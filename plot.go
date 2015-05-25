@@ -517,19 +517,34 @@ func (p *svgPlot) plotSVG(values []value, xMin, xMax time.Time) *bytes.Buffer {
 			}
 		}
 
+		yearLen := len(year)
+		showMonth := yearLen <= 3
+
+		// Here we set "the maximum lines to display every label" to 12
+		// (If there are more than 12 vertical lines then the labels will overlap each other)
 		for _, m := range year {
-			b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"2\" points=\"%d,%d %d,%d\"/>",
-				m.x, 0, m.x, 170))
-			b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d</text>", m.x, 190, m.T.Year()))
+			i := int(m.T.Year())
+			if yearLen <= 12 || i%5 == 0 {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"2\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+				if !showMonth {
+					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d</text>\n\n", m.x, 190, i))
+				}
+			} else {
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+			}
 		}
 
-		if len(year) <= 1 {
+		monthLen := len(month)
+
+		if showMonth {
 			for _, m := range month {
 				i := int(m.T.Month())
-				if i != 1 {
-					b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>",
-						m.x, 0, m.x, 170))
-					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d-%02d</text>",
+				b.WriteString(fmt.Sprintf("<polyline fill=\"none\" stroke=\"paleturquoise\" stroke-width=\"1\" points=\"%d,%d %d,%d\"/>\n",
+					m.x, 0, m.x, 170))
+				if monthLen <= 12 || i%6 == 1 {
+					b.WriteString(fmt.Sprintf("<text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%d-%02d</text>\n\n",
 						m.x, 190, m.T.Year(), i))
 				}
 			}
