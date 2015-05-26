@@ -870,9 +870,14 @@ func xAxis(xMin, xMax time.Time, width int) (year, month []value) {
 }
 
 func (p *svgPlot) yAxis(height int) (major, minor []value) {
-	e := math.Floor(math.Log10(math.Abs(p.yMax - p.yMin)))
+	ylen := math.Abs(p.yMax - p.yMin)
+	e := math.Floor(math.Log10(ylen))
 	ma := math.Pow(10, e)
 	mi := math.Pow(10, e-1)
+
+	if ma == ylen {
+		ma = ma / 2
+	}
 
 	// work through a range of values larger than the yrange in even spaced increments.
 	max := (math.Floor(p.yMax/ma) + 1) * ma
@@ -898,11 +903,10 @@ func (p *svgPlot) yAxis(height int) (major, minor []value) {
 
 	for i, _ := range major {
 		major[i].y = height - int(((major[i].V-p.yMin)*dy)+0.5)
-
 	}
+
 	for i, _ := range minor {
 		minor[i].y = height - int(((minor[i].V-p.yMin)*dy)+0.5)
-
 	}
 
 	return
