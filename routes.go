@@ -21,6 +21,7 @@ var docs = apidoc.Docs{
 func init() {
 	docs.AddEndpoint("site", &siteDoc)
 	docs.AddEndpoint("observation", &observationDoc)
+    docs.AddEndpoint("observation/stats", &observationStatsDoc)
 	docs.AddEndpoint("method", &methodDoc)
 	docs.AddEndpoint("type", &typeDoc)
 	docs.AddEndpoint("plot", &plotDoc)
@@ -61,6 +62,8 @@ func router(w http.ResponseWriter, r *http.Request) {
 		} else {
 			spatialObs(w, r)
 		}
+    case r.URL.Path == "/observation/stats" && (accept == web.V1JSON || latest):
+        observationStats(w, r)
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
 		if r.URL.Query().Get("siteID") != "" {
 			site(w, r)
