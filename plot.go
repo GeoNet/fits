@@ -273,11 +273,7 @@ func plot(w http.ResponseWriter, r *http.Request) {
 	plt.setUnit(unit)
 	plt.setYLabel(fmt.Sprintf("%s (%s)", typeName, unit))
 
-	// load observations from the DB
-
-	// tmin := time.Now().UTC().Add(time.Duration(days*-1) * time.Hour * 24)
-
-	values, err := loadObs(networkID, siteID, typeID, tmin)
+	values, err := loadObs(networkID, siteID, typeID, ``, tmin)
 	if err != nil {
 		web.ServiceUnavailable(w, r, err)
 		return
@@ -394,13 +390,15 @@ func stddevPop(networkID, siteID, typeID string, start time.Time) (m, d float64,
 loadObs returns observation values for  the networkID, siteID, and typeID query.
 The start of data range can be restricted using the start parameter.  To query all data pass
 a zero value uninitialized Time.
+Passing a non zero methodID will further restrict the result set.
 []values is ordered so the latest value will always be values[len(values) -1]
 */
-func loadObs(networkID, siteID, typeID string, start time.Time) (values []value, err error) {
+func loadObs(networkID, siteID, typeID, methodID string, start time.Time) (values []value, err error) {
 	var rows *sql.Rows
 	tZero := time.Time{}
 
-	if start == tZero {
+	switch {
+	case start == tZero && methodID == "":
 		rows, err = db.Query(
 			`SELECT time, value, error, methodpk FROM fits.observation 
 		WHERE 
@@ -411,7 +409,7 @@ func loadObs(networkID, siteID, typeID string, start time.Time) (values []value,
 		SELECT typepk FROM fits.type WHERE typeid = $3
 		)
 	ORDER BY time ASC;`, networkID, siteID, typeID)
-	} else {
+	case start != tZero && methodID == "":
 		rows, err = db.Query(
 			`SELECT time, value, error, methodpk FROM fits.observation 
 		WHERE 
@@ -423,6 +421,35 @@ func loadObs(networkID, siteID, typeID string, start time.Time) (values []value,
 		) 
 	AND time > $4
 	ORDER BY time ASC;`, networkID, siteID, typeID, start)
+	case start == tZero && methodID != "":
+		rows, err = db.Query(
+			`SELECT time, value, error, methodpk FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		)
+	AND methodpk = (
+			SELECT methodpk FROM fits.method WHERE methodid = $4
+			)	
+	ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+	case start != tZero && methodID != "":
+		rows, err = db.Query(
+			`SELECT time, value, error, methodpk FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		) 
+	AND methodpk = (
+		SELECT methodpk FROM fits.method WHERE methodid = $5
+		)	
+	AND time > $4
+	ORDER BY time ASC;`, networkID, siteID, typeID, start, methodID)
 	}
 	if err != nil {
 		return
