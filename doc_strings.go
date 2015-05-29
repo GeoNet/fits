@@ -19,6 +19,13 @@ const (
 	obsDTDoc     template.HTML = `The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.`
 	obsValDoc    template.HTML = `The observation value.`
 	obsErrDoc    template.HTML = `The observation error.  0 is used for an unknown error.`
+	obsMinDoc    template.HTML = `The date time, value, and error for the minimum observation.`
+	obsMaxDoc    template.HTML = `The date time, value, and error for the maximum observation.`
+	obsFirstDoc  template.HTML = `The date time, value, and error for the first observation.`
+	obsLastDoc   template.HTML = `The date time, value, and error for the last observation.`
+	obsMeanDoc   template.HTML = `The statistical average of the observations.`
+	obsPstdDoc   template.HTML = `The population standard deviation of the observations.`
+	obsUnitDoc   template.HTML = `The unit of the observations.`
 	bboxDoc      template.HTML = `If bbox is not specified is it calculated from the sites.  The bounding box for the map defining the lower left and upper right longitude 
 	latitude (EPSG:4327) corners e.g., <code>165,-48,179,-34</code>.  Latitude must be in the range -85 to 85.  Maps can be 180 centric and bbox
 	definitions for longitude can be -180 to 180 or 0 to 360 e.g., both these bbox include New Zealand and the Chatham islands;

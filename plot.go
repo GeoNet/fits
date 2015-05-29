@@ -260,7 +260,7 @@ func plot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if v.Get(`stddev`) == `pop` {
-		mean, dev, err := stddevPop(networkID, siteID, typeID, tmin)
+		mean, dev, err := stddevPop(networkID, siteID, typeID, "", tmin)
 		if err != nil {
 			web.ServiceUnavailable(w, r, err)
 			return
@@ -357,30 +357,45 @@ stddevPop finds the mean and population stddev for the networkID, siteID, and ty
 The start of data range can be restricted using the start parameter.  To query all data pass
 a zero value uninitialized Time.
 */
-func stddevPop(networkID, siteID, typeID string, start time.Time) (m, d float64, err error) {
+func stddevPop(networkID, siteID, typeID string, methodID string, start time.Time) (m, d float64, err error) {
 	tZero := time.Time{}
 
-	if start == tZero {
+	switch {
+	case start == tZero && methodID == "":
 		err = db.QueryRow(
-			`SELECT avg(value), stddev_pop(value) FROM fits.observation 
-		WHERE 
-		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
-			)
-	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
-		)`, networkID, siteID, typeID).Scan(&m, &d)
-	} else {
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )`,
+			networkID, siteID, typeID).Scan(&m, &d)
+
+	case start != tZero && methodID == "":
 		err = db.QueryRow(
-			`SELECT avg(value), stddev_pop(value) FROM fits.observation 
-		WHERE 
-		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
-			)
-	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
-		) 
-	AND time > $4`, networkID, siteID, typeID, start).Scan(&m, &d)
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+          WHERE
+          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $3 )
+	      AND time > $4`,
+			networkID, siteID, typeID, start).Scan(&m, &d)
+
+	case start == tZero && methodID != "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+	      AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3)
+	      AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $4 )`,
+			networkID, siteID, typeID, methodID).Scan(&m, &d)
+
+	case start != tZero && methodID != "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = ( SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 )
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )
+         AND methodpk = ( SELECT methodpk FROM fits.method WHERE methodid = $5 )
+         AND time > $4`,
+			networkID, siteID, typeID, start, methodID).Scan(&m, &d)
 	}
 
 	return
@@ -550,11 +565,11 @@ func (p *svgPlot) setIdLabel(label map[int]string, colour map[int]string) {
 }
 
 type value struct {
-	T       time.Time
-	V       float64 // value
-	E       float64 // error
-	Id      int
-	x, y, e int // represent t,v,e in graphics space.
+	T       time.Time `json:"DateTime"`
+	V       float64   `json:"Value"`
+	E       float64   `json:"Error"`
+	Id      int       `json:"-"`
+	x, y, e int       // represent t,v,e in graphics space.
 }
 
 func (v *value) date() string {
