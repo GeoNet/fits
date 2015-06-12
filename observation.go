@@ -7,8 +7,10 @@ import (
 	"github.com/GeoNet/web"
 	"github.com/GeoNet/web/api/apidoc"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +32,13 @@ var observationStatsDoc = apidoc.Endpoint{Title: "Observation Statistics",
 	Description: `Get observation statistics.`,
 	Queries: []*apidoc.Query{
 		observationStatsD,
+	},
+}
+
+var observationResultsDoc = apidoc.Endpoint{Title: "Observation Results",
+	Description: `Get observation results for charts.`,
+	Queries: []*apidoc.Query{
+		observationResultsD,
 	},
 }
 
@@ -80,6 +89,25 @@ var observationStatsD = &apidoc.Query{
 		"Mean":             obsMeanDoc,
 		"StddevPopulation": obsPstdDoc,
 		"Unit":             obsUnitDoc,
+	},
+}
+
+var observationResultsD = &apidoc.Query{
+	Accept:      web.V1JSON,
+	Title:       "Observation results",
+	Description: "Observations results for multiple sites group by each day in JSON format",
+	Example:     "/observation_results?typeID=t&siteID=RU001,NA001,NA002",
+	ExampleHost: exHost,
+	URI:         "/observation_results?typeID=(typeID)&siteID=(siteID)",
+	Required: map[string]template.HTML{
+		"typeID": typeIDDoc,
+		"siteID": siteIDDoc,
+	},
+	Props: map[string]template.HTML{
+		"param": `The parameter (typeID) of the observation results`,
+		"sites": `The sites (siteIDs) of the observation results`,
+		"results": `The observation results grouped by each day and sites, the first item in the array is the date, the second item is an array of observation results (value and
+                           standard deviation) for each site, if the value for the particular date and site doesn't exist, a null is used for the position.`,
 	},
 }
 
@@ -310,6 +338,159 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.Ok(w, r, &b)
+}
+
+/**
+ * query end point for observation results for charts
+ * results are grouped by each day and site
+ * http://fits.geonet.org.nz/observation_results?typeID=t&siteID=RU001,NA001,NA002,TO001A,TO001B,TO001,TO002,TO003,TO004
+ */
+func observationResults(w http.ResponseWriter, r *http.Request) {
+	//1. check query parameters
+	if err := observationResultsD.CheckParams(r.URL.Query()); err != nil {
+		web.BadRequest(w, r, err.Error())
+		return
+	}
+	v := r.URL.Query()
+
+	typeID := v.Get("typeID")
+	siteID := v.Get("siteID")
+	//get all sites
+	siteIDs := strings.Split(siteID, ",")
+	//log.Println("siteIDs", siteIDs)
+
+	//2. get query whereclause
+	queryWhereClause := " where type.typeid='" + typeID + "' and site.siteid in ("
+	for index, id := range siteIDs {
+		if index > 0 {
+			queryWhereClause += ","
+		}
+		queryWhereClause += "'" + id + "'"
+	}
+	queryWhereClause += ")"
+	//log.Println("queryWhereClause ", queryWhereClause)
+
+	//3. Find dates
+	rows, err := db.Query(
+		`select  distinct to_char(time, 'YYYY-MM-DD') as date from fits.observation obs
+     left outer join fits.type type on obs.typepk = type.typepk
+     left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` order by date;`)
+
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return
+	}
+	defer rows.Close()
+
+	// Use a buffer for reading the data from the DB.  Then if a there
+	// is an error we can let the client know without sending
+	// a partial data response.
+	var d string
+	var dates []string
+	for rows.Next() {
+		err := rows.Scan(&d)
+		if err != nil {
+			web.ServiceUnavailable(w, r, err)
+			return
+		}
+		dates = append(dates, d)
+	}
+	rows.Close()
+
+	//4. query results retrieve values using existing functions
+	rows, err = db.Query(
+		`select agt.*, site1.name as sitename from (
+       select  to_char(time, 'YYYY-MM-DD') as date, site.siteid, avg(value) as value, avg(error) as error  from fits.observation obs
+       left outer join fits.type type on obs.typepk = type.typepk
+       left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` group by date, siteid) agt
+       left outer join fits.site site1 on agt.siteid = site1.siteid
+       order by agt.date, agt.siteid;`)
+
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return
+	}
+	defer rows.Close()
+	//the result map key as siteid + date string
+	resultsMap := make(map[string]value)
+	for rows.Next() {
+		var (
+			dateStr  string
+			siteId   string
+			siteName string
+			val      float64
+			stdErr   float64
+		)
+
+		err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
+		if err != nil {
+			web.ServiceUnavailable(w, r, err)
+			return
+		}
+		t1, e := time.Parse(
+			time.RFC3339,
+			dateStr+"T00:00:00+00:00")
+
+		resultVal := value{T: t1,
+			V: val,
+			E: stdErr}
+
+		if e != nil {
+			log.Fatal("time parse error", e)
+			continue
+		}
+		resultsMap[siteId+"_"+dateStr] = resultVal
+
+	}
+	rows.Close()
+
+	//5. assemble results
+	var resultBuffer bytes.Buffer
+	resultBuffer.WriteString("{\"param\":\"" + typeID + "\",")
+	resultBuffer.WriteString("\"sites\":[")
+	for index, siteId := range siteIDs {
+		if index > 0 {
+			resultBuffer.WriteString(",")
+		}
+		resultBuffer.WriteString("\"" + siteId + "\"")
+
+	}
+	resultBuffer.WriteString("],")
+
+	resultBuffer.WriteString("\"results\": [")
+	for index1, dateStr := range dates {
+		if index1 > 0 {
+			resultBuffer.WriteString(",")
+		}
+		//date
+		resultBuffer.WriteString("[\"" + dateStr + "\",")
+		for index2, siteId := range siteIDs {
+			if index2 > 0 {
+				resultBuffer.WriteString(",")
+			}
+			//values
+			resultBuffer.WriteString("[")
+			val, haskey := resultsMap[siteId+"_"+dateStr]
+			if haskey {
+				resultBuffer.WriteString(strconv.FormatFloat(val.V, 'f', 6, 64) + "," + strconv.FormatFloat(val.E, 'f', 6, 64))
+			} else {
+				resultBuffer.WriteString("null")
+			}
+			resultBuffer.WriteString("]")
+		}
+		resultBuffer.WriteString("]")
+	}
+	resultBuffer.WriteString("]")
+	resultBuffer.WriteString("}")
+
+	//5. send result response
+	w.Header().Set("Content-Type", web.V1JSON)
+	if err != nil {
+		web.ServiceUnavailable(w, r, err)
+		return
+	}
+	resultsBytes := resultBuffer.Bytes()
+	web.Ok(w, r, &resultsBytes)
 }
 
 type obstats struct {

@@ -22,6 +22,8 @@ func init() {
 	docs.AddEndpoint("site", &siteDoc)
 	docs.AddEndpoint("observation", &observationDoc)
 	docs.AddEndpoint("observation/stats", &observationStatsDoc)
+	docs.AddEndpoint("observation_results", &observationResultsDoc)
+	docs.AddEndpoint("charts", &chartsDoc)
 	docs.AddEndpoint("method", &methodDoc)
 	docs.AddEndpoint("type", &typeDoc)
 	docs.AddEndpoint("plot", &plotDoc)
@@ -65,6 +67,8 @@ func router(w http.ResponseWriter, r *http.Request) {
 		} else {
 			spatialObs(w, r)
 		}
+	case r.URL.Path == "/observation_results" && (accept == web.V1JSON || latest):
+		observationResults(w, r)
 	case r.URL.Path == "/observation/stats" && (accept == web.V1JSON || latest):
 		observationStats(w, r)
 	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
@@ -77,6 +81,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 		typeH(w, r)
 	case r.URL.Path == "/method" && (accept == web.V1JSON || latest):
 		method(w, r)
+	case r.URL.Path == "/charts":
+		charts(w, r)
+	case r.URL.Path == "/chart":
+		chart(w, r)
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:
