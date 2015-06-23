@@ -321,3 +321,166 @@ type obstats struct {
 	StddevPopulation float64
 	Unit             string
 }
+
+/*
+stddevPop finds the mean and population stddev for the networkID, siteID, and typeID query.
+The start of data range can be restricted using the start parameter.  To query all data pass
+a zero value uninitialized Time.
+*/
+func stddevPop(networkID, siteID, typeID string, methodID string, start time.Time) (m, d float64, err error) {
+	tZero := time.Time{}
+
+	switch {
+	case start == tZero && methodID == "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )`,
+			networkID, siteID, typeID).Scan(&m, &d)
+
+	case start != tZero && methodID == "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+          WHERE
+          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $3 )
+	      AND time > $4`,
+			networkID, siteID, typeID, start).Scan(&m, &d)
+
+	case start == tZero && methodID != "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
+	      AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3)
+	      AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $4 )`,
+			networkID, siteID, typeID, methodID).Scan(&m, &d)
+
+	case start != tZero && methodID != "":
+		err = db.QueryRow(
+			`SELECT avg(value), stddev_pop(value) FROM fits.observation
+         WHERE
+         sitepk = ( SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 )
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )
+         AND methodpk = ( SELECT methodpk FROM fits.method WHERE methodid = $5 )
+         AND time > $4`,
+			networkID, siteID, typeID, start, methodID).Scan(&m, &d)
+	}
+
+	return
+}
+
+/*
+loadObs returns observation values for  the networkID, siteID, and typeID query.
+The start of data range can be restricted using the start parameter.  To query all data pass
+a zero value uninitialized Time.
+Passing a non zero methodID will further restrict the result set.
+[]values is ordered so the latest value will always be values[len(values) -1]
+*/
+func loadObs(networkID, siteID, typeID, methodID string, start time.Time) (values []value, err error) {
+	var rows *sql.Rows
+	tZero := time.Time{}
+
+	switch {
+	case start == tZero && methodID == "":
+		rows, err = db.Query(
+			`SELECT time, value, error FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		)
+	ORDER BY time ASC;`, networkID, siteID, typeID)
+	case start != tZero && methodID == "":
+		rows, err = db.Query(
+			`SELECT time, value, error FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		) 
+	AND time > $4
+	ORDER BY time ASC;`, networkID, siteID, typeID, start)
+	case start == tZero && methodID != "":
+		rows, err = db.Query(
+			`SELECT time, value, error FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		)
+	AND methodpk = (
+			SELECT methodpk FROM fits.method WHERE methodid = $4
+			)	
+	ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+	case start != tZero && methodID != "":
+		rows, err = db.Query(
+			`SELECT time, value, error FROM fits.observation 
+		WHERE 
+		sitepk = (
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			)
+	AND typepk = (
+		SELECT typepk FROM fits.type WHERE typeid = $3
+		) 
+	AND methodpk = (
+		SELECT methodpk FROM fits.method WHERE methodid = $5
+		)	
+	AND time > $4
+	ORDER BY time ASC;`, networkID, siteID, typeID, start, methodID)
+	}
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		v := value{}
+		err = rows.Scan(&v.T, &v.V, &v.E)
+		if err != nil {
+			return
+		}
+
+		values = append(values, v)
+	}
+	rows.Close()
+
+	return
+}
+
+/*
+ extremes returns the indexes for the min and max values.  hasErrors will be true
+ if any of the values have a non zero measurement error.
+*/
+func extremes(values []value) (min, max int, hasErrors bool) {
+	minV := values[0]
+	maxV := values[0]
+
+	for i, v := range values {
+		if v.V > maxV.V {
+			maxV = v
+			max = i
+		}
+		if v.V < minV.V {
+			minV = v
+			min = i
+		}
+		if !hasErrors && v.E > 0 {
+			hasErrors = true
+		}
+	}
+
+	return
+}
+
+type value struct {
+	T time.Time `json:"DateTime"`
+	V float64   `json:"Value"`
+	E float64   `json:"Error"`
+}

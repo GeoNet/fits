@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ts     *httptest.Server
-	client *http.Client
+	testServer *httptest.Server
+	client     *http.Client
 )
 
 // setup starts a db connection and test server then inits an http client.
@@ -28,7 +28,7 @@ func setup() {
 		log.Fatal(err)
 	}
 
-	ts = httptest.NewServer(handler())
+	testServer = httptest.NewServer(handler())
 
 	timeout := time.Duration(5 * time.Second)
 	client = &http.Client{
@@ -41,6 +41,6 @@ func setup() {
 // setup()
 // defer teardown()
 func teardown() {
-	ts.Close()
+	testServer.Close()
 	db.Close()
 }

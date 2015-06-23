@@ -29,7 +29,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/site?typeID=t1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 	r.Add("/site?typeID=t1&methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// CSV routes
 	r = webtest.Route{
@@ -50,7 +50,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))&methodID=m1")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// JSON routes
 	r = webtest.Route{
@@ -66,7 +66,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/method?typeID=t1")
 	r.Add("/method")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// plot routes
 	r = webtest.Route{
@@ -83,7 +83,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000")
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000&yrange=12.2")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// Plot routes that should bad request
 	r = webtest.Route{
@@ -99,11 +99,10 @@ func TestRoutes(t *testing.T) {
 	r.Add("/plot?typeID=t1")
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=nan")
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=1000000000000")
-	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&start=")
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=-12.2")
 	r.Add("/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=0")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// CSV routes that should 404
 	r = webtest.Route{
@@ -123,7 +122,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m100")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m100&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
 
-	// r.Test(ts, t)
+	// r.Test(testServer, t)
 
 	// GeoJSON routes that should bad request
 	r = webtest.Route{
@@ -142,7 +141,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/site?within=POLYGON((170.18+-37.52,177.19+-47.52))")                             // not enough points
 	r.Add("/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,178.18+-37.52))") // doesn't close
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// JSON routes that should bad request
 	r = webtest.Route{
@@ -157,7 +156,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/")
 	r.Add("/bob")
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 
 	// CSV routes that should bad request
 	r = webtest.Route{
@@ -177,7 +176,7 @@ func TestRoutes(t *testing.T) {
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))")             // not enough points
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))") // doesn't close
 
-	r.Test(ts, t)
+	r.Test(testServer, t)
 }
 
 func TestGeoJSON(t *testing.T) {
@@ -196,5 +195,5 @@ func TestGeoJSON(t *testing.T) {
 	}
 	r.Add("/site?typeID=t1")
 
-	r.GeoJSON(ts, t)
+	r.GeoJSON(testServer, t)
 }
