@@ -44,10 +44,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case r.URL.Path == "/plot":
-		plot(w, r)
+		if r.URL.Query().Get("siteID") != "" {
+			plotSite(w, r)
+		} else {
+			plotSites(w, r)
+		}
 	case r.URL.Path == "/spark":
-		r.Header.Add(`spark`, `true`)
-		plot(w, r)
+		spark(w, r)
 	case r.URL.Path == "/map/site":
 		if r.URL.Query().Get("siteID") != "" {
 			siteMap(w, r)
