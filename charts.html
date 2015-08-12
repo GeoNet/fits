@@ -51,14 +51,6 @@
                     <div class="t-invisible">
                         <input name="t:formdata" type="hidden"> </input>
                     </div>
-                    <div class="row-fluid">
-                        <div class="span3"><strong>Select Region</strong></div>
-                        <div class="span8">
-                            <select class="span6" type="text" id="selregion" name="selregion">
-                            </select>
-                        </div>
-                    </div>
-                    <br clear="none"/>
 
                     <div class="row-fluid">
                         <div class="span3"><strong>Select Parameter</strong></div>
@@ -66,14 +58,6 @@
                         </select>
                         </div>
                     </div>
-                    <br clear="none"/>
-
-                    <div class="row-fluid">
-                        <div class="span3">
-                            <input value="Show Sites" id="btnSites" type="button" class="btn"> </input>
-                        </div>
-                    </div>
-
                     <br clear="none"/>
 
                     <div class="row-fluid" style="display: none" id="divSites">
@@ -120,10 +104,8 @@
         <script src="js/ldr-map-charts.js" type="text/javascript"></script>
         <script type="text/javascript">
         $(document).ready(function($) {
-        //start here: initChartParams: function (dtUrl, csvPath, imgUrl, dataPath, w, h){
-        ldrChartClient.initChartParams(
-            "", true
-           );
+          //start here: initChartParams: function (showMap){
+           ldrChartClient.initChartParams(true);
         });
 
 

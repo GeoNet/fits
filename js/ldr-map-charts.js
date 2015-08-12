@@ -13,25 +13,16 @@ var $=jQuery.noConflict();
 /****** all the chart functionalities defined here ******/
 var ldrChartClient = {
     //### 1. constants and vars
-    regionColors :['#009900','#009933','#009966',
-    '#009999','#0099CC','#0099FF',
-    '#00CC00','#00CC33','#00CC66',
-    '#00CC99','#00CCCC','#00CCFF',
-    '#00FF00','#00FF33','#00FF66',
-    '#00FF99','#00FFCC','#00FFFF'],
-    //sites data by region
+    //sites data by param
     allSitesData: {},
-    allDygraphData:{}, //results data by region_param
-    regionsLayers : {},
+    allDygraphData:{}, //results data by param
     sitesLayers : {},
     allDygraph: {}, //by code_param
-    // http://hutl13447.gns.cri.nz/ldr-charts/services/regions.json
-    dataUrl : "services/",
-    selectedRegion:null,
     selectedParam:null,
+    selectedParamName:null,
     selectedSites:null,
 
-    chartImgPath :'services/chart/',
+    chartStaticPlotPath :'/plot',
     chartWidth : 896,
     chartHeight : 512,
     ieNotice : "Interactive chart not available to Internet Explorer 8 or lower, please use a newer browser (e.g., Chrome, Firefox, IE9 or above.)",
@@ -52,10 +43,7 @@ var ldrChartClient = {
     /***
 	 * init parameters, called from page
 	 * ***/
-    initChartParams: function (dtUrl, showMap){
-        if(dtUrl){
-            this.dataUrl = dtUrl;
-        }
+    initChartParams: function (showMap){
 
         this.iev = this.getIEVersion();
         //set chart style
@@ -73,9 +61,9 @@ var ldrChartClient = {
         if(showMap){
             this.initFormFunctions();
             this.initBaseMap();
-            this.showRegions();
+            //this.showRegions();
             this.showParams();
-        }else{//show sigle site chart
+        }else{//show single site chart
             this.initSiteChart();
         }
     },
@@ -121,16 +109,16 @@ var ldrChartClient = {
         };
 
         L.control.layers(baseLayers).addTo(this.lftMap);
-        this.lftMap.setView(new L.LatLng(-37.00, 175.6), 4);
+        this.lftMap.setView(new L.LatLng(-40.5, 174.5), 4);
     },
 
     /***
 	 * show sites on map
 	 * ***/
-    showSitesData: function (sitesJson){
+    showSitesDataOnMap: function (sitesJson){
         //store map centre as one of the site coordinates
         //console.log("showSitesData sitesJson " + sitesJson);
-        ldrChartClient.map_center = null;
+        ldrChartClient.sitePoints = []
         //clear region layers
         this.clearOverlayers();
 
@@ -164,19 +152,22 @@ var ldrChartClient = {
             pointToLayer: function (feature, latlng) {
                 //console.log("feature " + JSON.stringify(feature.properties));
                 //http://fits.geonet.org.nz/spark?networkID=LI&siteID=GISB&typeID=e&days=365
-                var siteIconUrl = "/spark?label=none&networkID=" + feature.properties.networkID + "&siteID=" + feature.properties.siteID + "&typeID=" + ldrChartClient.selectedParam;
+                //var siteIconUrl = "/spark?label=none&networkID=" + feature.properties.networkID + "&siteID=" + feature.properties.siteID + "&typeID=" + ldrChartClient.selectedParam;
+                var siteIconUrl = "../images/volc_mark.png";
                 //console.log("siteIconUrl " + siteIconUrl);
                 var siteIcon = L.icon({
                     iconUrl: siteIconUrl,
                     shadowUrl: siteIconUrl,
-                    iconSize: new L.Point(50, 15),
+                    iconSize: new L.Point(12, 12),
                     shadowSize: new L.Point(0, 0),
-                    iconAnchor: new L.Point(20,8),
+                    iconAnchor: new L.Point(6,6),
                     popupAnchor: new L.Point(0, 0)
                 });
-                if(!ldrChartClient.map_center){
-                    ldrChartClient.map_center = latlng;
+
+                if(latlng && latlng.lng > 0)  {
+                  ldrChartClient.sitePoints.push(latlng);
                 }
+
                 return L.marker(latlng, {
                     icon: siteIcon,
                     opacity: 0.6
@@ -186,53 +177,19 @@ var ldrChartClient = {
         });
         this.lftMap.addLayer(sitesLayer);
         sitesLayer.checkFeatureLocation();
-        var key = this.selectedRegion + "_" + this.selectedParam
+        var key = this.selectedParam
         //console.log(key);
         this.sitesLayers[key] = sitesLayer;
         //this.checkMapLayerLocations();
-        if(ldrChartClient.map_center){//reset map center
-            this.lftMap.setView(ldrChartClient.map_center, 8);
+        if(ldrChartClient.sitePoints && ldrChartClient.sitePoints.length > 0){//reset map center
+            var polyline = L.polyline(ldrChartClient.sitePoints, {});
+            // zoom the map to the polyline
+            this.lftMap.fitBounds(polyline.getBounds());
+        }else{
+            this.lftMap.setView(new L.LatLng(-40.5, 174.5), 4);
         }
     },
 
-    /***
-	 * show regions on map
-	 * ***/
-    showRegionsMap: function (regions){
-        //clear region layers
-        this.clearOverlayers();
-
-        var features = regions.features;
-        var getRegionColor = function(i){
-            return ldrChartClient.regionColors[i%ldrChartClient.regionColors.length];
-        };
-        //console.log("features " + features);
-        for (var i = 0, len = features.length; i < len; i++) {
-            var polygon = features[i];
-            this.regionsLayers[polygon.properties.id] = new L.GeoJSON1(polygon, {
-                onEachFeature: function(feature, layer){
-                    layer.region = polygon.properties.id;
-                    layer.on({
-                        click: function(e){
-                            ldrChartClient.highlightRegion(e);
-                        }
-                    });
-                },
-                style: function (feature) {
-                    return {
-                        color: getRegionColor(i),
-                        fillOpacity: 0.2
-                    };
-                }
-
-            });
-            this.lftMap.addLayer(this.regionsLayers[polygon.properties.id]);
-            this.regionsLayers[polygon.properties.id].checkFeatureLocation();
-        }
-        this.checkMapLayerLocations();
-        this.lftMap.setView(new L.LatLng(-37.00, 175.6), 4);
-
-    },
     /* open chart for selected site and param
      * */
     openSitePlot:function(e){
@@ -263,9 +220,10 @@ var ldrChartClient = {
         network = queries.network,
         param = queries.param;
         //console.log("site " + site + " param " + param);
+
         if(site && param){
-            if(this.iev > 0){//show static chart
-                var imgUrl = this.chartImgPath + "site/" + site + "/" + param + "/" + this.chartWidth + "x" + this.chartHeight + ".png";
+            if(this.iev > 0){//show static plot
+                var imgUrl = this.chartStaticPlotPath + "?networkID=" + network + "&siteID=" + site + "&typeID=" + param;
                 this.showStaticChart(imgUrl);
             }else{//show dynamic chart
                 var datakey = site + "_" + param + "_" + network;
@@ -281,51 +239,11 @@ var ldrChartClient = {
         }
     },
 
-    /*
-     * hilight the selected region
-     * */
-    highlightRegion:function (e) {
-        this.resetRegionHighlight();
-        var layer = e.target;
-        if(!layer){
-            layer = this.regionsLayers[e];
-        }
-        if(layer){
-            layer.setStyle({
-                weight: 5,
-                color: '#ff0000',
-                dashArray: '',
-                fillOpacity: 0.7
-            });
-            //console.log("layer.region " + layer.region);
-            if(layer.region){
-                $('#selregion').val(layer.region);
-            }
-            if (!L.Browser.ie && !L.Browser.opera) {
-                layer.bringToFront();
-            }
-        }
-    },
-    /* reset region style */
-    resetRegionHighlight:function (e) {
-        for (var id in this.regionsLayers) {
-            var layer;
-            if(e){
-                layer = e.target;
-            }else{
-                layer = this.regionsLayers[id];
-            }
-            this.regionsLayers[id].resetStyle(layer);
-        }
-    },
 
     /***
 	 * clear overlays in map
 	 * ***/
     clearOverlayers:function(){
-        for (var id in this.regionsLayers) {
-            this.regionsLayers[id].clearLayers();
-        }
         for (var key in this.sitesLayers) {
             this.sitesLayers[key].clearLayers();
         }
@@ -336,55 +254,13 @@ var ldrChartClient = {
 	 * ***/
     checkMapLayerLocations:function(){
         this.lftMap.on('moveend', function(e){
-            for (var id in ldrChartClient.regionsLayers) {
-                ldrChartClient.regionsLayers[id].checkFeatureLocation(e);
-            }
             for (var key in ldrChartClient.sitesLayers) {
                 ldrChartClient.sitesLayers[key].checkFeatureLocation(e);
             }
         });
     },
 
-    /* show regions in map */
-    showRegions: function() {
-        //clear/hide sites/charts
-        $('#selSites').children().remove(); //remove existing items
-        $('#divSites').css({
-            'display':'none'
-        });
-        $('#divChart').css({
-            'display':'none'
-        });
-        $('#container-chart').css({
-            'display':'none'
-        });
-
-        this.clearDgCharts();
-        //
-        if(this.regionsData){
-            this.populateRegionsSelect(this.regionsData);
-            this.showRegionsMap(this.regionsData)
-        }else{
-            this.queryRegions();
-        }
-    },
-
-    /* populate regions select field */
-    populateRegionsSelect: function(regions) {
-        //clear/hide sites/charts
-        $('#selregion').children().remove(); //remove existing items
-
-        var features = regions.features;
-        //console.log("features " + features);
-        for (var i = 0, len = features.length; i < len; i++) {
-            var feature = features[i];
-            //console.log("feature " + feature["properties"]["id"]);
-            $('#selregion').append('<option value=' + feature["properties"]["id"] + '>' + feature["properties"]["title"] + '</option>');
-        }
-
-    },
-
-    /* show regions in map */
+    /* show params in map */
     showParams: function() {
         //
         if(this.paramsData){
@@ -395,7 +271,7 @@ var ldrChartClient = {
     },
 
     /***
-      * query regions from http
+      * query params from http
       * ***/
     queryParams: function() {
         var _url = "/type"
@@ -419,67 +295,27 @@ var ldrChartClient = {
             //console.log("feature " + feature["properties"]["id"]);
             $('#selparam').append('<option value=' + param["typeID"] + '>' + param["name"] + '</option>');
         }
-    },
-
-
-    /***
-	 * query regions from http
-	 * ***/
-    queryRegions: function() {
-        var _url = "data/regions.json"
-        jQuery.getJSON(_url, function (data) {
-            //console.log(JSON.stringify(data));
-            ldrChartClient.regionsData = data;
-            ldrChartClient.populateRegionsSelect(data);
-            ldrChartClient.showRegionsMap(data);
-        });
-    },
-
-    //get region geometry in a format to query sites
-    getRegionGeometry : function(regionID){
-        if(this.regionsData){
-            var features = this.regionsData.features;
-            //console.log("features " + features);
-            for (var i = 0, len = features.length; i < len; i++) {
-                var feature = features[i];
-                if(feature["properties"]["id"] == regionID) {
-                    var geometryString =  feature["geometry"]["type"] + "((";
-                    var coordinates =  feature["geometry"]["coordinates"][0];
-                    for (var i = 0, len = coordinates.length; i < len; i++) {
-                        var coordinate =  coordinates[i];
-                        if(i > 0)  {
-                            geometryString  += ",";
-                        }
-                        geometryString  += coordinate[0] + "+" + coordinate[1];
-                    }
-                    geometryString  += "))" ;
-                    return geometryString;
-                }
-            }
-        }
-        return null;
+        //select first one
+        $("#selparam option:first").trigger('change');
     },
 
     /***
 	 * query sites from http
 	 * ***/
     showSites: function() {
-        var sitesData = this.allSitesData[this.selectedRegion];
+        var sitesData = this.allSitesData[this.selectedParam];
         //console.log("sitesData " + sitesData);
         if(sitesData){
-            this.showSitesData(sitesData);
+            this.showSitesDataOnMap(sitesData);
             this.showSitesDataSelection(sitesData);
         }else{
-            var regionGeometry = this.getRegionGeometry(this.selectedRegion);
-            //console.log("show sites " + " regionGeometry " + regionGeometry);
-
-            var url = "/site?typeID=" + this.selectedParam + "&within=" + regionGeometry;
+            var url = "/site?typeID=" + this.selectedParam;
             //console.log("show sites " + " url " + url);
 
             jQuery.getJSON( url, function (data) {
                 //console.log(JSON.stringify(data));
-                ldrChartClient.allSitesData[ldrChartClient.selectedRegion] = data;
-                ldrChartClient.showSitesData(data);
+                ldrChartClient.allSitesData[ldrChartClient.selectedParam] = data;
+                ldrChartClient.showSitesDataOnMap(data);
                 ldrChartClient.showSitesDataSelection(data);
             });
         }
@@ -489,17 +325,16 @@ var ldrChartClient = {
 	 * query sites from http and show in selectionbox
 	 * ***/
     showSitesSelection: function() {
-        var sitesData = this.allSitesData[this.selectedRegion];
+        var sitesData = this.allSitesData[this.selectedParam];
         //console.log("sitesData " + sitesData);
         if(sitesData){
             this.showSitesDataSelection(sitesData);
         }else{
-            var regionGeometry = this.getRegionGeometry(this.selectedRegion);
             //console.log("show sites " + " regionGeometry " + regionGeometry);
-            var url = "/site?typeID=" + this.selectedParam + "&within=" + regionGeometry;
+            var url = "/site?typeID=" + this.selectedParam ;
             jQuery.getJSON( url, function (data) {
                 //console.log(JSON.stringify(data));
-                ldrChartClient.allSitesData[ldrChartClient.selectedRegion] = data;
+                ldrChartClient.allSitesData[ldrChartClient.selectedParam] = data;
                 ldrChartClient.showSitesDataSelection(data);
             });
         }
@@ -509,20 +344,18 @@ var ldrChartClient = {
 	 * show sites in selectionbox
 	 * ***/
     showSitesDataSelection: function (sites){
+        $('#selSites').children().remove(); //remove existing items
+        ldrChartClient.siteNetworkData = {};
         if(sites && sites.features && sites.features.length > 0){
-            $('#selSites').children().remove(); //remove existing items
             for (var i = 0, len =  sites.features.length; i < len; i++) {
                 var feature = sites.features[i];
                 //console.log("feature  " + feature.properties.code);
                 $('#selSites').append('<option value="' + feature.properties.siteID + '">' + feature.properties.name + '</option>');
+                ldrChartClient.siteNetworkData[feature.properties.siteID] = feature.properties.networkID;
             }
             //show listbox
             //$('#selSites').css({'overflow':'visible','width':'auto'});
             $('#divSites').css({
-                'display':'block',
-                'overflow-x':'auto'
-            });
-            $('#divChart').css({
                 'display':'block',
                 'overflow-x':'auto'
             });
@@ -557,7 +390,7 @@ var ldrChartClient = {
             sites = this.selectedSites;
             jQuery.getJSON( url, function (data) {
                 // console.log(JSON.stringify(data));
-                ldrChartClient.processPlotData(data,ldrChartClient.selectedRegion,ldrChartClient.selectedParam, sites);
+                ldrChartClient.processPlotData(data,ldrChartClient.selectedParam, sites);
             });
         }
     },
@@ -567,73 +400,52 @@ var ldrChartClient = {
 	 * init functions for selectionbox/buttons
 	 * ***/
     initFormFunctions: function (){
-        //selregion
-        $('#selregion').change(function() {
-            //console.log("region change: " + $(this).val());
-            ldrChartClient.selectedRegion = $(this).val();
-            ldrChartClient.highlightRegion(ldrChartClient.selectedRegion);
-            $('#btnSites').val('Show Sites');
-        }
-        );
-
         $('#selparam').change(function() {
             //console.log("param change: " + $(this).val());
             ldrChartClient.selectedParam = $(this).val();
-            $('#btnSites').val('Show Sites');
+            ldrChartClient.selectedParamName =  $('#selparam option:selected').text();
+            //console.log("show sites " + $(this).val());
+            ldrChartClient.checkSelectedSites();
+            ldrChartClient.showSites();
+           // $('#btnSites').val('Show Sites');
+        }
+        );
+
+        $('#selSites').change(function () {
+            $('#divChart').css({
+                'display': 'block',
+                'overflow-x': 'auto'
+            });
         }
         );
 
         $('#btnChart').click(function() {
-            if($(this).val() ==='Show Charts'){
-                ldrChartClient.selectedRegion = $('#selregion').val();
-                ldrChartClient.selectedParam = $('#selparam').val();
+            ldrChartClient.selectedParam = $('#selparam').val();
+            ldrChartClient.selectedParamName =  $('#selparam option:selected').text();
+            //
+            ldrChartClient.checkSelectedSites();
+            ldrChartClient.showSites();
 
-                //
-                ldrChartClient.checkSelectedSites();
-                ldrChartClient.showSites();
-
-                //showStaticChart
-                if(ldrChartClient.iev > 0){//ie
-                    var  imgUrl = ldrChartClient.chartImgPath + "region/" + ldrChartClient.selectedRegion + "/" + ldrChartClient.selectedParam + "/" +
-                    ldrChartClient.chartWidth + "x" + ldrChartClient.chartHeight + ".png";
+            if(ldrChartClient.iev > 0){//ie showStaticChart
+                if(ldrChartClient.selectedSiteNetworks) {
+                    var imgUrl = ldrChartClient.chartStaticPlotPath + "?sites=" + ldrChartClient.selectedSiteNetworks + "&typeID=" + ldrChartClient.selectedParam;
                     ldrChartClient.showStaticChart(imgUrl);
-                }else{
-                    ldrChartClient.makeDgChart();
                 }
-            //$(this).val('Show Regions');
-            }else if($(this).val() ==='Show Regions'){
-                ldrChartClient.showRegions();
-                $(this).val('Show Charts');
-                $('#btnSites').val('Show Sites');
+            }else{
+                ldrChartClient.makeDgChart();
             }
         }
         );
 
-        $('#btnRegion').click(function() {
-            ldrChartClient.showRegions();
-        }
-        );
 
         $('#btnSites').click(function() {
-            if($(this).val() ==='Show Sites'){
-                ldrChartClient.selectedRegion = $('#selregion').val();
-                ldrChartClient.selectedParam = $('#selparam').val();
-                //console.log("show sites " + " region " + ldrChartClient.selectedRegion);
-                //console.log("show sites " + " selectedParam " + ldrChartClient.selectedParam);
-
-                //console.log("show sites " + $(this).val());
-                ldrChartClient.checkSelectedSites();
-
-                ldrChartClient.showSites();
-                //ldrChartClient.showSitesSelection();
-                $(this).val('Show Regions');
-            }else if($(this).val() ==='Show Regions'){
-                ldrChartClient.showRegions();
-                $(this).val('Show Sites');
-                $('#btnChart').val('Show Charts');
-            }
+            ldrChartClient.selectedParam = $('#selparam').val();
+            ldrChartClient.selectedParamName =  $('#selparam option:selected').text();
+            //console.log("show sites " + " selectedParam " + ldrChartClient.selectedParam);
+            //console.log("show sites " + $(this).val());
+            ldrChartClient.checkSelectedSites();
+            ldrChartClient.showSites();
         }
-
         );
     },
 
@@ -641,14 +453,34 @@ var ldrChartClient = {
     checkSelectedSites:function(){
         this.selectedSites = '';
         $('#selSites').each(function() {
-            if($(this).val()){
+            var siteId = $(this).val();
+            if(siteId){
                 if(ldrChartClient.selectedSites != ''){
                     ldrChartClient.selectedSites += ',';
                 }
-                ldrChartClient.selectedSites += $(this).val();
+                ldrChartClient.selectedSites += siteId;
             }
         });
-    //console.log("selectedSites " + this.selectedSites)
+
+       var selectedSitesArray = this.selectedSites.split(',')
+       ldrChartClient.selectedSiteNetworks = '';
+       //get network.siteid for static plot
+       for (var i = 0, len = selectedSitesArray.length; i < len; i++) {
+            var siteId = selectedSitesArray[i];
+             var network =  ldrChartClient.getSiteNetwork(siteId);
+             if(network){
+                if(ldrChartClient.selectedSiteNetworks != ''){
+                  ldrChartClient.selectedSiteNetworks += ','
+                }
+                 ldrChartClient.selectedSiteNetworks += network + '.' + siteId
+             }
+       }
+    },
+
+    getSiteNetwork:function(siteId){ //return the networkid for site
+       if(ldrChartClient.siteNetworkData) {
+           return ldrChartClient.siteNetworkData[siteId];
+       }
     },
 
 
@@ -674,8 +506,7 @@ var ldrChartClient = {
 	 * make dygraphs chart for selected sites and param
 	 */
     makeDgChart: function (){
-        // var url = this.dataUrl + "results/" + this.selectedRegion + "/" + this.selectedParam + ".json";
-        var key = this.selectedRegion + "_" + this.selectedParam;
+        var key = this.selectedParam;
         if(this.selectedSites && this.selectedSites.length > 0){
             key += '_' + this.selectedSites;
         }
@@ -695,6 +526,11 @@ var ldrChartClient = {
 	 * ruapehu/1662/
 	 */
     showStaticChart:function(imgUrl){
+        $('#container-chart').css({
+             'display':'block',
+             'overflow-x':'auto'
+        });
+
         if($('#graphdiv').children("img") && $('#graphdiv').children("img").attr('src')){
             //console.log("existing img" + $('#graphdiv').children("img").attr('src'));
             $('#graphdiv').children("img").attr('src',imgUrl);
@@ -724,7 +560,7 @@ var ldrChartClient = {
 
     //make dygraphs plot for single site, csv data
     makeDygraphPlot4Site:function(_data, site, param, network){
-        var opts = this.getCSVDygraphChartOpts([site], param, true);
+        var opts = this.getDygraphChartOpts4Site(site, param, true);
         g2 = new Dygraph(
             document.getElementById(this.chartDivId),
             _data, //  CSV data
@@ -733,17 +569,17 @@ var ldrChartClient = {
     },
 
 
-    //parse, store data and make plot, multiple series in a region
-    processPlotData:function  (_data, region, param,sites){
+    //parse, store data and make plot, multiple series
+    processPlotData:function  (_data, param,sites){
         var chartData = this.parsePlotData(_data.results);
         _data.results = chartData;
-        var datakey = region + "_" + param;
+        var datakey = param;
         if(sites)  {
             datakey +=  "_" + sites;
         }
         this.allDygraphData[datakey] = _data;
         //if(console) console.log("2 datakey " + datakey) ;
-        this.makeDygraphPlot(_data.results, region, _data.param, _data.sites);
+        this.makeDygraphPlot(_data.results, _data.param, _data.sites);
     },
 
     //parse data for a time series
@@ -761,17 +597,12 @@ var ldrChartClient = {
     getDygraphChartOpts:function  (codes, param, errorBar){
         //console.log("getDygraphChartOpts param " + param);
         var chtlabels = ["Date"].concat(codes);
-        var title = null;
-        if(this.selectedRegion){//for multiple sites in a region
-            title = this.selectedRegion;
-        }else{//for single site
-            title = codes[0];
-        }
+
+        var title = this.selectedParamName;
         if(title){
-            title = title.charAt(0).toUpperCase() + title.slice(1) + " - " + param;
-        }
-        else{
-            title = '';
+            title = title.charAt(0).toUpperCase() + title.slice(1);
+        }else{
+            title = param;
         }
 
         return {
@@ -838,17 +669,12 @@ var ldrChartClient = {
     },
 
     /* get chart options */
-    getCSVDygraphChartOpts:function  (codes, param, errorBar){
-        var title = null;
-        if(this.selectedRegion){//for multiple sites in a region
-            title = this.selectedRegion;
-        }else{//for single site
-            title = codes[0];
-        }
+    getDygraphChartOpts4Site:function  (code, param, errorBar){
+        var title = code;
         if(title){
-            title = title.charAt(0).toUpperCase() + title.slice(1) + " - " + param;
+            title = title.charAt(0).toUpperCase() + title.slice(1) + "-" + param;
         }else{
-            title = '';
+            title = param;
         }
 
         return {
@@ -886,7 +712,7 @@ var ldrChartClient = {
     },
 
     /* make new dygraphs chart */
-    makeDygraphPlot:function (_data, region, param, codes){
+    makeDygraphPlot:function (_data, param, codes){
         //clear charts first
         this.clearDgCharts();
         $('#container-chart').css({
@@ -895,12 +721,7 @@ var ldrChartClient = {
         });
 
         //if(console) console.log("## makeDygraphPlot param "  + param  + " region " + region) ;
-        var key ;
-        if(region){//chart for a region
-            key = region + "_" + param;
-        }else{//chart for a single site
-            key = codes[0] + "_" + param;
-        }
+        var key = param;
         var chartData = _data[0];
         var errorbar = _data[1];
         //if(console) console.log("## makeDygraphPlot chartData "  + JSON.stringify(chartData)  + " errorbar " + errorbar) ;

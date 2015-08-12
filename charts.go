@@ -27,12 +27,10 @@ var templates = template.Must(template.ParseFiles("charts.html", "chart.html"))
 func init() {
 	//handle js files
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
-	//data directory for regions.json
-	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data"))))
+	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 }
 
 func charts(w http.ResponseWriter, r *http.Request) {
-	//copy the data directory for regions data
 	renderTemplate(w, "charts", nil)
 }
 
