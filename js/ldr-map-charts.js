@@ -118,41 +118,27 @@ var ldrChartClient = {
     showSitesDataOnMap: function (sitesJson){
         //store map centre as one of the site coordinates
         //console.log("showSitesData sitesJson " + sitesJson);
+        ldrChartClient.allSiteMarkers = {};
         ldrChartClient.sitePoints = []
         //clear region layers
         this.clearOverlayers();
 
         var sitesLayer = new L.GeoJSON1(sitesJson, {
             onEachFeature: function(feature, layer){
-                if (feature.properties && feature.properties.name) {
-                //layer.bindPopup(feature.properties.description);
+                if (feature.properties && feature.properties.siteID) {
+                   layer.bindPopup(feature.properties.siteID);
                 }
                 layer.site = feature.properties.siteID;
                 layer.network = feature.properties.networkID;
                 layer.on({
                     click: function(e){
                         ldrChartClient.openSitePlot(e);
+                        return true;
                     }
                 });
             },
 
-            filter: function(feature, layer){
-                if (feature.properties && feature.properties.siteID) {
-                    if(ldrChartClient.selectedSites && ldrChartClient.selectedSites.length > 0){
-                        if(ldrChartClient.selectedSites.indexOf(feature.properties.siteID) >= 0){//show only selected sites
-                            return true;
-                        }
-                    }else{//show all sites in region
-                        return true;
-                    }
-                }
-                return false;
-            },
-
             pointToLayer: function (feature, latlng) {
-                //console.log("feature " + JSON.stringify(feature.properties));
-                //http://fits.geonet.org.nz/spark?networkID=LI&siteID=GISB&typeID=e&days=365
-                //var siteIconUrl = "/spark?label=none&networkID=" + feature.properties.networkID + "&siteID=" + feature.properties.siteID + "&typeID=" + ldrChartClient.selectedParam;
                 var siteIconUrl = "../images/volc_mark.png";
                 //console.log("siteIconUrl " + siteIconUrl);
                 var siteIcon = L.icon({
@@ -168,11 +154,35 @@ var ldrChartClient = {
                   ldrChartClient.sitePoints.push(latlng);
                 }
 
-                return L.marker(latlng, {
+                var siteMarker = L.marker(latlng, {
                     icon: siteIcon,
                     opacity: 0.6
                 });
+                siteMarker.bindPopup = function (content, options) {
+                    var anchor = L.point(this.options.icon.options.popupAnchor) || new L.Point(0, 0);
 
+                    anchor = anchor.add(L.Popup.prototype.options.offset);
+
+                    if (options && options.offset) {
+                        anchor = anchor.add(options.offset);
+                    }
+
+                    options = L.extend({offset: anchor}, options);
+
+                    if (!this._popup) {
+                        this
+                                //.on('click', this.openPopup, this) //open chart in stead!!
+                                .on('remove', this.closePopup, this)
+                                .on('move', this._movePopup, this);
+                    }
+
+                    this._popup = new L.Popup(options, this)
+                            .setContent(content);
+
+                    return this;
+                };
+                ldrChartClient.allSiteMarkers[feature.properties.siteID] = siteMarker;
+                return siteMarker;
             }
         });
         this.lftMap.addLayer(sitesLayer);
@@ -187,6 +197,16 @@ var ldrChartClient = {
             this.lftMap.fitBounds(polyline.getBounds());
         }else{
             this.lftMap.setView(new L.LatLng(-40.5, 174.5), 4);
+        }
+    },
+
+    //show popup of the specified site
+    showSitePopup: function (siteId) {
+        if(ldrChartClient.allSiteMarkers){
+            var marker = ldrChartClient.allSiteMarkers[siteId];
+            if(marker){
+              marker.openPopup();
+            }
         }
     },
 
@@ -416,6 +436,8 @@ var ldrChartClient = {
                 'display': 'block',
                 'overflow-x': 'auto'
             });
+            //open site popup            
+            ldrChartClient.showSitePopup($(this).val());
         }
         );
 
@@ -424,7 +446,7 @@ var ldrChartClient = {
             ldrChartClient.selectedParamName =  $('#selparam option:selected').text();
             //
             ldrChartClient.checkSelectedSites();
-            ldrChartClient.showSites();
+            //ldrChartClient.showSites();
 
             if(ldrChartClient.iev > 0){//ie showStaticChart
                 if(ldrChartClient.selectedSiteNetworks) {

@@ -472,7 +472,7 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 			resultBuffer.WriteString("[")
 			val, haskey := resultsMap[siteId+"_"+dateStr]
 			if haskey {
-				resultBuffer.WriteString(strconv.FormatFloat(val.V, 'f', 6, 64) + "," + strconv.FormatFloat(val.E, 'f', 6, 64))
+				resultBuffer.WriteString(strconv.FormatFloat(val.V, 'f', -1, 64) + "," + strconv.FormatFloat(val.E, 'f', -1, 64))
 			} else {
 				resultBuffer.WriteString("null")
 			}

@@ -6,12 +6,13 @@
     <meta content="IE=EmulateIE7; IE=EmulateIE9" http-equiv="X-UA-Compatible"/>
     <meta content="GNS Science" name="copyright"/>
     <meta content="The GeoNet Project - Monitoring geological hazards in New Zealand" name="description"/>
-    <meta content="Earthquake, New Zealand, NZ, GeoNet, tsunami, seismic, seismic drum, volcano, volcanic, eruption, hazard, new zealand, volcano cam, volcano cams, volcano camera, White Island, Mt Ruapehu, Wairakei"
-          name="keywords"/>
 
     <link href="http://geonet.org.nz/" rel="home"/>
     <link type="image/x-icon" href="http://www.geonet.org.nz/favicon.ico" rel="shortcut icon"/>
-    <link type="text/css" rel="stylesheet" href="http://static.geonet.org.nz/geonet-2.0.2/css/bootstrap-geonet.css"/>
+
+    <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+    <link type="text/css" rel="stylesheet" href="css/geonet.css"/>
+
     <link type="text/css" rel="stylesheet" href="http://static.geonet.org.nz/leaflet/0.5.1/leaflet.css"/>
 
     <!--[if lte IE 8]>
@@ -22,60 +23,71 @@
 
     <script src="http://static.geonet.org.nz/jquery/js/jquery-1.7.1.min.js" type="text/javascript"></script>
     <script src="http://static.geonet.org.nz/geonet-2.0.2/js/bootstrap-geonet.js" type="text/javascript"></script>
-    <script src="http://static.geonet.org.nz/geonet-2.0.2/js/bootstrap-2.0.0-init-popover.js"
-            type="text/javascript"></script>
-</head>
-<body class="background-image-none">
-<!--[if lte IE 9]>
-<style>
-    .background-gradient-none{
-    background: transparent;
-    }
-</style>
-<![endif]-->
+    <script src="http://static.geonet.org.nz/geonet-2.0.2/js/bootstrap-2.0.0-init-popover.js" type="text/javascript"></script>
 
-<div class="background-gradient-none">
-    <div class="container container-background">
+    <!--[if IE]>
+    <script src="http://static.geonet.org.nz/dygraph/excanvas.js" type="text/javascript"></script>
+    <![endif]-->
+    <script src="http://static.geonet.org.nz/dygraph/dygraph-combined.js" type="text/javascript"></script>
+
+    <script src="http://static.geonet.org.nz/leaflet/0.5.1/leaflet.js" type="text/javascript"></script>
+    <script src="js/leaflet-patch180.js" type="text/javascript"></script>
+    <script src="js/ldr-map-charts.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function($) {
+          //start here: initChartParams: function (showMap){
+           ldrChartClient.initChartParams(true);
+        });
+    </script>
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+      </div>
+    </div>
+    <div class="container">
         <div class="page-header"><h1>GeoNet Fits Chart </h1></div>
         <div class="row">
-            <div class="span6"><br clear="none"/>
+            <div class="col-md-6"><br clear="none"/>
 
-                <p>Plots of GeoNet fits observation results, select a region and parameter to show sparklines of the
-                    sites within the region on the map and listbox,
-                    click on a site sparkline from the map to show chart of the particular site and parameter,
-                    or click on "Show Charts" to show interactive charts of selected sites on
-                    the listbox.
+                <p>Plots of GeoNet fits observation results, select a parameter to show
+                    sites on the map and listbox,
+                    click on a site icon from the map to show chart of the particular site and parameter,
+                    or select sites in the list box and click on "Show Charts" to show interactive charts of the selected sites
                 </p><br clear="none"/>
 
-                <form class="form-inline" id="regionForm">
+                <form class="form-horizontal" id="regionForm">
                     <div class="t-invisible">
                         <input name="t:formdata" type="hidden"> </input>
                     </div>
+                    <div class="form-group">
+                        <label for="selparam" class="control-label  col-md-4">Select parameters </label>
 
-                    <div class="row-fluid">
-                        <div class="span3"><strong>Select Parameter</strong></div>
-                        <div class="span8"><select class="span6" type="text" id="selparam" name="selparam">
-                        </select>
+                        <div class="col-md-8">
+                            <select type="text" id="selparam" name="selparam" class="col-md-10"> </select>
                         </div>
                     </div>
-                    <br clear="none"/>
+                    <div class="form-group"  style="display: none" id="divSites">
+                        <label for="selSites" class="control-label  col-md-4">Select Sites</label>
 
-                    <div class="row-fluid" style="display: none" id="divSites">
-                        <div class="span3"><strong>Select Sites</strong></div>
-                        <div class="span8">
-                            <select multiple="multiple" id="selSites" size="8" class="span10"> </select>
+                        <div class="col-md-8">
+                            <select multiple="multiple" id="selSites" size="8" class="col-md-10"> </select>
                         </div>
                     </div>
-
-                    <br clear="none"/><br clear="none"/>
-
-                    <div style="display: none" id="divChart">
-                        <input value="Show Charts" id="btnChart" type="button" class="btn"> </input>
+                    <div class="form-group"  style="display: none" id="divChart">
+                        <div class="col-md-4">
+                            <input class="pull-right" value="Show Charts" id="btnChart" type="button" class="btn"> </input>
+                        </div>
                     </div>
                 </form>
             </div>
             <!-- leaflet map -->
-            <div class="span4 offset1">
+            <div class="col-md-4 col-md-5-offset-1">
                 <div id="mapContainer">
                     <div style="width: 320px; height: 320px" id="ldr-map"></div>
                 </div>
@@ -93,69 +105,42 @@
             <div id="chart-header"></div>
             <div class="graphdiv" id="graphdiv"></div>
         </div>
-        <br clear="none"/><br clear="none"/><!--[if IE]>
-        <script src="http://static.geonet.org.nz/dygraph/excanvas.js" type="text/javascript"></script><![endif]-->
-        <script src="http://static.geonet.org.nz/geonet-2.0.2/js/bootstrap-2.0.0-init-popover.js"
-                type="text/javascript"></script>
-        <script src="http://static.geonet.org.nz/dygraph/dygraph-combined.js" type="text/javascript"></script>
-        <script src="http://static.geonet.org.nz/leaflet/0.5.1/leaflet.js" type="text/javascript"></script>
+        <br clear="none"/><br clear="none"/>
 
-        <script src="js/leaflet-patch180.js" type="text/javascript"></script>
-        <script src="js/ldr-map-charts.js" type="text/javascript"></script>
-        <script type="text/javascript">
-        $(document).ready(function($) {
-          //start here: initChartParams: function (showMap){
-           ldrChartClient.initChartParams(true);
-        });
-
-
-        </script>
-        <div class="footer" id="footer">
+        <div id="footer" class="footer">
             <div class="row">
-                <div class="span3">
-                    <ul>
-                        <li id="geonet"><a shape="rect" href="http://www.geonet.org.nz"
-                                           target="_blank"><span>GeoNet</span></a></li>
+                <div class="col-sm-3 hidden-xs">
+                    <ul id="logo">
+                        <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
                     </ul>
                 </div>
-                <div class="span6"><p>GeoNet is a collaboration between the <a shape="rect"
-                                                                               href="http://www.eqc.govt.nz">Earthquake
-                    Commission</a> and <a shape="rect" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
 
-                    <p><a shape="rect" href="http://geonet.org.nz/home/about">about</a> | <a shape="rect"
-                                                                                             href="http://geonet.org.nz/home/contact.html">contact</a>
-                        | <a shape="rect" href="http://geonet.org.nz/home/privacy.html">privacy</a> | <a shape="rect"
-                                                                                                         href="http://geonet.org.nz/home/disclaimer.html">disclaimer</a>
-                    </p>
-
-                    <p>GeoNet content is copyright <a shape="rect" href="http://www.gns.cri.nz/">GNS Science</a> and is
-                        licensed under a <a shape="rect" href="http://creativecommons.org/licenses/by/3.0/nz/"
-                                            rel="license">Creative Commons Attribution 3.0 New Zealand License</a></p>
+                <div class="col-sm-6">
+                    <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                    <p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
+                    <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
                 </div>
-                <div class="span2">
-                    <ul>
-                        <li id="eqc"><a shape="rect" href="http://www.eqc.govt.nz" target="_blank"><span>EQC</span></a>
-                        </li>
+
+                <div  class="col-sm-2 hidden-xs">
+                    <ul id="logo">
+                        <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
                     </ul>
                 </div>
-                <div class="span1">
-                    <ul>
-                        <li id="gns"><a shape="rect" href="http://www.gns.cri.nz"
-                                        target="_blank"><span>GNS Science</span></a></li>
+                <div  class="col-sm-1 hidden-xs">
+                    <ul id="logo">
+                        <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
                     </ul>
                 </div>
             </div>
+
             <div class="row">
-                <div class="span1 offset5">
+                <div class="col-sm-1 col-sm-offset-5 hidden-xs">
                     <ul id="logo">
-                        <li id="ccby"><a shape="rect"
-                                         href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a>
-                        </li>
+                        <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
                     </ul>
                 </div>
             </div>
         </div>
-    </div>
 </div>
 
 </body>
