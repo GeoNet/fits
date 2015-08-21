@@ -130,12 +130,6 @@ var ldrChartClient = {
                 }
                 layer.site = feature.properties.siteID;
                 layer.network = feature.properties.networkID;
-                layer.on({
-                    click: function(e){
-                        ldrChartClient.openSitePlot(e);
-                        return true;
-                    }
-                });
             },
 
             pointToLayer: function (feature, latlng) {
@@ -171,7 +165,7 @@ var ldrChartClient = {
 
                     if (!this._popup) {
                         this
-                                //.on('click', this.openPopup, this) //open chart in stead!!
+                                .on('click', this.openPopup, this) //open chart in stead!!
                                 .on('remove', this.closePopup, this)
                                 .on('move', this._movePopup, this);
                     }
@@ -707,6 +701,7 @@ var ldrChartClient = {
 
     /* get chart options */
     getDygraphChartOpts4Site:function  (code, param, errorBar){
+        var chtlabels = ["Date"].concat(code);
         var title = code;
         if(title){
             title = title.charAt(0).toUpperCase() + title.slice(1) + "-" + param;
@@ -731,8 +726,8 @@ var ldrChartClient = {
             xAxisLabelWidth: 100,
             //title: 'GPS Time series',
             verticalCrosshair: true,
-            legend: 'always'
-
+            legend: 'always',
+            labels: chtlabels
         };
     },
 

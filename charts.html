@@ -57,11 +57,12 @@
 
                 <p>Plots of GeoNet Field Time Series observation results, select a parameter to show
                     sites on the map and listbox,
-                    click on a site icon from the map to show chart of the particular site and parameter,
-                    or select sites in the list box and click on "Show Charts" to show interactive charts of the selected sites
+                    select site(s) in the list box and click on "Show Charts" to show interactive charts of the selected sites
                 </p>
                 <p>
                     Plot data are from the <a href="api-docs" >FITS API </a>, which provides access to the observations and associated meta data in the Field Time Series database.
+                    Observation results for multiple sites are daily average values.
+
                 </p>
                 <br clear="none"/>
 
@@ -103,8 +104,6 @@
         </div>
         <br clear="none"/><br clear="none"/><!-- dygraphs chart -->
         <div id="container-chart"  style="display: none">
-            <p>Interactive charts of selected sites on the listbox, results are aggregated on daily bases.
-            </p>
             <br clear="none"/>
             <div id="chart-header"></div>
             <div class="graphdiv" id="graphdiv"></div>
