@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>GeoNet Fits Chart</title>
+    <title>GeoNet Time Series Chart</title>
     <meta content="Apache Tapestry Framework (version 5.3.1)" name="generator"/>
     <meta content="IE=EmulateIE7; IE=EmulateIE9" http-equiv="X-UA-Compatible"/>
     <meta content="GNS Science" name="copyright"/>
@@ -51,15 +51,19 @@
       </div>
     </div>
     <div class="container">
-        <div class="page-header"><h1>GeoNet Fits Chart </h1></div>
+        <div class="page-header"><h1>GeoNet Time Series Chart </h1></div>
         <div class="row">
             <div class="col-md-6"><br clear="none"/>
 
-                <p>Plots of GeoNet fits observation results, select a parameter to show
+                <p>Plots of GeoNet Field Time Series observation results, select a parameter to show
                     sites on the map and listbox,
                     click on a site icon from the map to show chart of the particular site and parameter,
                     or select sites in the list box and click on "Show Charts" to show interactive charts of the selected sites
-                </p><br clear="none"/>
+                </p>
+                <p>
+                    Plot data are from the <a href="api-docs" >FITS API </a>, which provides access to the observations and associated meta data in the Field Time Series database.
+                </p>
+                <br clear="none"/>
 
                 <form class="form-horizontal" id="regionForm">
                     <div class="t-invisible">

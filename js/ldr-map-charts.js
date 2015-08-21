@@ -302,13 +302,19 @@ var ldrChartClient = {
         });
     },
 
-
     /* populate params select field */
     populateParamsSelect: function(paramsJason) {
         //clear/hide sites/charts
         $('#selparam').children().remove(); //remove existing items
 
         var types = paramsJason.type;
+        types.sort(function (a, b) {
+            if (a.typeID < b.typeID)
+                return -1;
+            if (a.typeID > b.typeID)
+                return 1;
+            return 0;
+        });
         //console.log("features " + features);
         for (var i = 0, len = types.length; i < len; i++) {
             var param = types[i];
@@ -367,8 +373,17 @@ var ldrChartClient = {
         $('#selSites').children().remove(); //remove existing items
         ldrChartClient.siteNetworkData = {};
         if(sites && sites.features && sites.features.length > 0){
-            for (var i = 0, len =  sites.features.length; i < len; i++) {
-                var feature = sites.features[i];
+            var siteFeatures = sites.features
+            siteFeatures.sort(function (a, b) {
+                if (a.properties.name < b.properties.name)
+                    return -1;
+                if (a.properties.name > b.properties.name)
+                    return 1;
+                return 0;
+            });
+
+            for (var i = 0, len =  siteFeatures.length; i < len; i++) {
+                var feature = siteFeatures[i];
                 //console.log("feature  " + feature.properties.code);
                 $('#selSites').append('<option value="' + feature.properties.siteID + '">' + feature.properties.name + '</option>');
                 ldrChartClient.siteNetworkData[feature.properties.siteID] = feature.properties.networkID;

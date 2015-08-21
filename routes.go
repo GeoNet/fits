@@ -88,6 +88,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:
-		web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
+		//web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
+		charts(w, r)
 	}
 }
