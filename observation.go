@@ -106,8 +106,9 @@ var observationResultsD = &apidoc.Query{
 	Props: map[string]template.HTML{
 		"param": `The parameter (typeID) of the observation results`,
 		"sites": `The sites (siteIDs) of the observation results`,
-		"results": `The observation results grouped by each day and sites, the first item in the array is the date, the second item is an array of observation results (value and
-                           standard deviation) for each site, if the value for the particular date and site doesn't exist, a null is used for the position.`,
+		"results": `The observation results for specific type and site(s), the first item in the array is the date, the second item is an array of observation results (value and
+                           standard deviation) for each site. If a single site is specified in the query, the actual observation value and standard deviation are returned; if more than one sites
+                           are specified, the daily average values are returned, if the value for a particular date and site doesn't exist, null is filled in the position.`,
 	},
 }
 
@@ -342,8 +343,8 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
 
 /**
  * query end point for observation results for charts
- * results are grouped by each day and site
- * http://fits.geonet.org.nz/observation_results?typeID=t&siteID=RU001,NA001,NA002,TO001A,TO001B,TO001,TO002,TO003,TO004
+ * for single site, return the actual observation results
+ * for multiple sites, return the daily average values
  */
 func observationResults(w http.ResponseWriter, r *http.Request) {
 	//1. check query parameters

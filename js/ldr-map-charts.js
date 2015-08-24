@@ -303,12 +303,11 @@ var ldrChartClient = {
 
         var types = paramsJason.type;
         types.sort(function (a, b) {
-            if (a.typeID < b.typeID)
-                return -1;
-            if (a.typeID > b.typeID)
-                return 1;
-            return 0;
+            a = a.name.toLowerCase();
+            b = b.name.toLowerCase();
+            return a.localeCompare(b);
         });
+
         //console.log("features " + features);
         for (var i = 0, len = types.length; i < len; i++) {
             var param = types[i];
@@ -369,11 +368,9 @@ var ldrChartClient = {
         if(sites && sites.features && sites.features.length > 0){
             var siteFeatures = sites.features
             siteFeatures.sort(function (a, b) {
-                if (a.properties.name < b.properties.name)
-                    return -1;
-                if (a.properties.name > b.properties.name)
-                    return 1;
-                return 0;
+                a = a.properties.name.toLowerCase();
+                b = b.properties.name.toLowerCase();
+                return a.localeCompare(b);
             });
 
             for (var i = 0, len =  siteFeatures.length; i < len; i++) {
