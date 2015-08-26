@@ -22,7 +22,7 @@ var chartsD = &apidoc.Query{
 	URI: "/charts",
 }
 
-var templates = template.Must(template.ParseFiles("charts.html", "chart.html"))
+var templates = template.Must(template.ParseFiles("charts.html"))
 
 func init() {
 	//handle js files
@@ -32,15 +32,7 @@ func init() {
 }
 
 func charts(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "charts", nil)
-}
-
-func chart(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "chart", nil)
-}
-
-func renderTemplate(w http.ResponseWriter, templateName string, data interface{}) {
-	err := templates.ExecuteTemplate(w, templateName+".html", data)
+	err := templates.ExecuteTemplate(w, "charts.html", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

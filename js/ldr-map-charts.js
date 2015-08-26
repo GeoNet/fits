@@ -1,8 +1,7 @@
 /*********************************************************
  * GeoNet time series chart client application	******
- * -- leaflet map showing regions, sites with sparkline *
- * -- Dygraphs chart showing observation results for either selected sites in a region
- *    or single site and selected parameter
+ * -- leaflet map showing sites
+ * -- Dygraphs chart showing observation results for selected sites and parameter
  *
  *
  * baishan 17/6/2015
@@ -63,8 +62,6 @@ var ldrChartClient = {
             this.initBaseMap();
             //this.showRegions();
             this.showParams();
-        }else{//show single site chart
-            this.initSiteChart();
         }
     },
 
@@ -152,29 +149,7 @@ var ldrChartClient = {
                     icon: siteIcon,
                     opacity: 0.6
                 });
-                siteMarker.bindPopup = function (content, options) {
-                    var anchor = L.point(this.options.icon.options.popupAnchor) || new L.Point(0, 0);
 
-                    anchor = anchor.add(L.Popup.prototype.options.offset);
-
-                    if (options && options.offset) {
-                        anchor = anchor.add(options.offset);
-                    }
-
-                    options = L.extend({offset: anchor}, options);
-
-                    if (!this._popup) {
-                        this
-                                .on('click', this.openPopup, this) //open chart in stead!!
-                                .on('remove', this.closePopup, this)
-                                .on('move', this._movePopup, this);
-                    }
-
-                    this._popup = new L.Popup(options, this)
-                            .setContent(content);
-
-                    return this;
-                };
                 ldrChartClient.allSiteMarkers[feature.properties.siteID] = siteMarker;
                 return siteMarker;
             }
@@ -203,56 +178,6 @@ var ldrChartClient = {
             }
         }
     },
-
-    /* open chart for selected site and param
-     * */
-    openSitePlot:function(e){
-        if( e.target &&  e.target.site) {
-            var wintitle = 'sitechart' + e.target.site;
-            var winopts = 'location=0,menubar=0,status=0,scrollbars=1,resizable=1,left=300,top=200,width=' +  (1.2* this.chartWidth) + ',height=' +  (1.3* this.chartHeight);
-            //console.log("## winopts " + winopts) ;
-            var url = "chart?site=" +  e.target.site + "&network=" + e.target.network + "&param=" + this.selectedParam;
-            window.open(url,wintitle,winopts);
-
-        }
-        return false;
-    },
-
-    /*show chart for site, get site and param from query string */
-    initSiteChart:function(){
-        $(window).unload(function() {
-            ldrChartClient.clearDgCharts();
-        });
-
-        var queries = {};
-        $.each(document.location.search.substr(1).split('&'),function(c,q){
-            var i = q.split('=');
-            queries[i[0].toString()] = i[1].toString();
-        });
-        //fits.geonet.org.nz/observation?typeID=e&siteID=HOLD&networkID=CG
-        var site = queries.site,
-        network = queries.network,
-        param = queries.param;
-        //console.log("site " + site + " param " + param);
-
-        if(site && param){
-            if(this.iev > 0){//show static plot
-                var imgUrl = this.chartStaticPlotPath + "?networkID=" + network + "&siteID=" + site + "&typeID=" + param;
-                this.showStaticChart(imgUrl);
-            }else{//show dynamic chart
-                var datakey = site + "_" + param + "_" + network;
-                var data = this.allDygraphData[datakey];
-                //if(console) console.log("2 datakey " + datakey) ;
-                if(data){
-                    //this.makeDygraphPlot(data.results, null, data.param, [data.site]);
-                    this.makeDygraphPlot4Site(data,site, param, network);
-                }else{
-                    this.queryCSVChartResultsSite(site, param, network);
-                }
-            }
-        }
-    },
-
 
     /***
 	 * clear overlays in map
@@ -386,22 +311,6 @@ var ldrChartClient = {
                 'overflow-x':'auto'
             });
         }
-    },
-
-    /***
-	 * query observation results for single site from http, csv format
-	 * ***/
-    queryCSVChartResultsSite:function(site, param, network){
-        var url  = "/observation?typeID=" + param + "&siteID=" + site + "&networkID=" + network;
-        //console.log("queryCSVChartResultsSite url " + url);
-        jQuery.ajax({
-            type: "GET",
-            url: url,
-            dataType: "text",
-            success: function(data) {
-                ldrChartClient.processCSVPlotDataSite(data,site,param, network);
-            }
-        });
     },
 
 
@@ -577,25 +486,6 @@ var ldrChartClient = {
         }
     },
 
-    //parse, store data and make plot, single series data, csv format
-    processCSVPlotDataSite:function(_data, site, param, network){
-        var datakey = site + "_" + param + "_" + network;
-        this.allDygraphData[datakey] = _data;
-        //console.log("2 datakey " + datakey) ;
-        //CSV first row is header, no labels needed
-        this.makeDygraphPlot4Site(_data,site, param, network);
-    },
-
-    //make dygraphs plot for single site, csv data
-    makeDygraphPlot4Site:function(_data, site, param, network){
-        var opts = this.getDygraphChartOpts4Site(site, param, true);
-        g2 = new Dygraph(
-            document.getElementById(this.chartDivId),
-            _data, //  CSV data
-            opts   // options
-            );
-    },
-
 
     //parse, store data and make plot, multiple series
     processPlotData:function  (_data, param,sites){
@@ -696,37 +586,6 @@ var ldrChartClient = {
         };
     },
 
-    /* get chart options */
-    getDygraphChartOpts4Site:function  (code, param, errorBar){
-        var chtlabels = ["Date"].concat(code);
-        var title = code;
-        if(title){
-            title = title.charAt(0).toUpperCase() + title.slice(1) + "-" + param;
-        }else{
-            title = param;
-        }
-
-        return {
-            title: title,
-            sigma: 1.0, //set the base sigma to 1
-            width: this.chartWidth,
-            height: this.chartHeight,
-            drawPoints : true,
-            pointSize : 2,
-            highlightCircleSize: 4,
-            connectSeparatedPoints:true,
-            errorBars: errorBar ,
-            fillAlpha:0.1,
-            strokeWidth: 2,
-            //legend: 'always',
-            // colors: [this.allColors[param]],
-            xAxisLabelWidth: 100,
-            //title: 'GPS Time series',
-            verticalCrosshair: true,
-            legend: 'always',
-            labels: chtlabels
-        };
-    },
 
     /* remove the chart when closed */
     clearDgCharts:function(){

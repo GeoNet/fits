@@ -83,8 +83,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 		method(w, r)
 	case r.URL.Path == "/charts":
 		charts(w, r)
-	case r.URL.Path == "/chart":
-		chart(w, r)
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:
