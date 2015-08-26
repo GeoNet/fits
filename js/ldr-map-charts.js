@@ -126,7 +126,7 @@ var ldrChartClient = {
         var sitesLayer = new L.GeoJSON1(sitesJson, {
             onEachFeature: function(feature, layer){
                 if (feature.properties && feature.properties.siteID) {
-                   layer.bindPopup(feature.properties.siteID);
+                   layer.bindPopup(feature.properties.siteID + " - " + feature.properties.name );
                 }
                 layer.site = feature.properties.siteID;
                 layer.network = feature.properties.networkID;
@@ -368,15 +368,15 @@ var ldrChartClient = {
         if(sites && sites.features && sites.features.length > 0){
             var siteFeatures = sites.features
             siteFeatures.sort(function (a, b) {
-                a = a.properties.name.toLowerCase();
-                b = b.properties.name.toLowerCase();
+                a = a.properties.siteID.toLowerCase() + a.properties.name.toLowerCase();
+                b = b.properties.siteID.toLowerCase() + b.properties.name.toLowerCase();
                 return a.localeCompare(b);
             });
 
             for (var i = 0, len =  siteFeatures.length; i < len; i++) {
                 var feature = siteFeatures[i];
                 //console.log("feature  " + feature.properties.code);
-                $('#selSites').append('<option value="' + feature.properties.siteID + '">' + feature.properties.name + '</option>');
+                $('#selSites').append('<option value="' + feature.properties.siteID + '">' + feature.properties.siteID + " - " + feature.properties.name + '</option>');
                 ldrChartClient.siteNetworkData[feature.properties.siteID] = feature.properties.networkID;
             }
             //show listbox
