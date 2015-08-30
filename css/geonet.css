@@ -1,0 +1,579 @@
+body {
+    background-color:#FBFBFB;
+    padding-top: 40px;
+}
+
+/* fixes the quake map display problem*/
+.leaflet-container img{
+    max-width: none;
+}
+
+.container-background{
+    background-color:white;
+    padding: 10px;
+    border-bottom:none;
+    border-top:none;
+}
+
+/* Remove underline for navbar brand */
+.brand{
+   text-decoration:none;
+   color:white !important;
+}
+
+/* Push the secondary navigation header down
+    so it aligns with the links*/
+.nav.nav-tabs > li > h4{
+    padding-top: 9px;
+}
+
+/* Add some padding to the bottom
+     of region maps so its not
+     directly on top of the breadcrumb*/
+.sec-nav-img{
+    padding-bottom: 5px;
+}
+
+.quake-row.row{
+    padding-left:5px;
+    padding-top:5px;
+    padding-bottom:0px;
+}
+
+/* The width of the maps in the quakes list*/
+ #quake-map{
+    padding-top:8px;
+    margin-top:3px;
+    width:82px;
+}
+
+#quake-map-icon{
+    float:left;
+}
+
+.quake-list-list{
+    list-style-type:none;
+    margin:5px;
+    margin-left:15px;
+}
+
+/* links override*/
+a
+{
+    color: #666;
+    border: 0 none;
+    text-decoration: underline;
+}
+
+/* Remove the underline from the popover
+    buttons*/
+.help-icon{
+    text-decoration: none;
+}
+
+/* label colors for quake status and quality */
+.label.automatic, .label.caution {
+    background-color: #f89406;
+}
+
+.label.deleted {
+    background-color: #c43c35;
+}
+
+.label.duplicate {
+    background-color: #c43c35;
+}
+
+.label.reviewed, .label.best {
+    background-color: #46a546;
+}
+.label.notice {
+    background-color: #62cffc;
+}
+
+.label.good {
+    background-color: YellowGreen;
+}
+
+.label.unknown{
+    background-color: #BFBFBF;
+}
+
+/** intensity label colors*/
+
+.label.unnoticeable, .label.unnoticeable:hover{
+    background-color:#A9A9A9;
+    color:#333;
+    text-shadow:none;
+}
+
+.label.weak{
+    background-color:#696969;
+}
+
+.label.light{
+    background-color:dodgerblue;
+}
+
+.label.moderate{
+    background-color:green;
+}
+
+.label.strong{
+    background-color:orange;
+}
+
+.label.severe{
+    background-color:red;
+}
+
+/* badge colors for quake status and quality */
+.badge.automatic, .badge.caution {
+    background-color: #CCFF99;
+    color:#333;
+    text-shadow:none;
+}
+
+.badge.deleted {
+    background-color: #FF6666;
+    color:#333;
+    text-shadow:none;
+}
+
+.badge.duplicate {
+    background-color: #FF6666;
+    color:#333;
+    text-shadow:none;
+}
+
+.badge.reviewed, .badge.best {
+    background-color: #00CC00;
+    color:#333;
+    text-shadow:none;
+}
+.badge.notice {
+    background-color: #62cffc;
+    color:#333;
+    text-shadow:none;
+}
+
+.badge.good {
+    background-color: #99FF33;
+    color:#333;
+    text-shadow:none;
+}
+
+.badge.unknown{
+    background-color: #FF6666;
+    color:#333;
+    text-shadow:none;
+}
+
+/** intensity badge colors*/
+
+.badge.unnoticeable, .badge.unnoticeable:hover{
+    background-color:#A9A9A9;
+    text-shadow:none;
+}
+
+.badge.weak{
+    background-color:#696969;
+    text-shadow:none;
+}
+
+.badge.light{
+    background-color:dodgerblue;
+    text-shadow:none;
+}
+
+.badge.moderate{
+    background-color:green;
+    text-shadow:none;
+}
+
+.badge.strong{
+    background-color:orange;
+    text-shadow:none;
+}
+
+.badge.severe{
+    background-color:red;
+    text-shadow:none;
+}
+
+/** Volcanic Alert Level Colours **/
+
+.badge.alert-level-0 {
+	background-color:#E7DEEC;
+	color:black;
+	text-shadow:none;
+}
+
+.badge.alert-level-1 {
+	background-color:#DCC9E0;
+	color:black;
+	text-shadow:none;
+}
+
+.badge.alert-level-2 {
+	background-color:#D1B5D3;
+	color:black;
+	text-shadow:none;
+}
+
+.badge.alert-level-3 {
+	background-color:#A867A2;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+.badge.alert-level-4 {
+	background-color:#954990;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+.badge.alert-level-5 {
+	background-color:#832C82;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+/** Volcano Aviation Colour Codes **/
+
+.badge.aviation-colour-green {
+	background-color:green;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+.badge.aviation-colour-yellow {
+	background-color:gold;
+	color:black;
+	text-shadow:none;
+}
+
+.badge.aviation-colour-orange {
+	background-color:orange;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+.badge.aviation-colour-red {
+	background-color:red;
+	color:white;
+	text-shadow:none;
+	font-weight: bold;
+}
+
+.btn-weak {
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #808080;
+    *background-color: #808080;
+    background-image: -moz-linear-gradient(top, #808080, #808080);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#808080), to(#808080));
+    background-image: -webkit-linear-gradient(top, #808080, #808080);
+    background-image: -o-linear-gradient(top, #808080, #808080);
+    background-image: linear-gradient(to bottom, #808080, #808080);
+    background-repeat: repeat-x;
+    border-color: #808080;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#808080', endColorstr='#808080', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.btn-weak:hover,
+.btn-weak:active,
+.btn-weak.active,
+.btn-weak.disabled,
+.btn-weak[disabled] {
+    color: #FFFFFF;
+    background-color: #808080;
+    *background-color: #003bb3;
+}
+
+.btn-light {
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #1589FF;
+    *background-color: #1589FF;
+    background-image: -moz-linear-gradient(top, #9BC8F5, #1589FF);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#9BC8F5), to(#1589FF));
+    background-image: -webkit-linear-gradient(top, #9BC8F5, #1589FF);
+    background-image: -o-linear-gradient(top, #9BC8F5, #1589FF);
+    background-image: linear-gradient(to bottom, #9BC8F5, #1589FF);
+    background-repeat: repeat-x;
+    border-color: #1589FF;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#9BC8F5', endColorstr='#1589FF', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.btn-light:hover,
+.btn-light:active,
+.btn-light.active,
+.btn-light.disabled,
+.btn-light[disabled] {
+    color: #FFFFFF;
+    background-color: #1589FF;
+    *background-color: #003bb3;
+}
+
+.btn-moderate {
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #008000;
+    *background-color: #008000;
+    background-image: -moz-linear-gradient(top, #04CF04, #008000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#04CF04), to(#008000));
+    background-image: -webkit-linear-gradient(top, #04CF04, #008000);
+    background-image: -o-linear-gradient(top, #04CF04, #008000);
+    background-image: linear-gradient(to bottom, #04CF04, #008000);
+    background-repeat: repeat-x;
+    border-color: #008000;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#04CF04', endColorstr='#008000', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.btn-moderate:hover,
+.btn-moderate:active,
+.btn-moderate.active,
+.btn-moderate.disabled,
+.btn-moderate[disabled] {
+    color: #FFFFFF;
+    background-color: #008000;
+    *background-color: #003bb3;
+}
+
+.btn-strong {
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #FFA500;
+    *background-color: #FFA500;
+    background-image: -moz-linear-gradient(top, #F5C875, #FFA500);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#F5C875), to(#FFA500));
+    background-image: -webkit-linear-gradient(top, #F5C875, #FFA500);
+    background-image: -o-linear-gradient(top, #F5C875, #FFA500);
+    background-image: linear-gradient(to bottom, #F5C875, #FFA500);
+    background-repeat: repeat-x;
+    border-color: #FFA500;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F5C875', endColorstr='#FFA500', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.btn-strong:hover,
+.btn-strong:active,
+.btn-strong.active,
+.btn-strong.disabled,
+.btn-strong[disabled] {
+    color: #FFFFFF;
+    background-color: #FFA500;
+    *background-color: #003bb3;
+}
+
+.btn-severe {
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #FF0000;
+    *background-color: #FF0000;
+    background-image: -moz-linear-gradient(top, #F5A1A1, #FF0000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#F5A1A1), to(#FF0000));
+    background-image: -webkit-linear-gradient(top, #F5A1A1, #FF0000);
+    background-image: -o-linear-gradient(top, #F5A1A1, #FF0000);
+    background-image: linear-gradient(to bottom, #F5A1A1, #FF0000);
+    background-repeat: repeat-x;
+    border-color: #FF0000;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F5A1A1', endColorstr='#FF0000', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.btn-severe:hover,
+.btn-severe:active,
+.btn-severe.active,
+.btn-severe.disabled,
+.btn-severe[disabled] {
+    color: #FFFFFF;
+    background-color: #FF0000;
+    *background-color: #003bb3;
+}
+
+/* modified text bottom of page*/
+.modified{
+    color:gray;
+}
+
+/* footer */
+
+.footer {
+  margin-top: 20px;
+  padding: 20px 0 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.footer p {
+    text-align: center;
+}
+
+#logo{position:relative;}
+#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
+#logo li a span
+{
+    position: absolute;
+    left: -10000px;
+}
+
+#gns li, #gns a
+{
+    float: left;
+    display:block;
+    height: 90px;
+    width: 54px;
+}
+
+#gns{left:-20px;height:90px;width:54px;}
+#gns{background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
+
+#eqc li, #eqc a
+{
+    display:block;
+    height: 61px;
+    width: 132px;
+}
+
+#eqc{right:0px;height:79px;width:132px;}
+#eqc{background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+
+#ccby li, #ccby a
+{
+    display:block;
+    height: 15px;
+    width: 80px;
+}
+#ccby{left:15px;height:15px;width:80px; }
+#ccby{background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
+
+#geonet{
+    background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px;
+    width:137px;
+    height:53px;
+    display:block;
+}
+
+#facebook{
+    background:url('//static.geonet.org.nz/geonet-2.0.2/images/social_media_buttons.png') 0px -65px;
+    width:60px;
+    height:22px;
+    display:inline-block;
+}
+
+#twitter{
+    background:url('//static.geonet.org.nz/geonet-2.0.2/images/social_media_buttons.png') 0px 0px;
+    width:60px;
+    height:23px;
+    display:inline-block;
+}
+
+#googleplus{
+    background:url('//static.geonet.org.nz/geonet-2.0.2/images/social_media_buttons.png') 0px -33px;
+    width:33px;
+    height:22px;
+    display:inline-block;
+}
+.social-media-buttons{
+    float:right;
+    color:#333333;
+    background-color:whiteSmoke;
+    border-color: lightgray;
+    padding: 7px 6px 4px 8px;
+}
+
+.quake-info-buttons{
+    margin: 5px;
+    display: inline-block;
+    float: right;
+}
+
+.quake-list-buttons{
+    margin-top:5px;
+}
+
+a.btn, a.close{
+    text-decoration: none;
+}
+
+span.new{
+    color: red;
+    font: bold 9px/17px Verdana,Arial,sans-serif;
+    vertical-align: top;
+    margin-left: 4px;
+}
+
+.well-btn{
+    padding: 12px 12px 20px 12px;
+}
+
+.volcano-row-align{
+    text-align:center !important;
+ }
+
+ /* Moves the quake regions dropdown to the right a little*/
+ /* This changes for mobile*/
+ .quake-regions-dropdown{
+    left: 164px;
+}
+
+/* Adds a little padding to the dropdown li headings*/
+.dropdown-menu b{
+    margin-left:5px;
+}
+
+/* Higher z index so it appears above the interactive maps*/
+.dropdown-menu{
+    z-index:2000;
+}
+
+.thumbnail{
+    background-color:white;
+}
+
+/* Style for the text on the right of the main navbar*/
+.navbar-pull-right-text a{
+    display:inline-block !important;
+    padding-left:0px !important;
+    padding-right:0px !important;
+}
+.navbar-pull-right-text a:first-child{
+    padding-left:15px !important;
+}
+
+/* Set the colour for active breadcrumbs */
+.breadcrumb .active {
+	color: #333;
+}
+
+/* Revert to old breadcrumb styling */
+.breadcrumb {
+  padding: 7px 14px;
+  margin: 0 0 18px;
+  list-style: none;
+  background-color: #fbfbfb;
+  background-image: -moz-linear-gradient(top, #ffffff, #f5f5f5);
+  background-image: -ms-linear-gradient(top, #ffffff, #f5f5f5);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#f5f5f5));
+  background-image: -webkit-linear-gradient(top, #ffffff, #f5f5f5);
+  background-image: -o-linear-gradient(top, #ffffff, #f5f5f5);
+  background-image: linear-gradient(top, #ffffff, #f5f5f5);
+  background-repeat: repeat-x;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+          border-radius: 3px;
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ffffff', endColorstr='#f5f5f5', GradientType=0);
+  -webkit-box-shadow: inset 0 1px 0 #ffffff;
+     -moz-box-shadow: inset 0 1px 0 #ffffff;
+          box-shadow: inset 0 1px 0 #ffffff;
+}
