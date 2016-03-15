@@ -64,6 +64,7 @@ var SparkScatterNone = SVGSpark{
 
 const sparkAllBaseTemplate = `<?xml version="1.0"?>
 <svg width="700" height="28" xmlns="http://www.w3.org/2000/svg" class="spark" font-family="Arial, sans-serif" font-size="14px" fill="grey">
+<rect x="0" y="0" width="700" height="28" fill="white"/>
 <g transform="translate(3,4)"> 
 {{if .RangeAlert}}<rect x="0" y="0" width="100" height="20" fill="mistyrose"/>{{end}}
 {{template "stddev" .Stddev}}
@@ -82,6 +83,7 @@ max: <tspan fill="blue">{{ printf "%.2f" .Max.Value}}</tspan> ({{date .Max.DateT
 
 const sparkLatestBaseTemplate = `<?xml version="1.0"?>
 <svg width="280" height="28" xmlns="http://www.w3.org/2000/svg" class="spark" font-family="Arial, sans-serif" font-size="14px" fill="grey">
+<rect x="0" y="0" width="280" height="28" fill="white"/>
 <g transform="translate(3,4)"> 
 {{if .RangeAlert}}<rect x="0" y="0" width="100" height="20" fill="mistyrose"/>{{end}}
 {{template "stddev" .Stddev}}
@@ -93,6 +95,7 @@ const sparkLatestBaseTemplate = `<?xml version="1.0"?>
 
 const sparkNoneBaseTemplate = `<?xml version="1.0"?>
 <svg width="108" height="28" xmlns="http://www.w3.org/2000/svg" class="spark" font-family="Arial, sans-serif" font-size="14px" fill="grey">
+<rect x="0" y="0" width="108" height="28" fill="white"/>
 <g transform="translate(3,4)"> 
 {{if .RangeAlert}}<rect x="0" y="0" width="100" height="20" fill="mistyrose"/>{{end}}
 {{template "stddev" .Stddev}}

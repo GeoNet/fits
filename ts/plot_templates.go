@@ -67,6 +67,7 @@ templates are composed.  Any template using base must also define
 */
 const plotBaseTemplate = `<?xml version="1.0"?>
 <svg width="800" height="270" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" font-size="12px" fill="darkslategrey">
+<rect x="0" y="0" width="800" height="270" fill="white"/>
 <g transform="translate(70,40)">
 {{if .RangeAlert}}<rect x="0" y="0" width="600" height="170" fill="mistyrose"/>{{end}}
 
