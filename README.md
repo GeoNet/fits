@@ -2,28 +2,17 @@
 
 Field Time Series data.
 
-[![Build Status](https://snap-ci.com/GeoNet/fits/branch/master/build_image)](https://snap-ci.com/GeoNet/fits/branch/master)
-[![Docker Repository on Quay.io](https://quay.io/repository/geonet/fits/status "Docker Repository on Quay.io")](https://quay.io/repository/geonet/fits)
-
-## Development 
-
-Requires Go 1.3 or newer.
-
 ### Dependencies and Compilation
 
-Dependencies are included in this repo using godep vendoring.  There should be no need to `go get` the dependencies 
-separately unless you are updating them.
-
-* Install godep https://github.com/tools/godep
-* Prefix go commands with godep.
+Dependencies are included in this repo using Go 1.6+ vendoring and govendor.
 
 Run:
 
-```godep go build && ./fits```
+```go build && ./fits```
 
 Run all tests (including any in sub dirs):
 
-```godep go test ./...```
+```go test ./...```
 
 ### Database
 
