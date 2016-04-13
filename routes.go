@@ -83,10 +83,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 		method(w, r)
 	case r.URL.Path == "/charts":
 		charts(w, r)
+	case r.URL.Path == "/":
+		charts(w, r)
+	case r.URL.Path == "":
+		charts(w, r)
 	case strings.HasPrefix(r.URL.Path, apidoc.Path):
 		docs.Serve(w, r)
 	default:
-		//web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
-		charts(w, r)
+		web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
 	}
 }

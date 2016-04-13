@@ -134,7 +134,6 @@ func TestRoutes(t *testing.T) {
 		Vary:       "Accept",
 		TestAccept: false,
 	}
-	r.Add("/")
 	r.Add("/bob")
 	r.Add("/site?methodID=m1")
 	r.Add("/site?methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))")
@@ -153,7 +152,6 @@ func TestRoutes(t *testing.T) {
 		Vary:       "Accept",
 		TestAccept: false,
 	}
-	r.Add("/")
 	r.Add("/bob")
 
 	r.Test(testServer, t)
@@ -168,7 +166,6 @@ func TestRoutes(t *testing.T) {
 		Vary:       "Accept",
 		TestAccept: false,
 	}
-	r.Add("/")
 	r.Add("/bob")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0")
 	r.Add("/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8")
