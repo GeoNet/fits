@@ -97,7 +97,7 @@ var ldrChartClient = {
         this.lftMap = L.map('ldr-map', {
             attributionControl: false,
             zoom : 16,
-            layers : [aerialTopo]
+            layers : [osmLayer]
         });
 
         var baseLayers = {
