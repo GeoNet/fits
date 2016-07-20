@@ -1,11 +1,8 @@
-FROM quay.io/geonet/golang-godep:latest
-
-COPY . /go/src/github.com/GeoNet/fits
-
-WORKDIR /go/src/github.com/GeoNet/fits
-
-RUN godep go install -a
-
+# This docker file should be invoked from docker.sh
+FROM scratch
+COPY docker-build-tmp/fits docker-build-tmp/fits.json /
+COPY docker-build-tmp/common /
+COPY  docker-build-tmp/charts.html docker-build-tmp/css docker-build-tmp/js docker-build-tmp/images / 
 EXPOSE 8080
-
-CMD ["/go/bin/fits"]
+USER nobody
+CMD ["/fits"]

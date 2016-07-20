@@ -11,8 +11,11 @@
 			"revision": "d7bd752242f533840471ef8e5de680028f9069a9"
 		},
 		{
+			"checksumSHA1": "ks1IXfZT5mIz8563JnQqFjkxQn4=",
+			"origin": "github.com/GeoNet/fits/vendor/github.com/GeoNet/log/logentries",
 			"path": "github.com/GeoNet/log/logentries",
-			"revision": "18c2731b9dd6d1f74215d1018b21f7b8d270d4fe"
+			"revision": "7444b7fd57bd08515924fdf8515888c5fbe2f530",
+			"revisionTime": "2016-04-13T16:41:35+12:00"
 		},
 		{
 			"path": "github.com/GeoNet/map180",
