@@ -69,26 +69,26 @@ var ldrChartClient = {
 	 * init leaflet basemap
 	 * ***/
     initBaseMap: function(){
-        var osmUrl = 'http://{s}.geonet.org.nz/osm/tiles/{z}/{x}/{y}.png',
+        var osmUrl = 'https://{s}.geonet.org.nz/osm/tiles/{z}/{x}/{y}.png',
         osmLayer = new L.TileLayer(osmUrl, {
             minZoom : 1,
             maxZoom : 16,
             subdomains : [ 'static1', 'static2', 'static3', 'static4', 'static5' ]
         });
 
-        var mqUrl = "http://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg",
+        var mqUrl = "https://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg",
         mqLayer = new L.TileLayer(mqUrl, {
             maxZoom: 11,
             minZoom: 1,
-            errorTileUrl: 'http://static.geonet.org.nz/osm/images/logo_geonet.png',
+            errorTileUrl: 'https://static.geonet.org.nz/osm/images/logo_geonet.png',
             subdomains:[ 'oatile1', 'oatile2', 'oatile3', 'oatile4']
         });
 
-        var topoUrl = 'http://{s}.geonet.org.nz/nztopo/{z}/{x}/{y}.png',
+        var topoUrl = 'https://{s}.geonet.org.nz/nztopo/{z}/{x}/{y}.png',
         topoLayer = new L.TileLayer(topoUrl, {
             maxZoom: 14,
             minZoom: 12,
-            errorTileUrl: 'http://static.geonet.org.nz/osm/images/logo_geonet.png',
+            errorTileUrl: 'https://static.geonet.org.nz/osm/images/logo_geonet.png',
             subdomains:[ 'static1', 'static2', 'static3', 'static4', 'static5']
         });
 
