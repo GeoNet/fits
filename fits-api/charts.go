@@ -22,13 +22,13 @@ var chartsD = &apidoc.Query{
 	URI: "/charts",
 }
 
-var templates = template.Must(template.ParseFiles("charts.html"))
+var templates = template.Must(template.ParseFiles("assets/charts.html"))
 
 func init() {
 	//handle js files
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
-	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
+	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
 }
 
 func charts(w http.ResponseWriter, r *http.Request) {
