@@ -2,18 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/cfg"
-	"github.com/GeoNet/log/logentries"
+	_ "github.com/GeoNet/log/logentries"
 	"github.com/GeoNet/map180"
 	"github.com/GeoNet/web"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"fmt"
+	"os"
 )
 
-//go:generate configer fits.json
 var (
-	config = cfg.Load()
 	db     *sql.DB
 	wm     *map180.Map180
 )
@@ -24,22 +23,28 @@ var header = web.Header{
 	Vary:      "Accept",
 }
 
+
 func init() {
-	logentries.Init(config.Logentries.Token)
-	web.InitLibrato(config.Librato.User, config.Librato.Key, config.Librato.Source)
 }
 
 // main connects to the database, sets up request routing, and starts the http server.
 func main() {
 	var err error
-	db, err = sql.Open("postgres", config.DataBase.Postgres())
+	db, err = sql.Open("postgres",
+		fmt.Sprintf("host=%s connect_timeout=%s user=%s password=%s dbname=%s sslmode=%s",
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_CONN_TIMEOUT"),
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASSWD"),
+			os.Getenv("DB_NAME"),
+			os.Getenv("DB_SSLMODE")))
 	if err != nil {
 		log.Fatalf("ERROR: problem with DB config: %s", err)
 	}
 	defer db.Close()
 
-	db.SetMaxIdleConns(config.DataBase.MaxIdleConns)
-	db.SetMaxOpenConns(config.DataBase.MaxOpenConns)
+	db.SetMaxIdleConns(30)
+	db.SetMaxOpenConns(30)
 
 	err = db.Ping()
 	if err != nil {
@@ -52,8 +57,9 @@ func main() {
 		log.Fatalf("ERROR: problem with map180 config: %s", err)
 	}
 
+	log.Print("starting server")
 	http.Handle("/", handler())
-	log.Fatal(http.ListenAndServe(":"+config.WebServer.Port, nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // handler creates a mux and wraps it with default handlers.  Seperate function to enable testing.

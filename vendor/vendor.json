@@ -3,14 +3,6 @@
 	"ignore": "",
 	"package": [
 		{
-			"path": "github.com/GeoNet/cfg",
-			"revision": "d7bd752242f533840471ef8e5de680028f9069a9"
-		},
-		{
-			"path": "github.com/GeoNet/cfg/configer",
-			"revision": "d7bd752242f533840471ef8e5de680028f9069a9"
-		},
-		{
 			"checksumSHA1": "ks1IXfZT5mIz8563JnQqFjkxQn4=",
 			"origin": "github.com/GeoNet/fits/vendor/github.com/GeoNet/log/logentries",
 			"path": "github.com/GeoNet/log/logentries",
@@ -20,14 +12,6 @@
 		{
 			"path": "github.com/GeoNet/map180",
 			"revision": "9382916fcb62438a7fc8406f6e2d931e33a316cf"
-		},
-		{
-			"path": "github.com/GeoNet/metrics",
-			"revision": "5161e09d1ca5d85798d090752c2f7d5ab9ab6e17"
-		},
-		{
-			"path": "github.com/GeoNet/metrics/librato",
-			"revision": "5161e09d1ca5d85798d090752c2f7d5ab9ab6e17"
 		},
 		{
 			"path": "github.com/GeoNet/web",
