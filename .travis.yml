@@ -1,19 +1,37 @@
+sudo: required
+
 language: go
 go:
 - 1.6.1
+services:
+  - docker
+
+before_deploy:
+  - docker login --email="." --username="geonet+dockerbuild" --password="$docker_password" quay.io
+
+# trying to fix postgis bug which comes on the travis infrastructure that has sudo.
+before_install:
+ - export DEBIAN_FRONTEND=noninteractive;
+   sudo -E apt-get -yq update &>> ~/apt-get-update.log;
+   sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.4-postgis-2.2
+ - sudo apt-get install -y xsltproc
+
 install: true
 addons:
   postgresql: '9.4'
 before_script:
 - psql -U postgres -c "create extension postgis"
-- ./scripts/initdb.sh
+- ./database/scripts/initdb.sh
 script: 
-- go test -v  
-notifications:
-  hipchat:
-    rooms:
-      secure: Bu3Ic6nQABzKPhLeQRnxbvrQ5l+bDMdSVWmTTU65BKEFrMQJrC5SJfM1Bw1cCjnVafwSgIqQPPfT+AiLalJJoLBUah+w3rIs50Smpf7dwN2RTsLSBKwyYWqjbnPwJ9irI3Z3HNJmJ6LeumogWAjgzl0nll3b32aauF8wMO7N3pZ9tI7qG6RZFJCioQzXIyK+gA/p03P9/HYvUvYh/R86AcODpn7NGTtxwHmGQFe7SjJrRcin71ZJiXW3xGhLsWxbru6ktSn+cbKGW+HGVgF8lSLFLgC5veYiY6Rmdob7KI6NBelCR3CcwD3mGn//3qn1Kjo/y94yoS/bKbkiB61puXN03rqDlZFgLp6BXJcQQJZPc05P0WxQyKX3m5W0G2DB3gr4DgFSg0UzvZsujNPxc/VF2cO0DNtv3OS/SPaWi88/VCg2wqehj7QuXZbeyRiKdL2pgR/9k6TWvkZOK2JJTYXR+AOWPKUnGyRh64OSrd5UKu2C3Su4Ph1zA9wolO35KuZT0aHS7dcp4I7QhAbMzDWczj8nY0sOL5nn+g3pY2llqpjhfHbb2SIbp5XvI5135ipDAwl1MMckT4OKx+CvjlaEyqqX/EHLv7jJ/q5YTC1ph+QeQ+6xanBiwvA231eQujDLKRmLCFbWbAB66JWyGcjjy9AJiTI3X9dMMBNegfA=
-    notify: true
-    on_success: always
-    on_failure: always
-    
+- ./all.sh
+
+deploy:
+   - provider: script
+     skip_cleanup: true
+     script: ./build-push.sh fits-api
+     on: 
+       branch: master 
+ 
+env:
+    global:
+         - secure: aAfJcT7S90E7eHVHnbW54iD6AhVZJW1qF9yEUmQ75t9pf12yAhr4wr8Jp7/Dy0JbQ4nk5kdv2KTEU5ZUYhnxexc936/iYEWauAYHvffFeXtKKEVovEuKI0nO0I3rU5kw8lMf2YCQQx1P2b4VV/foFh6SnT6QjBPmmZLXdI9l8Ck=

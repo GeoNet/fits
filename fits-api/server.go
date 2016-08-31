@@ -57,6 +57,7 @@ func main() {
 		log.Fatalf("ERROR: problem with map180 config: %s", err)
 	}
 
+	log.Print("starting server")
 	http.Handle("/", handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
