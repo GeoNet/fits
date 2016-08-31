@@ -7,9 +7,11 @@ import (
 	"strings"
 )
 
+// TODO (Geoff) hard coded the Production and APIHost values.
+// will switch to weft which removes the need for these.
 var docs = apidoc.Docs{
-	Production: config.WebServer.Production,
-	APIHost:    config.WebServer.CNAME,
+	Production: true,
+	APIHost:    "fits.geonet.org.nz",
 	Title:      `FITS API`,
 	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
 			database.  If you are looking for other data then please check the 
@@ -31,7 +33,9 @@ func init() {
 	docs.AddEndpoint("spark", &sparkDoc)
 }
 
-var exHost = "http://localhost:" + config.WebServer.Port
+// TODO (Geoff) hard coded the Production and APIHost values.
+// will switch to weft which removes the need for these.
+var exHost = "http://localhost:8080"
 
 func router(w http.ResponseWriter, r *http.Request) {
 

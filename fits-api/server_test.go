@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"time"
+	"fmt"
+	"os"
 )
 
 var (
@@ -17,7 +19,13 @@ var (
 // setup starts a db connection and test server then inits an http client.
 func setup() {
 	var err error
-	db, err = sql.Open("postgres", "user=fits_r password=test dbname=fits sslmode=disable")
+	db, err = sql.Open("postgres", fmt.Sprintf("host=%s connect_timeout=%s user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_CONN_TIMEOUT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_SSLMODE")))
 	if err != nil {
 		log.Fatal(err)
 	}
