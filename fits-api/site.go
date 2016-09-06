@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"strings"
-	"github.com/GeoNet/weft"
-	"bytes"
 )
 
 const (
@@ -124,7 +124,7 @@ func validSite(networkID, siteID string) *weft.Result {
 func geoJSONSite(networkID, siteID string) ([]byte, error) {
 	var d string
 	err := db.QueryRow(
-		siteGeoJSON + ` WHERE siteid = $1 and networkid = $2` + fc, siteID, networkID).Scan(&d)
+		siteGeoJSON+` WHERE siteid = $1 and networkid = $2`+fc, siteID, networkID).Scan(&d)
 
 	return []byte(d), err
 }
@@ -139,35 +139,35 @@ func geoJSONSites(typeID, methodID, within string) ([]byte, error) {
 			siteGeoJSON + fc).Scan(&d)
 	case typeID == "" && methodID == "" && within != "":
 		err = db.QueryRow(
-			siteGeoJSON +
-				`where ST_Within(location::geometry, ST_GeomFromText($1, 4326))` +
+			siteGeoJSON+
+				`where ST_Within(location::geometry, ST_GeomFromText($1, 4326))`+
 				fc, within).Scan(&d)
 	case typeID != "" && methodID == "" && within == "":
 		err = db.QueryRow(
-			siteGeoJSON +
+			siteGeoJSON+
 				` where sitepk IN
-(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))` + fc, typeID).Scan(&d)
+(select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1))`+fc, typeID).Scan(&d)
 	case typeID != "" && methodID == "" && within != "":
 		err = db.QueryRow(
-			siteGeoJSON +
+			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1)) 
- AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($2, 4326)))` + fc, typeID, within).Scan(&d)
+ AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($2, 4326)))`+fc, typeID, within).Scan(&d)
 	case typeID != "" && methodID != "" && within == "":
 		err = db.QueryRow(
-			siteGeoJSON +
+			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where 
 	observation.typepk = (select typepk from fits.type where typeid = $1)
-	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))` + fc, typeID, methodID).Scan(&d)
+	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))`+fc, typeID, methodID).Scan(&d)
 	case typeID != "" && methodID != "" && within != "":
 		err = db.QueryRow(
-			siteGeoJSON +
+			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where 
 	observation.typepk = (select typepk from fits.type where typeid = $1)
 	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))
-		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))` + fc, typeID, methodID, within).Scan(&d)
+		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))`+fc, typeID, methodID, within).Scan(&d)
 	}
 
 	return []byte(d), err

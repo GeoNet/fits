@@ -1,10 +1,10 @@
 package main
 
 import (
-	"database/sql"
-	"net/http"
-	"github.com/GeoNet/weft"
 	"bytes"
+	"database/sql"
+	"github.com/GeoNet/weft"
+	"net/http"
 )
 
 func types(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {

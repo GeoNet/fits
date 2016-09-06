@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"github.com/GeoNet/weft"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"net/url"
-	"github.com/GeoNet/weft"
 )
 
 type siteQ struct {

@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/fits/ts"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"time"
-	"github.com/GeoNet/weft"
 )
 
 func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
@@ -27,7 +27,7 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	var res *weft.Result
 
 	if plotType, res = getPlotType(v); !res.Ok {
- 		return res
+		return res
 	}
 
 	if stddev, res = getStddev(v); !res.Ok {
@@ -59,7 +59,7 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	if days > 0 {
 		n := time.Now().UTC()
-		tmin = n.Add(time.Duration(days * -1) * time.Hour * 24)
+		tmin = n.Add(time.Duration(days*-1) * time.Hour * 24)
 		p.SetXAxis(tmin, n)
 		days = 0 // add all data > than tmin
 	}

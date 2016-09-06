@@ -1,16 +1,15 @@
 package main
 
 import (
-
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"github.com/GeoNet/weft"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/GeoNet/weft"
 )
 
 var eol []byte
@@ -94,7 +93,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
                                AND typepk = (
                                                         SELECT typepk FROM fits.type WHERE typeid = $3
                                                        ) 
-                                AND time > (now() - interval '` + strconv.Itoa(days) + ` days')
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
                   		ORDER BY time ASC;`, networkID, siteID, typeID)
 	case days == 0 && methodID != "":
 		rows, err = db.Query(
@@ -123,7 +122,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		AND methodpk = (
 					SELECT methodpk FROM fits.method WHERE methodid = $4
 				)
-                                AND time > (now() - interval '` + strconv.Itoa(days) + ` days')
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
                   		ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
 	}
 	if err != nil {
@@ -144,9 +143,9 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	rows.Close()
 
 	if methodID != "" {
-		h.Set("Content-Disposition", `attachment; filename="FITS-` + networkID + `-` + siteID + `-` + typeID + `-` + methodID + `.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		h.Set("Content-Disposition", `attachment; filename="FITS-` + networkID + `-` + siteID + `-` + typeID + `.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`.csv"`)
 	}
 
 	return &weft.StatusOK
@@ -178,7 +177,7 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 			weft.BadRequest("Invalid days query param.")
 		}
 		tmax = time.Now().UTC()
-		tmin = tmax.Add(time.Duration(days * -1) * time.Hour * 24)
+		tmin = tmax.Add(time.Duration(days*-1) * time.Hour * 24)
 	}
 
 	var methodID string
@@ -216,7 +215,7 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 		StddevPopulation: stdDev}
 
 	stats.First = values[0]
-	stats.Last = values[len(values) - 1]
+	stats.Last = values[len(values)-1]
 
 	iMin, iMax, _ := extremes(values)
 	stats.Minimum = values[iMin]
@@ -243,7 +242,6 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
-
 
 	v := r.URL.Query()
 
@@ -287,11 +285,11 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 		index1 := 0
 		for rows.Next() {
 			var (
-				dateStr string
-				siteId string
+				dateStr  string
+				siteId   string
 				siteName string
-				val float64
-				stdErr float64
+				val      float64
+				stdErr   float64
 			)
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
@@ -357,11 +355,11 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 		resultsMap := make(map[string]value)
 		for rows.Next() {
 			var (
-				dateStr string
-				siteId string
+				dateStr  string
+				siteId   string
 				siteName string
-				val float64
-				stdErr float64
+				val      float64
+				stdErr   float64
 			)
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
@@ -370,7 +368,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 			}
 			t1, e := time.Parse(
 				time.RFC3339,
-				dateStr + "T00:00:00+00:00")
+				dateStr+"T00:00:00+00:00")
 
 			resultVal := value{T: t1,
 				V: val,
@@ -380,7 +378,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 				log.Fatal("time parse error", e)
 				continue
 			}
-			resultsMap[siteId + "_" + dateStr] = resultVal
+			resultsMap[siteId+"_"+dateStr] = resultVal
 
 		}
 		rows.Close()
@@ -398,7 +396,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 				}
 				//values
 				b.WriteString("[")
-				val, haskey := resultsMap[siteId + "_" + dateStr]
+				val, haskey := resultsMap[siteId+"_"+dateStr]
 				if haskey {
 					b.WriteString(strconv.FormatFloat(val.V, 'f', -1, 64) + "," + strconv.FormatFloat(val.E, 'f', -1, 64))
 				} else {

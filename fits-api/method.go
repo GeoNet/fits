@@ -1,9 +1,9 @@
 package main
 
 import (
-	"net/http"
 	"bytes"
 	"github.com/GeoNet/weft"
+	"net/http"
 )
 
 func method(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {

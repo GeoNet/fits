@@ -1,9 +1,9 @@
 package main
 
 import (
-	"net/http"
-	"github.com/GeoNet/weft"
 	"bytes"
+	"github.com/GeoNet/weft"
+	"net/http"
 )
 
 var mux = http.NewServeMux()
@@ -40,7 +40,6 @@ func inbound(h http.Handler) http.Handler {
 		}
 	})
 }
-
 
 // these handlers take care of the extra routing based on optional query parameters
 
@@ -80,4 +79,3 @@ func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		return siteType(r, h, b)
 	}
 }
-

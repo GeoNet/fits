@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"github.com/GeoNet/map180"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"strconv"
 	"strings"
-	"bytes"
-	"github.com/GeoNet/weft"
 )
 
 type st struct {

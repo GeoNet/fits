@@ -1,15 +1,15 @@
 package main
 
 import (
+	wt "github.com/GeoNet/weft/wefttest"
 	"net/http"
 	"testing"
-	wt "github.com/GeoNet/weft/wefttest"
 )
 
 var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1"},
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL:"/site?typeID=t1&methodID=m1"},
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL:"/site"},
+	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1&methodID=m1"},
+	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?siteID=TEST1&networkID=TN1"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},

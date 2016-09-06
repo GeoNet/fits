@@ -2,18 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/GeoNet/log/logentries"
 	"github.com/GeoNet/map180"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
 )
 
 var (
-	db     *sql.DB
-	wm     *map180.Map180
+	db *sql.DB
+	wm *map180.Map180
 )
 
 // These constants represent part of a public API and can't be changed.
@@ -21,7 +21,7 @@ const (
 	v1GeoJSON = "application/vnd.geo+json;version=1"
 	v1JSON    = "application/json;version=1"
 	v1CSV     = "text/csv;version=1"
-	svg = "image/svg+xml"
+	svg       = "image/svg+xml"
 )
 
 func init() {

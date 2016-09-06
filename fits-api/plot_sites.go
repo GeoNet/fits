@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/GeoNet/fits/ts"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"time"
-	"github.com/GeoNet/weft"
 )
 
 func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {

@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/GeoNet/weft"
 )
 
 func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
@@ -145,9 +145,9 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	rows.Close()
 
 	if methodID != "" {
-		h.Set("Content-Disposition", `attachment; filename="FITS-` + typeID + `-` + methodID + `.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		h.Set("Content-Disposition", `attachment; filename="FITS-` + typeID + `.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+typeID+`.csv"`)
 	}
 
 	return &weft.StatusOK

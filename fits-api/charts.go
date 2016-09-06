@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"github.com/GeoNet/weft"
 	"html/template"
 	"net/http"
-	"github.com/GeoNet/weft"
-	"bytes"
 )
 
 var templates = template.Must(template.ParseFiles("assets/charts.html"))

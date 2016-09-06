@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/GeoNet/fits/ts"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"time"
-	"github.com/GeoNet/weft"
 )
 
 type plt struct {
@@ -72,11 +72,11 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	// do nothing - autorange on the data.
 	case start.IsZero() && days > 0:
 		n := time.Now().UTC()
-		start = n.Add(time.Duration(days * -1) * time.Hour * 24)
+		start = n.Add(time.Duration(days*-1) * time.Hour * 24)
 		p.SetXAxis(start, n)
 		days = 0 // add all data > than start by setting 0.  Allows for adding start end to URL.
 	case !start.IsZero() && days > 0:
-		p.SetXAxis(start, start.Add(time.Duration(days * 1) * time.Hour * 24))
+		p.SetXAxis(start, start.Add(time.Duration(days*1)*time.Hour*24))
 	case !start.IsZero() && days == 0:
 		return weft.BadRequest("Invalid start specified without days")
 	}
@@ -168,7 +168,7 @@ func (plt *plt) addSeries(t typeQ, start time.Time, days int, sites ...siteQ) (e
 		)
 	AND time > $4
 	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days * 1) * time.Hour * 24))
+	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
 		}
 		if err != nil {
 			return
@@ -233,7 +233,7 @@ func (plt *plt) addSeriesLabelMethod(t typeQ, start time.Time, days int, s siteQ
 		)
 	AND time > $4
 	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days * 1) * time.Hour * 24))
+	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
 	}
 	if err != nil {
 		return
