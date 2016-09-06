@@ -23,6 +23,14 @@ var header = web.Header{
 	Vary:      "Accept",
 }
 
+// These constants represent part of a public API and can't be changed.
+const (
+	v1GeoJSON = "application/vnd.geo+json;version=1"
+	v1JSON    = "application/json;version=1"
+	v1CSV     = "text/csv;version=1"
+	svg = "image/svg+xml"
+)
+
 
 func init() {
 }

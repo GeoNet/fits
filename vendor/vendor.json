@@ -30,6 +30,18 @@
 			"revision": "588a2cfe5e1bba4014838984ba81cbfc3aeb3ca3"
 		},
 		{
+			"checksumSHA1": "A51+2Dnl57dtI+oA0FGMW5TEv58=",
+			"path": "github.com/GeoNet/weft",
+			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",
+			"revisionTime": "2016-08-12T00:01:52Z"
+		},
+		{
+			"checksumSHA1": "qxcW1hstrjlHw/t4qGzigqDudcc=",
+			"path": "github.com/GeoNet/weft/wefttest",
+			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",
+			"revisionTime": "2016-08-12T00:01:52Z"
+		},
+		{
 			"path": "github.com/golang/groupcache",
 			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
 		},
