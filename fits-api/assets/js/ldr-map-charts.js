@@ -42,7 +42,7 @@ var ldrChartClient = {
     /***
 	 * init parameters, called from page
 	 * ***/
-    initChartParams: function (showMap){
+    initChartParams: function (showMap, bingKey){
 
         this.iev = this.getIEVersion();
         //set chart style
@@ -59,7 +59,7 @@ var ldrChartClient = {
         //init functions
         if(showMap){
             this.initFormFunctions();
-            this.initBaseMap();
+            this.initBaseMap(bingKey);
             //this.showRegions();
             this.showParams();
         }
@@ -68,7 +68,7 @@ var ldrChartClient = {
     /***
 	 * init leaflet basemap
 	 * ***/
-    initBaseMap: function(){
+    initBaseMap: function(bingKey){
         var osmUrl = '//{s}.geonet.org.nz/osm/1/tiles/{z}/{x}/{y}.png',
         osmLayer = new L.TileLayer(osmUrl, {
             minZoom : 1,
@@ -76,34 +76,18 @@ var ldrChartClient = {
             subdomains : [ 'static1', 'static2', 'static3', 'static4', 'static5' ]
         });
 
-        var mqUrl = "https://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg",
-        mqLayer = new L.TileLayer(mqUrl, {
-            maxZoom: 11,
-            minZoom: 1,
-            errorTileUrl: '//static.geonet.org.nz/osm/images/logo_geonet.png',
-            subdomains:[ 'oatile1', 'oatile2', 'oatile3', 'oatile4']
-        });
-
-        var topoUrl = '//{s}.geonet.org.nz/nztopo/{z}/{x}/{y}.png',
-        topoLayer = new L.TileLayer(topoUrl, {
-            maxZoom: 14,
-            minZoom: 12,
-            errorTileUrl: '//static.geonet.org.nz/osm/images/logo_geonet.png',
-            subdomains:[ 'static1', 'static2', 'static3', 'static4', 'static5']
-        });
-
-        var aerialTopo = L.layerGroup([mqLayer, topoLayer]);
+        var bingLayer = new L.BingLayer(bingKey, {type: "Aerial"});
+        //map switcher
+        var baseLayers = {
+          "Map": osmLayer,
+          "Aerial": bingLayer
+        };
 
         this.lftMap = L.map('ldr-map', {
             attributionControl: false,
-            zoom : 16,
+            zoom : 18,
             layers : [osmLayer]
         });
-
-        var baseLayers = {
-            "Map" : osmLayer,
-            "Aerial / Topo" : aerialTopo
-        };
 
         L.control.layers(baseLayers).addTo(this.lftMap);
         this.lftMap.setView(new L.LatLng(-40.5, 174.5), 4);
