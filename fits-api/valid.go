@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/web"
-	"net/http"
+	"github.com/GeoNet/weft"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -18,88 +18,78 @@ type typeQ struct {
 	name, description, unit string
 }
 
-func getStddev(w http.ResponseWriter, r *http.Request) (string, bool) {
-	t := r.URL.Query().Get("stddev")
-	switch t {
+func getStddev(v url.Values) (string, *weft.Result) {
+	switch v.Get("stddev") {
 	case ``, `pop`:
-		return t, true
+		return v.Get("stddev"), &weft.StatusOK
 	default:
-		web.BadRequest(w, r, "invalid stddev type")
-		return ``, false
+		return ``, weft.BadRequest("invalid stddev type")
 	}
 }
 
-func getSparkLabel(w http.ResponseWriter, r *http.Request) (string, bool) {
-	t := r.URL.Query().Get("label")
-	switch t {
+func getSparkLabel(v url.Values) (string, *weft.Result) {
+	switch v.Get("label") {
 	case ``, `all`, `none`, `latest`:
-		return t, true
+		return v.Get("label"), &weft.StatusOK
 	default:
-		web.BadRequest(w, r, "invalid label")
-		return ``, false
+		return ``, weft.BadRequest("invalid label")
 	}
 }
 
-func getPlotType(w http.ResponseWriter, r *http.Request) (string, bool) {
-	t := r.URL.Query().Get("type")
-	switch t {
+func getPlotType(v url.Values) (string, *weft.Result) {
+	switch v.Get("type") {
 	case ``, `line`, `scatter`:
-		return t, true
+		return v.Get("type"), &weft.StatusOK
 	default:
-		web.BadRequest(w, r, "invalid plot type")
-		return ``, false
+		return ``, weft.BadRequest("invalid plot type")
 	}
 }
 
-func getType(w http.ResponseWriter, r *http.Request) (typeQ, bool) {
+func getType(v url.Values) (typeQ, *weft.Result) {
 	t := typeQ{
-		typeID: r.URL.Query().Get("typeID"),
+		typeID: v.Get("typeID"),
 	}
 
 	err := db.QueryRow("select type.name, type.description, unit.symbol FROM fits.type join fits.unit using (unitpk) where typeID = $1",
 		t.typeID).Scan(&t.name, &t.description, &t.unit)
 	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+t.typeID)
-		return t, false
+		return t, &weft.NotFound
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return t, false
+		return t, weft.ServiceUnavailableError(err)
 	}
 
-	return t, true
+	return t, &weft.StatusOK
 }
 
-func getSite(w http.ResponseWriter, r *http.Request) (siteQ, bool) {
+func getSite(v url.Values) (siteQ, *weft.Result) {
 	s := siteQ{
-		networkID: r.URL.Query().Get("networkID"),
-		siteID:    r.URL.Query().Get("siteID"),
+		networkID: v.Get("networkID"),
+		siteID:    v.Get("siteID"),
 	}
 
 	err := db.QueryRow("select name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", s.networkID, s.siteID).Scan(&s.name)
 	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid siteID and networkID combination: "+s.siteID+" "+s.networkID)
-		return s, false
+		return s, &weft.NotFound
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return s, false
+		return s, weft.ServiceUnavailableError(err)
 	}
 
-	return s, true
+	return s, &weft.StatusOK
 }
 
 /*
 returns a zero length list if no sites are found.
 */
-func getSites(w http.ResponseWriter, r *http.Request) ([]siteQ, bool) {
+func getSites(v url.Values) ([]siteQ, *weft.Result) {
 	var sites = make([]siteQ, 0)
 
-	for _, ns := range strings.Split(r.URL.Query().Get("sites"), ",") {
+	for _, ns := range strings.Split(v.Get("sites"), ",") {
 		nss := strings.Split(ns, ".")
 		if len(nss) != 2 {
-			web.BadRequest(w, r, "invalid sites query.")
-			return sites, false
+
+			return sites, weft.BadRequest("invalid sites query.")
 		}
 		sites = append(sites, siteQ{networkID: nss[0], siteID: nss[1]})
 	}
@@ -107,62 +97,58 @@ func getSites(w http.ResponseWriter, r *http.Request) ([]siteQ, bool) {
 	for _, s := range sites {
 		err := db.QueryRow("select name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", s.networkID, s.siteID).Scan(&s.name)
 		if err == sql.ErrNoRows {
-			web.NotFound(w, r, "invalid siteID and networkID combination: "+s.siteID+" "+s.networkID)
-			return sites, false
+			return sites, &weft.NotFound
 		}
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return sites, false
+			return sites, weft.ServiceUnavailableError(err)
 		}
 	}
 
-	return sites, true
+	return sites, &weft.StatusOK
 }
 
 /*
 Returns zero time if not set.
 */
-func getStart(w http.ResponseWriter, r *http.Request) (time.Time, bool) {
+func getStart(v url.Values) (time.Time, *weft.Result) {
 	var t time.Time
 
-	if r.URL.Query().Get("start") != "" {
+	if v.Get("start") != "" {
 		var err error
-		t, err = time.Parse(time.RFC3339, r.URL.Query().Get("start"))
+		t, err = time.Parse(time.RFC3339, v.Get("start"))
 		if err != nil {
-			web.BadRequest(w, r, "Invalid start query param.")
-			return t, false
+			return t, weft.BadRequest("Invalid start query param.")
 		}
 	}
 
-	return t, true
+	return t, &weft.StatusOK
 }
 
 /*
 Returns 0 if days not set
 */
-func getDays(w http.ResponseWriter, r *http.Request) (int, bool) {
+func getDays(v url.Values) (int, *weft.Result) {
 	var days int
-	if r.URL.Query().Get("days") != "" {
+	if v.Get("days") != "" {
 		var err error
-		days, err = strconv.Atoi(r.URL.Query().Get("days"))
+		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return 0, false
+			return 0, weft.BadRequest("Invalid days query param.")
 		}
 	}
-	return days, true
+	return days, &weft.StatusOK
 }
 
-func getShowMethod(w http.ResponseWriter, r *http.Request) (bool, bool) {
-	switch r.URL.Query().Get("showMethod") {
+func getShowMethod(v url.Values) (bool, *weft.Result) {
+	switch v.Get("showMethod") {
 	case "":
-		return false, true
+		return false, &weft.StatusOK
 	case "true":
-		return true, true
+		return true, &weft.StatusOK
 	case "false":
-		return false, true
+		return false, &weft.StatusOK
 	default:
-		return false, false
+		return false, weft.BadRequest("invalid showMethod")
 	}
 }
 
@@ -171,38 +157,33 @@ ymin, ymax = 0 - not set
 ymin = ymin and != 0 - single range value
 ymin != ymax - fixed range
 */
-func getYRange(w http.ResponseWriter, r *http.Request) (ymin, ymax float64, ok bool) {
+func getYRange(v url.Values) (float64, float64, *weft.Result) {
 	var err error
+	var ymin, ymax float64
 
-	yr := r.URL.Query().Get("yrange")
+	yr := v.Get("yrange")
 
 	switch {
 	case yr == "":
-		ok = true
 	case strings.Contains(yr, `,`):
 		y := strings.Split(yr, `,`)
 		if len(y) != 2 {
-			web.BadRequest(w, r, "invalid yrange query param.")
-			return
+			return ymin, ymax, weft.BadRequest("invalid yrange query param.")
 		}
 		ymin, err = strconv.ParseFloat(y[0], 64)
 		if err != nil {
-			web.BadRequest(w, r, "invalid yrange query param.")
-			return
+			return ymin, ymax, weft.BadRequest("invalid yrange query param.")
 		}
 		ymax, err = strconv.ParseFloat(y[1], 64)
 		if err != nil {
-			web.BadRequest(w, r, "invalid yrange query param.")
-			return
+			return ymin, ymax, weft.BadRequest("invalid yrange query param.")
 		}
 	default:
 		ymin, err = strconv.ParseFloat(yr, 64)
 		if err != nil || ymin <= 0 {
-			web.BadRequest(w, r, "invalid yrange query param.")
-			return
+			return ymin, ymax, weft.BadRequest("invalid yrange query param.")
 		}
 		ymax = ymin
 	}
-	ok = true
-	return
+	return ymin, ymax, &weft.StatusOK
 }

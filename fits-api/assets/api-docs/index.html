@@ -1,0 +1,198 @@
+	<html>
+	<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>FITS API</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<style>
+	body { padding-top: 60px; }
+	a.anchor { 
+		display: block; position: relative; top: -60px; visibility: hidden; 
+	}
+
+	.panel-height {
+		height: 150px; 
+		overflow-y: scroll;
+	}
+
+	.footer {
+		margin-top: 20px;
+		padding: 20px 0 20px;
+		border-top: 1px solid #e5e5e5;
+	}
+
+	.footer p {
+		text-align: center;
+	}
+
+	#logo{position:relative;}
+	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
+	#logo li a span
+	{
+		position: absolute;
+		left: -10000px;
+	}
+
+	#gns li, #gns a
+	{
+		float: left;
+		display:block;
+		height: 90px;
+		width: 54px;
+	}
+
+	#gns{left:-20px;height:90px;width:54px;}
+	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
+
+	#eqc li, #eqc a
+	{
+		display:block;
+		height: 61px;
+		width: 132px;
+	}
+
+	#eqc{right:0px;height:79px;width:132px;}
+	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+
+	#ccby li, #ccby a
+	{
+		display:block;
+		height: 15px;
+		width: 80px;
+	}
+	#ccby{left:15px;height:15px;width:80px; }
+	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
+
+	#geonet{
+		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
+		width:137px; 
+		height:53px;
+		display:block;
+	}
+
+
+	</style>
+	</head>
+	<body>
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+	<div class="navbar-header">
+	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+	</div>
+	</div>
+	</div>
+
+	<div class="container-fluid">
+	
+	
+	<ol class="breadcrumb">
+	<li class="active"><a href="/api-docs">Index</a></li>
+	</ol>
+	<h1 class="page-header">GeoNet API</h1>
+	<p class="lead">Welcome to the FITS API.</p>
+
+	<p>The GeoNet project makes all its data and images freely available.
+	Please ensure you have read and understood our 
+	<a href="http://info.geonet.org.nz/x/BYIW">Data Policy</a> and <a href="http://info.geonet.org.nz/x/EIIW">Disclaimer</a> 
+	before using any of these services.</p>
+
+	<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
+			database.  If you are looking for other data then please check the 
+			<a href="http://info.geonet.org.nz/x/DYAO">full range of data</a> available from GeoNet. </p>
+
+	<h3 class="page-header">Endpoints</h3>
+
+	<p>The following endpoints are available:</p>
+	<ul class=>
+	
+	<li><a href="/api-docs/endpoint/map">/map</a> - Simple maps of sites.</li>
+	
+	<li><a href="/api-docs/endpoint/method">/method</a> - Look up method information.</li>
+	
+	<li><a href="/api-docs/endpoint/observation">/observation</a> - Look up observations.</li>
+	
+	<li><a href="/api-docs/endpoint/observation_stats">/observation/stats</a> - Get observation statistics.</li>
+	
+	<li><a href="/api-docs/endpoint/plot">/plot</a> - Simple plots of observations.</li>
+	
+	<li><a href="/api-docs/endpoint/site">/site</a> - Look up site information.</li>
+	
+	<li><a href="/api-docs/endpoint/spark">/spark</a> - Simple spark lines of recent observations.</li>
+	
+	<li><a href="/api-docs/endpoint/type">/type</a> - Look up observation type information.</li>
+	
+	</ul>
+
+	<h3 class="page-header">Versioning</h3>
+
+	
+	<p>API queries may be versioned via the Accept header.
+	Please specify the <code>Accept</code> header for your request exactly as specified for the endpoint query you are using.</p>
+
+	<p>If you don't specify an Accept header with a version then your request will be routed to the current highest API version of the query.</p>
+	
+	<p>Taking advantage of the API versioning will pay dividends in the future for any client that you write.  
+	We use the <a href="https://github.com/stedolan/jq">jq</a> command for JSON pretty printing etc.  A curl command might 
+	look like:</p>
+
+	<pre>curl -H "Accept: application/vnd.geo+json;version=1" "http://...API-QUERY..." | jq .</pre>
+
+	<p>You may also be able to find a browser plugin to help with setting the Accept header for requests.</p>
+	
+
+	<h3 class="page-header">Compression</h3>
+
+	<p>The response for a query can be compressed.  If your client can handle a compressed response then the
+	reduced download size is a great benifit.  Gzip compression is supported.  You can request a compressed response
+	by including <code>gzip</code> in your <code>Accept-Encoding</code> header.</p>
+
+	<h3 class="page-header">Bugs</h3>
+
+	
+	<p>The code that provide these services is available at <a href="https://github.com/GeoNet/fits">https://github.com/GeoNet/fits</a>  If you believe
+	you have found a bug please raise an issue or pull request there. 
+	Alternatively <a href="http://info.geonet.org.nz/x/JYAO">contact us</a> detailing the issue.</p>
+	
+
+	
+	<div id="footer" class="footer">
+	<div class="row">
+	<div class="col-sm-3 hidden-xs">
+	<ul id="logo">
+	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+	</ul>            
+	</div>
+
+	<div class="col-sm-6">
+	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
+	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
+	</div>
+
+	<div  class="col-sm-2 hidden-xs">
+	<ul id="logo">
+	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
+	</ul>
+	</div>
+	<div  class="col-sm-1 hidden-xs">
+	<ul id="logo">
+	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+	</ul>  
+	</div>
+	</div>
+
+	<div class="row">
+	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
+	<ul id="logo">
+	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
+	</ul>
+	</div>
+	</div>
+
+	</div>
+	</div>
+	</body>
+	</html>
+	
+	

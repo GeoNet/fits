@@ -1,10 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
-	"html/template"
+	"github.com/GeoNet/weft"
 	"net/http"
 	"strings"
 )
@@ -27,130 +26,99 @@ const (
 	fc = ` ) As f )  as fc`
 )
 
-var siteDoc = apidoc.Endpoint{Title: "Site",
-	Description: `Look up site information.`,
-	Queries: []*apidoc.Query{
-		siteTypeD,
-		siteD,
-	},
-}
-
-var siteD = &apidoc.Query{
-	Accept:      web.V1GeoJSON,
-	Title:       "Site",
-	Description: "Find information for individual sites.",
-	Example:     "/site?siteID=HOLD&networkID=CG",
-	ExampleHost: exHost,
-	URI:         "/site?siteID=(siteID)&networkID=(networkID)",
-	Required: map[string]template.HTML{
-		"siteID":    siteIDDoc,
-		"networkID": networkIDDoc,
-	},
-	Props: siteProps,
-}
-
-func site(w http.ResponseWriter, r *http.Request) {
-	if err := siteD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func site(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{"siteID", "networkID"}, []string{}); !res.Ok {
+		return res
 	}
 
-	networkID := r.URL.Query().Get("networkID")
-	siteID := r.URL.Query().Get("siteID")
+	h.Set("Content-Type", "application/vnd.geo+json;version=1")
 
-	if !validSite(w, r, networkID, siteID) {
-		return
+	v := r.URL.Query()
+
+	networkID := v.Get("networkID")
+	siteID := v.Get("siteID")
+
+	var d string
+
+	if err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
+		networkID, siteID).Scan(&d); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+		return weft.ServiceUnavailableError(err)
 	}
 
-	w.Header().Set("Content-Type", web.V1GeoJSON)
-
-	b, err := geoJSONSite(networkID, siteID)
+	by, err := geoJSONSite(networkID, siteID)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		weft.ServiceUnavailableError(err)
 	}
 
-	web.Ok(w, r, &b)
+	b.Write(by)
+
+	return &weft.StatusOK
 }
 
-var siteTypeD = &apidoc.Query{
-	Accept:      web.V1GeoJSON,
-	Title:       "Sites",
-	Description: "Filter sites by observation type, method, and location.",
-	Example:     "/site?typeID=e",
-	ExampleHost: exHost,
-	URI:         "/site?[typeID=(typeID)]&[methodID=(methodID)]&[within=POLYGON((...))]",
-	Optional: map[string]template.HTML{
-		"typeID":   typeIDDoc,
-		"methodID": methodIDDoc + `  typeID must be specified as well.`,
-		"within":   withinDoc,
-	},
-	Props: siteProps,
-}
-
-func siteType(w http.ResponseWriter, r *http.Request) {
-	if err := siteTypeD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func siteType(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{}, []string{"typeID", "methodID", "within"}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "application/vnd.geo+json;version=1")
 
 	v := r.URL.Query()
 
 	if v.Get("methodID") != "" && v.Get("typeID") == "" {
-		web.BadRequest(w, r, "typeID must be specified when methodID is specified.")
-		return
+		return weft.BadRequest("typeID must be specified when methodID is specified.")
 	}
 
 	var typeID, methodID, within string
+	var res *weft.Result
 
 	if v.Get("typeID") != "" {
 		typeID = v.Get("typeID")
 
-		if !validType(w, r, typeID) {
-			return
+		if res = validType(typeID); !res.Ok {
+			return res
 		}
 
 		if v.Get("methodID") != "" {
 			methodID = v.Get("methodID")
-			if !validTypeMethod(w, r, typeID, methodID) {
-				return
+			if res = validTypeMethod(typeID, methodID); !res.Ok {
+				return res
 			}
 		}
 	}
 
 	if v.Get("within") != "" {
 		within = strings.Replace(v.Get("within"), "+", "", -1)
-		if !validPoly(w, r, within) {
-			return
+		if res = validPoly(within); !res.Ok {
+			return res
 		}
 	}
 
-	w.Header().Set("Content-Type", web.V1GeoJSON)
-
-	b, err := geoJSONSites(typeID, methodID, within)
+	by, err := geoJSONSites(typeID, methodID, within)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
-	web.Ok(w, r, &b)
 
+	b.Write(by)
+
+	return &weft.StatusOK
 }
 
 // validSite checks that the siteID and networkID combination exists in the DB.
-func validSite(w http.ResponseWriter, r *http.Request, networkID, siteID string) bool {
+func validSite(networkID, siteID string) *weft.Result {
 	var d string
 
-	err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", networkID, siteID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid siteID and networkID combination: "+siteID+" "+networkID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+	if err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
+		networkID, siteID).Scan(&d); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+		return weft.InternalServerError(err)
 	}
 
-	return true
+	return &weft.StatusOK
 }
 
 func geoJSONSite(networkID, siteID string) ([]byte, error) {

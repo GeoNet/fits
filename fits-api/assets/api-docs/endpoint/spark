@@ -1,0 +1,333 @@
+
+	
+	<html>
+	<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>FITS API</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<style>
+	body { padding-top: 60px; }
+	a.anchor { 
+		display: block; position: relative; top: -60px; visibility: hidden; 
+	}
+
+	.panel-height {
+		height: 150px; 
+		overflow-y: scroll;
+	}
+
+	.footer {
+		margin-top: 20px;
+		padding: 20px 0 20px;
+		border-top: 1px solid #e5e5e5;
+	}
+
+	.footer p {
+		text-align: center;
+	}
+
+	#logo{position:relative;}
+	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
+	#logo li a span
+	{
+		position: absolute;
+		left: -10000px;
+	}
+
+	#gns li, #gns a
+	{
+		float: left;
+		display:block;
+		height: 90px;
+		width: 54px;
+	}
+
+	#gns{left:-20px;height:90px;width:54px;}
+	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
+
+	#eqc li, #eqc a
+	{
+		display:block;
+		height: 61px;
+		width: 132px;
+	}
+
+	#eqc{right:0px;height:79px;width:132px;}
+	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+
+	#ccby li, #ccby a
+	{
+		display:block;
+		height: 15px;
+		width: 80px;
+	}
+	#ccby{left:15px;height:15px;width:80px; }
+	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
+
+	#geonet{
+		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
+		width:137px; 
+		height:53px;
+		display:block;
+	}
+
+
+	</style>
+	</head>
+	<body>
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+	<div class="navbar-header">
+	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+	</div>
+	</div>
+	</div>
+
+	<div class="container-fluid">
+	
+	
+	<ol class="breadcrumb">
+	<li><a href="/api-docs">Index</a></li>
+	<li>Endpoint</li>
+	<li class="active">Spark Lines</li>
+	</ol>
+	<h2 class="page-header">Spark Lines</h2>
+	<p class="lead">Simple spark lines of recent observations.</p>
+	<h4>Query Index:</h4>
+	 
+	<ul>
+	<li><a href="#sparklinessvg">Sparklines SVG</a> - Sparklines of observations as Scalable Vector Graphic (SVG)</li>
+	</ul>
+	
+
+	 
+	<a id="sparklinessvg" class="anchor"></a>
+	<h3 class="page-header">Sparklines SVG</h3>
+	<p class="lead">Sparklines of observations as Scalable Vector Graphic (SVG)</p>
+	<p><a href="http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001OR">Sparklines</a> of observations.</p>
+	<p><b><i>Caution:</i></b> these spark line plots should be used with caution
+	and some understanding of the underlying data.  FITS data is often unevenly sampled.  The data range may not be 
+	accurately represented at the resolution of these plots.  No down sampling of any kind is attempted for plotting.  There is 
+	potential for signal to be obscured or visual artifacts created.  If you think you have seen 
+	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
+	<p>
+	<img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=365" style="width: 100% \9" class="img-responsive" />
+	<br/>Spark lines can be used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/spark?networkID=LI&siteID=GISB&typeID=e&days=365"/></code> or as
+	an object or inline depending on your needs.
+	</p>
+
+	<p>
+	The labels on the sparkline (and so the width of the image) can be controlled using the <code>label</code> parameter.</p>
+	<table>
+	<tr>
+	<td></td>
+	<td><code>label</code></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=none" style="width: 100% \9" class="img-responsive" /></td>
+	<td>none</td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest" style="width: 100% \9" class="img-responsive" /></td>
+	<td>latest</td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=all" style="width: 100% \9" class="img-responsive" /></td>
+	<td>all (default)</td></tr>
+	</table>
+	</p>
+
+	<p>
+	The type of plot can be controlled using the <code>type</code> parameter.</p>
+	<table>
+	<tr>
+	<td></td>
+	<td><code>type</code></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td>line (default)</td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=scatter" style="width: 100% \9" class="img-responsive" /></td>
+	<td>scatter</td></tr>
+	</table>
+	</p>
+
+	<p>
+	The range of x axis of plot can be controlled using the <code>days</code> parameter to set the data to include the number of days before now.</p>
+	<table>
+	<tr>
+	<td></td>
+	<td><code>days</code></td>
+	<td></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td>100</td>
+	<td></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=365&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td>365</td>
+	<td></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=3650&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td>3650</td>
+	<td>Data is not aggregated.  Consider the plot resolution.</td>
+	</tr>
+	</table>
+	</p>
+
+	<p>
+	The range of the y axis of plot can be controlled using the <code>yrange</code> parameter.</p>
+	<table>
+	<tr>
+	<td></td>
+	<td><code>yrange</code></td>
+	<td></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td></td>
+	<td>Not set - auto range on the data.</td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=50" style="width: 100% \9" class="img-responsive" /></td>
+	<td>50</td>
+	<td>Single value - fixed range centered on the data</td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-15,50" style="width: 100% \9" class="img-responsive" /></td>
+	<td>-15,50</td>
+	<td>Pair of values - fixes the y axis range</td>
+	</tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-5,5" style="width: 100% \9" class="img-responsive" /></td>
+	<td>-5,5</td>
+	<td>For a set y axis data out of range changes the background.</td>
+	</tr>
+	</table>
+	</p>
+
+	<p>
+	The standard deviation and mean can be shown on a plot using the <code>stddev</code> parameter.</p>
+	<table>
+	<tr>
+	<td></td>
+	<td><code>stddev</code></td>
+	<td></td>
+	</tr>
+	<tr>
+	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&stddev=pop" style="width: 100% \9" class="img-responsive" /></td>
+	<td>pop</td>
+	<td></td>
+	</tr>
+	</table>
+	</p>
+	
+	<div class="panel panel-primary">
+	<div class="panel-heading">Method: GET</div>
+	<div class="panel-body">
+	<dl class="dl-horizontal">
+	<dt>URI</dt>
+	<dd>/spark?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[yrange=float64]&amp;[type=(line|scatter)]</dd>
+	<dt>Accept</dt>
+	<dd></dd>
+	</dl>
+	</div>
+	</div>
+	<h4>Query Parameters</h4>
+	
+	<h5>Required:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>networkID</dt>
+	<dd>Network identifier e.g., <code>VO</code>.</dd>
+	
+	<dt>siteID</dt>
+	<dd>Site identifier e.g., <code>WI000</code>.</dd>
+	
+	<dt>typeID</dt>
+	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
+	
+	</dl>
+	
+	
+	<h5>Optional:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>days</dt>
+	<dd>The number of days of data to display before now e.g., <code>250</code>.  Sets the range of the 
+		x-axis which may not be the same as the data.  Maximum value is 365000.</dd>
+	
+	<dt>label</dt>
+	<dd><code>all</code> (default) <code>none</code> <code>latest</code></dd>
+	
+	<dt>stddev</dt>
+	<dd>Show standard deviation for the time window selected for the plot.  Allowable value is <code>pop</code> for population standard deviation.</dd>
+	
+	<dt>type</dt>
+	<dd>Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.</dd>
+	
+	<dt>yrange</dt>
+	<dd>Defines the y-axis range as a fixed or dynamic range.  A comma separated pair of values fix the min and max e.g., <code>-15,50</code>. 
+	A single value sets the positive and negative range about the mid point of the minimum and maximum
+	data values.  For example if the minimum and maximum y values in the data selection are 10 and 30 and the yrange is <code>40</code> then
+	the y-axis range will be -20 to 60.  yrange must be > 0 for single value dynamic range.  If there are data in the time range that would be out of range on the plot then the background
+	colour of the plot is changed.</dd>
+	
+	</dl>
+	
+	<h4>Response Properties</h4>
+	<dl class="dl-horizontal">
+	
+	<dt>SVG</dt>
+	<dd>This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.</dd>
+	
+	
+
+	
+	
+	<div id="footer" class="footer">
+	<div class="row">
+	<div class="col-sm-3 hidden-xs">
+	<ul id="logo">
+	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+	</ul>            
+	</div>
+
+	<div class="col-sm-6">
+	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
+	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
+	</div>
+
+	<div  class="col-sm-2 hidden-xs">
+	<ul id="logo">
+	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
+	</ul>
+	</div>
+	<div  class="col-sm-1 hidden-xs">
+	<ul id="logo">
+	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+	</ul>  
+	</div>
+	</div>
+
+	<div class="row">
+	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
+	<ul id="logo">
+	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
+	</ul>
+	</div>
+	</div>
+
+	</div>
+	</div>
+	</body>
+	</html>
+	
+	

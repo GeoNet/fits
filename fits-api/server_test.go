@@ -2,18 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/lib/pq"
 	"log"
-	"net/http"
 	"net/http/httptest"
-	"time"
-	"fmt"
 	"os"
 )
 
 var (
 	testServer *httptest.Server
-	client     *http.Client
 )
 
 // setup starts a db connection and test server then inits an http client.
@@ -36,12 +33,8 @@ func setup() {
 		log.Fatal(err)
 	}
 
-	testServer = httptest.NewServer(handler())
+	testServer = httptest.NewServer(mux)
 
-	timeout := time.Duration(5 * time.Second)
-	client = &http.Client{
-		Timeout: timeout,
-	}
 }
 
 // teardown closes the db connection and  test server.  Defer this after setup() e.g.,

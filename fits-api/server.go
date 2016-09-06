@@ -2,35 +2,27 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/GeoNet/log/logentries"
 	"github.com/GeoNet/map180"
-	"github.com/GeoNet/web"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
 )
 
 var (
-	db     *sql.DB
-	wm     *map180.Map180
+	db *sql.DB
+	wm *map180.Map180
 )
-
-var header = web.Header{
-	Cache:     web.MaxAge300,
-	Surrogate: web.MaxAge300,
-	Vary:      "Accept",
-}
 
 // These constants represent part of a public API and can't be changed.
 const (
 	v1GeoJSON = "application/vnd.geo+json;version=1"
 	v1JSON    = "application/json;version=1"
 	v1CSV     = "text/csv;version=1"
-	svg = "image/svg+xml"
+	svg       = "image/svg+xml"
 )
-
 
 func init() {
 }
@@ -66,13 +58,5 @@ func main() {
 	}
 
 	log.Print("starting server")
-	http.Handle("/", handler())
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-// handler creates a mux and wraps it with default handlers.  Seperate function to enable testing.
-func handler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", router)
-	return header.GetGzip(mux)
+	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
 }

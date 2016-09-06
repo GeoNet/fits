@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
-	"html/template"
+	"github.com/GeoNet/weft"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,113 +18,24 @@ func init() {
 	eol = []byte("\n")
 }
 
-var observationDoc = apidoc.Endpoint{Title: "Observation",
-	Description: `Look up observations.`,
-	Queries: []*apidoc.Query{
-		observationD,
-		spatialObsD,
-	},
-}
-
-var observationStatsDoc = apidoc.Endpoint{Title: "Observation Statistics",
-	Description: `Get observation statistics.`,
-	Queries: []*apidoc.Query{
-		observationStatsD,
-	},
-}
-
-var observationResultsDoc = apidoc.Endpoint{Title: "Observation Results",
-	Description: `Get observation results for charts.`,
-	Queries: []*apidoc.Query{
-		observationResultsD,
-	},
-}
-
-var observationD = &apidoc.Query{
-	Accept:      web.V1CSV,
-	Title:       "Observation",
-	Description: "Observations as CSV",
-	Example:     "/observation?typeID=e&siteID=HOLD&networkID=CG",
-	ExampleHost: exHost,
-	URI:         "/observation?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[methodID=(methodID)]",
-	Required: map[string]template.HTML{
-		"typeID":    typeIDDoc,
-		"siteID":    siteIDDoc,
-		"networkID": networkIDDoc,
-	},
-	Optional: map[string]template.HTML{
-		"days":     `The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
-		"methodID": methodIDDoc + `  typeID must be specified as well.`,
-	},
-	Props: map[string]template.HTML{
-		"column 1": obsDTDoc,
-		"column 2": obsValDoc,
-		"column 3": obsErrDoc,
-	},
-}
-
-var observationStatsD = &apidoc.Query{
-	Accept:      web.V1JSON,
-	Title:       "Observation Statistics",
-	Description: "Observations statisctics as JSON",
-	Example:     "/observation/stats?typeID=e&siteID=HOLD&networkID=CG",
-	ExampleHost: exHost,
-	URI:         "/observation/stats?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[methodID=(methodID)]",
-	Required: map[string]template.HTML{
-		"typeID":    typeIDDoc,
-		"siteID":    siteIDDoc,
-		"networkID": networkIDDoc,
-	},
-	Optional: map[string]template.HTML{
-		"days":     `The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.`,
-		"methodID": methodIDDoc + `  typeID must be specified as well.`,
-	},
-	Props: map[string]template.HTML{
-		"Minimum":          obsMinDoc,
-		"maximum":          obsMaxDoc,
-		"First":            obsFirstDoc,
-		"Last":             obsLastDoc,
-		"Mean":             obsMeanDoc,
-		"StddevPopulation": obsPstdDoc,
-		"Unit":             obsUnitDoc,
-	},
-}
-
-var observationResultsD = &apidoc.Query{
-	Accept:      web.V1JSON,
-	Title:       "Observation results",
-	Description: "Observations results for multiple sites group by each day in JSON format",
-	Example:     "/observation_results?typeID=t&siteID=RU001,NA001,NA002",
-	ExampleHost: exHost,
-	URI:         "/observation_results?typeID=(typeID)&siteID=(siteID)",
-	Required: map[string]template.HTML{
-		"typeID": typeIDDoc,
-		"siteID": siteIDDoc,
-	},
-	Props: map[string]template.HTML{
-		"param": `The parameter (typeID) of the observation results`,
-		"sites": `The sites (siteIDs) of the observation results`,
-		"results": `The observation results for specific type and site(s), the first item in the array is the date, the second item is an array of observation results (value and
-                           standard deviation) for each site. If a single site is specified in the query, the actual observation value and standard deviation are returned; if more than one sites
-                           are specified, the daily average values are returned, if the value for a particular date and site doesn't exist, null is filled in the position.`,
-	},
-}
-
-func observation(w http.ResponseWriter, r *http.Request) {
-	if err := observationD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{"siteID", "networkID", "typeID"}, []string{"days", "methodID"}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "text/csv;version=1")
 
 	v := r.URL.Query()
 
 	typeID := v.Get("typeID")
+	var res *weft.Result
+
+	if res = validType(typeID); !res.Ok {
+		return res
+	}
+
 	networkID := v.Get("networkID")
 	siteID := v.Get("siteID")
-
-	if !validType(w, r, typeID) {
-		return
-	}
 
 	var days int
 
@@ -134,8 +43,7 @@ func observation(w http.ResponseWriter, r *http.Request) {
 		var err error
 		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return
+			return weft.BadRequest("Invalid days query param.")
 		}
 	}
 
@@ -143,21 +51,21 @@ func observation(w http.ResponseWriter, r *http.Request) {
 
 	if v.Get("methodID") != "" {
 		methodID = v.Get("methodID")
-		if !validTypeMethod(w, r, typeID, methodID) {
-			return
+		if res = validTypeMethod(typeID, methodID); !res.Ok {
+			return res
 		}
 	}
 
+	var err error
+
 	// Find the unit for the CSV header
 	var unit string
-	err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "unit not found for typeID: "+typeID)
-		return
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+	if err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1",
+		typeID).Scan(&unit); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+		return weft.ServiceUnavailableError(err)
 	}
 
 	var d string
@@ -218,22 +126,16 @@ func observation(w http.ResponseWriter, r *http.Request) {
                   		ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 	defer rows.Close()
 
-	// Use a buffer for reading the data from the DB.  Then if a there
-	// is an error we can let the client know without sending
-	// a partial data response.
-	var b bytes.Buffer
 	b.Write([]byte("date-time, " + typeID + " (" + unit + "), error (" + unit + ")"))
 	b.Write(eol)
 	for rows.Next() {
 		err := rows.Scan(&d)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return
+			return weft.ServiceUnavailableError(err)
 		}
 		b.Write([]byte(d))
 		b.Write(eol)
@@ -241,34 +143,28 @@ func observation(w http.ResponseWriter, r *http.Request) {
 	rows.Close()
 
 	if methodID != "" {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		w.Header().Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`.csv"`)
 	}
 
-	w.Header().Set("Content-Type", web.V1CSV)
-	web.OkBuf(w, r, &b)
+	return &weft.StatusOK
 }
 
-/**
- * query end point for observation statistics including: max, min, mean, std, first and last values
- * http://fits.geonet.org.nz/observation/stats?typeID=e&siteID=HOLD&networkID=CG&days=100
- */
-func observationStats(w http.ResponseWriter, r *http.Request) {
-	//1. check query parameters
-	if err := observationD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{"siteID", "networkID", "typeID"}, []string{"days", "methodID"}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "application/json;version=1")
 
 	v := r.URL.Query()
 
 	typeID := v.Get("typeID")
-	networkID := v.Get("networkID")
-	siteID := v.Get("siteID")
+	var res *weft.Result
 
-	if !validType(w, r, typeID) {
-		return
+	if res = validType(typeID); !res.Ok {
+		return res
 	}
 
 	var days int
@@ -278,8 +174,7 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
 	if v.Get("days") != "" {
 		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
-			web.BadRequest(w, r, "Invalid days query param.")
-			return
+			weft.BadRequest("Invalid days query param.")
 		}
 		tmax = time.Now().UTC()
 		tmin = tmax.Add(time.Duration(days*-1) * time.Hour * 24)
@@ -289,41 +184,36 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
 
 	if v.Get("methodID") != "" {
 		methodID = v.Get("methodID")
-		if !validTypeMethod(w, r, typeID, methodID) {
-			return
+		if res = validTypeMethod(typeID, methodID); !res.Ok {
+			return res
 		}
 	}
 
-	//2. Find the unit
 	var unit string
-	err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "unit not found for typeID: "+typeID)
-		return
+	if err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1",
+		typeID).Scan(&unit); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+		return weft.ServiceUnavailableError(err)
 	}
 
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
-	}
+	networkID := v.Get("networkID")
+	siteID := v.Get("siteID")
 
-	// retrieve values using existing functions
 	values, err := loadObs(networkID, siteID, typeID, methodID, tmin)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 
 	mean, stdDev, err := stddevPop(networkID, siteID, typeID, methodID, tmin)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 	stats := obstats{Unit: unit,
 		Mean:             mean,
 		StddevPopulation: stdDev}
 
-	//4. get maximum, minimum, first, last values
 	stats.First = values[0]
 	stats.Last = values[len(values)-1]
 
@@ -331,14 +221,14 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
 	stats.Minimum = values[iMin]
 	stats.Maximum = values[iMax]
 
-	//5. send result response
-	w.Header().Set("Content-Type", web.V1JSON)
-	b, err := json.Marshal(stats)
+	by, err := json.Marshal(stats)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
-	web.Ok(w, r, &b)
+
+	b.Write(by)
+
+	return &weft.StatusOK
 }
 
 /**
@@ -346,21 +236,19 @@ func observationStats(w http.ResponseWriter, r *http.Request) {
  * for single site, return the actual observation results
  * for multiple sites, return the daily average values
  */
-func observationResults(w http.ResponseWriter, r *http.Request) {
-	//1. check query parameters
-	if err := observationResultsD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "application/json;version=1")
+
 	v := r.URL.Query()
 
 	typeID := v.Get("typeID")
 	siteID := v.Get("siteID")
-	//get all sites
 	siteIDs := strings.Split(siteID, ",")
-	//log.Println("siteIDs", siteIDs)
 
-	//2. get query whereclause
 	queryWhereClause := " where type.typeid='" + typeID + "' and site.siteid in ("
 	for index, id := range siteIDs {
 		if index > 0 {
@@ -369,32 +257,29 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 		queryWhereClause += "'" + id + "'"
 	}
 	queryWhereClause += ")"
-	//log.Println("queryWhereClause ", queryWhereClause)
 
-	//3. output header
-	var resultBuffer bytes.Buffer
-	resultBuffer.WriteString("{\"param\":\"" + typeID + "\",")
-	resultBuffer.WriteString("\"sites\":[")
+	b.WriteString("{\"param\":\"" + typeID + "\",")
+	b.WriteString("\"sites\":[")
 	for index, siteId := range siteIDs {
 		if index > 0 {
-			resultBuffer.WriteString(",")
+			b.WriteString(",")
 		}
-		resultBuffer.WriteString("\"" + siteId + "\"")
+		b.WriteString("\"" + siteId + "\"")
 
 	}
-	resultBuffer.WriteString("],")
+	b.WriteString("],")
 
 	//4. query results (2 different situations)
-	resultBuffer.WriteString("\"results\": [")
-	if len(siteIDs) == 1 { //single site
+	b.WriteString("\"results\": [")
+	if len(siteIDs) == 1 {
+		//single site
 		//4.1 query results values
 		rows, err := db.Query(
 			`select  to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as date, site.siteid, value, error, site.name as sitename from fits.observation obs
        left outer join fits.type type on obs.typepk = type.typepk
        left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` order by date;`)
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return
+			return weft.ServiceUnavailableError(err)
 		}
 		defer rows.Close()
 		index1 := 0
@@ -409,25 +294,25 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
 			if err != nil {
-				web.ServiceUnavailable(w, r, err)
-				return
+				return weft.ServiceUnavailableError(err)
 			}
 			if index1 > 0 {
-				resultBuffer.WriteString(",")
+				b.WriteString(",")
 			}
 			//date
-			resultBuffer.WriteString("[\"" + dateStr + "\",")
+			b.WriteString("[\"" + dateStr + "\",")
 			//values
-			resultBuffer.WriteString("[")
-			resultBuffer.WriteString(strconv.FormatFloat(val, 'f', -1, 64) + "," + strconv.FormatFloat(stdErr, 'f', -1, 64))
-			resultBuffer.WriteString("]")
-			resultBuffer.WriteString("]")
+			b.WriteString("[")
+			b.WriteString(strconv.FormatFloat(val, 'f', -1, 64) + "," + strconv.FormatFloat(stdErr, 'f', -1, 64))
+			b.WriteString("]")
+			b.WriteString("]")
 			index1++
 
 		}
 		rows.Close()
 
-	} else if len(siteIDs) > 1 { //multiple site, aggregate results on daily average
+	} else if len(siteIDs) > 1 {
+		//multiple site, aggregate results on daily average
 		//4.1. Find dates
 		rows, err := db.Query(
 			`select  distinct to_char(time, 'YYYY-MM-DD') as date from fits.observation obs
@@ -435,8 +320,7 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
      left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` order by date;`)
 
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return
+			return weft.ServiceUnavailableError(err)
 		}
 		defer rows.Close()
 
@@ -448,8 +332,7 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 		for rows.Next() {
 			err := rows.Scan(&d)
 			if err != nil {
-				web.ServiceUnavailable(w, r, err)
-				return
+				return weft.ServiceUnavailableError(err)
 			}
 			dates = append(dates, d)
 		}
@@ -465,8 +348,7 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
        order by agt.date, agt.siteid;`)
 
 		if err != nil {
-			web.ServiceUnavailable(w, r, err)
-			return
+			return weft.ServiceUnavailableError(err)
 		}
 		defer rows.Close()
 		//the result map key as siteid + date string
@@ -482,8 +364,7 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
 			if err != nil {
-				web.ServiceUnavailable(w, r, err)
-				return
+				return weft.ServiceUnavailableError(err)
 			}
 			t1, e := time.Parse(
 				time.RFC3339,
@@ -505,35 +386,32 @@ func observationResults(w http.ResponseWriter, r *http.Request) {
 		//4.3. assemble results
 		for index1, dateStr := range dates {
 			if index1 > 0 {
-				resultBuffer.WriteString(",")
+				b.WriteString(",")
 			}
 			//date
-			resultBuffer.WriteString("[\"" + dateStr + "\",")
+			b.WriteString("[\"" + dateStr + "\",")
 			for index2, siteId := range siteIDs {
 				if index2 > 0 {
-					resultBuffer.WriteString(",")
+					b.WriteString(",")
 				}
 				//values
-				resultBuffer.WriteString("[")
+				b.WriteString("[")
 				val, haskey := resultsMap[siteId+"_"+dateStr]
 				if haskey {
-					resultBuffer.WriteString(strconv.FormatFloat(val.V, 'f', -1, 64) + "," + strconv.FormatFloat(val.E, 'f', -1, 64))
+					b.WriteString(strconv.FormatFloat(val.V, 'f', -1, 64) + "," + strconv.FormatFloat(val.E, 'f', -1, 64))
 				} else {
-					resultBuffer.WriteString("null")
+					b.WriteString("null")
 				}
-				resultBuffer.WriteString("]")
+				b.WriteString("]")
 			}
-			resultBuffer.WriteString("]")
+			b.WriteString("]")
 		}
 
 	}
-	resultBuffer.WriteString("]")
-	resultBuffer.WriteString("}")
+	b.WriteString("]")
+	b.WriteString("}")
 
-	//5. send result response
-	w.Header().Set("Content-Type", web.V1JSON)
-	resultsBytes := resultBuffer.Bytes()
-	web.Ok(w, r, &resultsBytes)
+	return &weft.StatusOK
 }
 
 type obstats struct {
