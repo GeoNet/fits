@@ -23,6 +23,9 @@ func init() {
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
 	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
+
+	// TODO (geoff) the api docs are served as static html pages. convert to markdown.
+	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", http.FileServer(http.Dir("assets/api-docs"))))
 }
 
 func inbound(h http.Handler) http.Handler {

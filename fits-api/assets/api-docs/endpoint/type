@@ -1,0 +1,672 @@
+
+	
+	<html>
+	<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>FITS API</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<style>
+	body { padding-top: 60px; }
+	a.anchor { 
+		display: block; position: relative; top: -60px; visibility: hidden; 
+	}
+
+	.panel-height {
+		height: 150px; 
+		overflow-y: scroll;
+	}
+
+	.footer {
+		margin-top: 20px;
+		padding: 20px 0 20px;
+		border-top: 1px solid #e5e5e5;
+	}
+
+	.footer p {
+		text-align: center;
+	}
+
+	#logo{position:relative;}
+	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
+	#logo li a span
+	{
+		position: absolute;
+		left: -10000px;
+	}
+
+	#gns li, #gns a
+	{
+		float: left;
+		display:block;
+		height: 90px;
+		width: 54px;
+	}
+
+	#gns{left:-20px;height:90px;width:54px;}
+	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
+
+	#eqc li, #eqc a
+	{
+		display:block;
+		height: 61px;
+		width: 132px;
+	}
+
+	#eqc{right:0px;height:79px;width:132px;}
+	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+
+	#ccby li, #ccby a
+	{
+		display:block;
+		height: 15px;
+		width: 80px;
+	}
+	#ccby{left:15px;height:15px;width:80px; }
+	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
+
+	#geonet{
+		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
+		width:137px; 
+		height:53px;
+		display:block;
+	}
+
+
+	</style>
+	</head>
+	<body>
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+	<div class="navbar-header">
+	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+	</div>
+	</div>
+	</div>
+
+	<div class="container-fluid">
+	
+	
+	<ol class="breadcrumb">
+	<li><a href="/api-docs">Index</a></li>
+	<li>Endpoint</li>
+	<li class="active">Type</li>
+	</ol>
+	<h2 class="page-header">Type</h2>
+	<p class="lead">Look up observation type information.</p>
+	<h4>Query Index:</h4>
+	 
+	<ul>
+	<li><a href="#type">Type</a> - List all observation types.</li>
+	</ul>
+	
+
+	 
+	<a id="type" class="anchor"></a>
+	<h3 class="page-header">Type</h3>
+	<p class="lead">List all observation types.</p>
+	
+	<div class="panel panel-primary">
+	<div class="panel-heading">Method: GET</div>
+	<div class="panel-body">
+	<dl class="dl-horizontal">
+	<dt>URI</dt>
+	<dd>/type</dd>
+	<dt>Accept</dt>
+	<dd>application/json;version=1</dd>
+	</dl>
+	</div>
+	</div>
+	<h4>Query Parameters</h4>
+	
+	
+	<h4>Response Properties</h4>
+	<dl class="dl-horizontal">
+	
+	<dt>description</dt>
+	<dd>Type description e.g., <code>displacement from initial position</code></dd>
+	
+	<dt>name</dt>
+	<dd>Type name e.g., <code>east</code></dd>
+	
+	<dt>typeID</dt>
+	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
+	
+	<dt>unit</dt>
+	<dd>Type unit e.g., <code>mm</code>.</dd>
+	
+	
+	</dl>
+	<h4>Example Query and Response</h4>
+	<div class="panel panel-success">
+	<div class="panel-heading">http://fits.geonet.org.nz/type</div>
+	<div class="panel-body panel-height"><pre>{
+     &#34;type&#34;: [
+       {
+         &#34;description&#34;: &#34;displacement from initial position&#34;,
+         &#34;name&#34;: &#34;east&#34;,
+         &#34;typeID&#34;: &#34;e&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;displacement from initial position&#34;,
+         &#34;name&#34;: &#34;north&#34;,
+         &#34;typeID&#34;: &#34;n&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;displacement from initial position&#34;,
+         &#34;name&#34;: &#34;up&#34;,
+         &#34;typeID&#34;: &#34;u&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;displacement from initial position, regionally-filtered&#34;,
+         &#34;name&#34;: &#34;east regionally-filtered&#34;,
+         &#34;typeID&#34;: &#34;e_rf&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;displacement from initial position, regionally-filtered&#34;,
+         &#34;name&#34;: &#34;north regionally-filtered&#34;,
+         &#34;typeID&#34;: &#34;n_rf&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;displacement from initial position, regionally-filtered&#34;,
+         &#34;name&#34;: &#34;up regionally-filtered&#34;,
+         &#34;typeID&#34;: &#34;u_rf&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;RMS on L1 code multipath&#34;,
+         &#34;name&#34;: &#34;average-mp1&#34;,
+         &#34;typeID&#34;: &#34;mp1&#34;,
+         &#34;unit&#34;: &#34;m&#34;
+       },
+       {
+         &#34;description&#34;: &#34;RMS on L2 code multipath&#34;,
+         &#34;name&#34;: &#34;average-mp2&#34;,
+         &#34;typeID&#34;: &#34;mp2&#34;,
+         &#34;unit&#34;: &#34;m&#34;
+       },
+       {
+         &#34;description&#34;: &#34;temperature&#34;,
+         &#34;name&#34;: &#34;temperature&#34;,
+         &#34;typeID&#34;: &#34;t&#34;,
+         &#34;unit&#34;: &#34;C&#34;
+       },
+       {
+         &#34;description&#34;: &#34;flow rate of fluid in a channel&#34;,
+         &#34;name&#34;: &#34;flow rate&#34;,
+         &#34;typeID&#34;: &#34;fr&#34;,
+         &#34;unit&#34;: &#34;l/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;acceleration due to gravity&#34;,
+         &#34;name&#34;: &#34;gravity&#34;,
+         &#34;typeID&#34;: &#34;g&#34;,
+         &#34;unit&#34;: &#34;m/s/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;air pressure&#34;,
+         &#34;name&#34;: &#34;air pressure&#34;,
+         &#34;typeID&#34;: &#34;ap&#34;,
+         &#34;unit&#34;: &#34;hPa&#34;
+       },
+       {
+         &#34;description&#34;: &#34;fluid pressure&#34;,
+         &#34;name&#34;: &#34;fluid pressure&#34;,
+         &#34;typeID&#34;: &#34;fp&#34;,
+         &#34;unit&#34;: &#34;hPa&#34;
+       },
+       {
+         &#34;description&#34;: &#34;velocity of fluid or other object&#34;,
+         &#34;name&#34;: &#34;velocity&#34;,
+         &#34;typeID&#34;: &#34;vel&#34;,
+         &#34;unit&#34;: &#34;m/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;flow direction of a fluid&#34;,
+         &#34;name&#34;: &#34;direction&#34;,
+         &#34;typeID&#34;: &#34;dir&#34;,
+         &#34;unit&#34;: &#34;deg&#34;
+       },
+       {
+         &#34;description&#34;: &#34;power supply voltage&#34;,
+         &#34;name&#34;: &#34;voltage&#34;,
+         &#34;typeID&#34;: &#34;vol&#34;,
+         &#34;unit&#34;: &#34;V&#34;
+       },
+       {
+         &#34;description&#34;: &#34;angle of tilt relative to the horizontal&#34;,
+         &#34;name&#34;: &#34;tilt&#34;,
+         &#34;typeID&#34;: &#34;tl&#34;,
+         &#34;unit&#34;: &#34;rad&#34;
+       },
+       {
+         &#34;description&#34;: &#34;10-minute mean ground velocity in a given frequency band&#34;,
+         &#34;name&#34;: &#34;rsam&#34;,
+         &#34;typeID&#34;: &#34;rs&#34;,
+         &#34;unit&#34;: &#34;nm/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;degree of acidity or alkalinity of a sample&#34;,
+         &#34;name&#34;: &#34;ph&#34;,
+         &#34;typeID&#34;: &#34;ph&#34;,
+         &#34;unit&#34;: &#34;-&#34;
+       },
+       {
+         &#34;description&#34;: &#34;concentration in a sample&#34;,
+         &#34;name&#34;: &#34;chloride&#34;,
+         &#34;typeID&#34;: &#34;Cl&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;concentration in a sample&#34;,
+         &#34;name&#34;: &#34;magnesium&#34;,
+         &#34;typeID&#34;: &#34;Mg&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Carbon Dioxide&#34;,
+         &#34;name&#34;: &#34;Carbon Dioxide&#34;,
+         &#34;typeID&#34;: &#34;CO2-flux-e&#34;,
+         &#34;unit&#34;: &#34;g-m^2/d&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Hydrogen Sulphide&#34;,
+         &#34;name&#34;: &#34;Hydrogen Sulphide&#34;,
+         &#34;typeID&#34;: &#34;H2S-flux-e&#34;,
+         &#34;unit&#34;: &#34;g-m^2/d&#34;
+       },
+       {
+         &#34;description&#34;: &#34;number of volcanic earthquakes recorded per day&#34;,
+         &#34;name&#34;: &#34;volcanic earthquakes&#34;,
+         &#34;typeID&#34;: &#34;nve&#34;,
+         &#34;unit&#34;: &#34;n/d&#34;
+       },
+       {
+         &#34;description&#34;: &#34;number of volcanic-tectonic earthquakes recorded per day&#34;,
+         &#34;name&#34;: &#34;volcanic-tectonic earthquakes&#34;,
+         &#34;typeID&#34;: &#34;nvte&#34;,
+         &#34;unit&#34;: &#34;n/d&#34;
+       },
+       {
+         &#34;description&#34;: &#34;flux of sulphur dioxide measured in the air&#34;,
+         &#34;name&#34;: &#34;Sulphur Dioxide flux in air&#34;,
+         &#34;typeID&#34;: &#34;SO2-flux-a&#34;,
+         &#34;unit&#34;: &#34;kg/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;flux of carbon dioxide measured in the air&#34;,
+         &#34;name&#34;: &#34;Carbon Dioxide flux in air&#34;,
+         &#34;typeID&#34;: &#34;CO2-flux-a&#34;,
+         &#34;unit&#34;: &#34;kg/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;flux of hydrogen sulphide measured in the air&#34;,
+         &#34;name&#34;: &#34;Hydrogen Sulphide flux in air&#34;,
+         &#34;typeID&#34;: &#34;H2S-flux-a&#34;,
+         &#34;unit&#34;: &#34;kg/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;amount of water vapour in atmosphere&#34;,
+         &#34;name&#34;: &#34;humidity&#34;,
+         &#34;typeID&#34;: &#34;hum&#34;,
+         &#34;unit&#34;: &#34;%&#34;
+       },
+       {
+         &#34;description&#34;: &#34;mean wind direction over the sampling period&#34;,
+         &#34;name&#34;: &#34;mean wind direction&#34;,
+         &#34;typeID&#34;: &#34;mwindir&#34;,
+         &#34;unit&#34;: &#34;deg&#34;
+       },
+       {
+         &#34;description&#34;: &#34;mean wind speed over the sampling period&#34;,
+         &#34;name&#34;: &#34;mean wind speed&#34;,
+         &#34;typeID&#34;: &#34;mwindsp&#34;,
+         &#34;unit&#34;: &#34;m/s&#34;
+       },
+       {
+         &#34;description&#34;: &#34;rainfall over the sampling period&#34;,
+         &#34;name&#34;: &#34;rainfall&#34;,
+         &#34;typeID&#34;: &#34;rain&#34;,
+         &#34;unit&#34;: &#34;mm&#34;
+       },
+       {
+         &#34;description&#34;: &#34;mean solar radiation over the sampling period&#34;,
+         &#34;name&#34;: &#34;solar radiation&#34;,
+         &#34;typeID&#34;: &#34;solrad&#34;,
+         &#34;unit&#34;: &#34;W/m2&#34;
+       },
+       {
+         &#34;description&#34;: &#34;HCO3 concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;bicarbonate&#34;,
+         &#34;typeID&#34;: &#34;HCO3-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Li concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;lithium&#34;,
+         &#34;typeID&#34;: &#34;Li-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Na concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;sodium&#34;,
+         &#34;typeID&#34;: &#34;Na-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;K concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;potassium&#34;,
+         &#34;typeID&#34;: &#34;K-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Ca concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;calcium&#34;,
+         &#34;typeID&#34;: &#34;Ca-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;SiO2 concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;silicon dioxide&#34;,
+         &#34;typeID&#34;: &#34;SiO2-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;H2S concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;hydrogen sulphide&#34;,
+         &#34;typeID&#34;: &#34;H2S-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Fe concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;iron&#34;,
+         &#34;typeID&#34;: &#34;Fe-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Al concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;aluminium&#34;,
+         &#34;typeID&#34;: &#34;Al-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;As concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;arsenic&#34;,
+         &#34;typeID&#34;: &#34;As-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Rb concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;rubidium&#34;,
+         &#34;typeID&#34;: &#34;Rb-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Cs concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;caesium&#34;,
+         &#34;typeID&#34;: &#34;Cs-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;NH3 concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;ammonia&#34;,
+         &#34;typeID&#34;: &#34;NH3-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;B concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;boron&#34;,
+         &#34;typeID&#34;: &#34;B-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;F concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;flourine&#34;,
+         &#34;typeID&#34;: &#34;F-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Br concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;bromide&#34;,
+         &#34;typeID&#34;: &#34;Br-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;NO3-N concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;nitrate as nitrogen&#34;,
+         &#34;typeID&#34;: &#34;NO3-N-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;PO4-P concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;phosphate as as phosphorus&#34;,
+         &#34;typeID&#34;: &#34;PO4-P-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;height&#34;,
+         &#34;name&#34;: &#34;height&#34;,
+         &#34;typeID&#34;: &#34;z&#34;,
+         &#34;unit&#34;: &#34;m&#34;
+       },
+       {
+         &#34;description&#34;: &#34;SO4 concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;sulphate&#34;,
+         &#34;typeID&#34;: &#34;SO4-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;d18O concentration  in water, relative to standard&#34;,
+         &#34;name&#34;: &#34;ratio 18O:16O&#34;,
+         &#34;typeID&#34;: &#34;d18O-w&#34;,
+         &#34;unit&#34;: &#34;per mil&#34;
+       },
+       {
+         &#34;description&#34;: &#34;d2H concentration in water, relative to standard&#34;,
+         &#34;name&#34;: &#34;ratio 2H:1H&#34;,
+         &#34;typeID&#34;: &#34;d2H-w&#34;,
+         &#34;unit&#34;: &#34;per mil&#34;
+       },
+       {
+         &#34;description&#34;: &#34;HCO3 concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;bicarbonate&#34;,
+         &#34;typeID&#34;: &#34;HCO3-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Li concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;lithium&#34;,
+         &#34;typeID&#34;: &#34;Li-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Na concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;sodium&#34;,
+         &#34;typeID&#34;: &#34;Na-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;K concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;potassium&#34;,
+         &#34;typeID&#34;: &#34;K-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Ca concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;calcium&#34;,
+         &#34;typeID&#34;: &#34;Ca-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;SiO2 concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;silicon dioxide&#34;,
+         &#34;typeID&#34;: &#34;SiO2-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;H2S concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;hydrogen sulphide&#34;,
+         &#34;typeID&#34;: &#34;H2S-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Fe concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;iron&#34;,
+         &#34;typeID&#34;: &#34;Fe-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Al concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;aluminium&#34;,
+         &#34;typeID&#34;: &#34;Al-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;As concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;arsenic&#34;,
+         &#34;typeID&#34;: &#34;As-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Rb concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;rubidium&#34;,
+         &#34;typeID&#34;: &#34;Rb-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Cs concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;caesium&#34;,
+         &#34;typeID&#34;: &#34;Cs-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;NH3 concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;ammonia&#34;,
+         &#34;typeID&#34;: &#34;NH3-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;B concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;boron&#34;,
+         &#34;typeID&#34;: &#34;B-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;F concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;flourine&#34;,
+         &#34;typeID&#34;: &#34;F-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Br concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;bromide&#34;,
+         &#34;typeID&#34;: &#34;Br-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;NO3-N concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;nitrate as nitrogen&#34;,
+         &#34;typeID&#34;: &#34;NO3-N-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;PO4-P concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;phosphate as as phosphorus&#34;,
+         &#34;typeID&#34;: &#34;PO4-P-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;SO4 concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;sulphate&#34;,
+         &#34;typeID&#34;: &#34;SO4-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;d18O concentration in gas, relative to standard&#34;,
+         &#34;name&#34;: &#34;ratio 18O:16O&#34;,
+         &#34;typeID&#34;: &#34;d18O-g&#34;,
+         &#34;unit&#34;: &#34;per mil&#34;
+       },
+       {
+         &#34;description&#34;: &#34;d2H concentration in gas, relative to standard&#34;,
+         &#34;name&#34;: &#34;ratio 2H:1H&#34;,
+         &#34;typeID&#34;: &#34;d2H-g&#34;,
+         &#34;unit&#34;: &#34;per mil&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Mg concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;magnesium&#34;,
+         &#34;typeID&#34;: &#34;Mg-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Cl concentration in a water sample&#34;,
+         &#34;name&#34;: &#34;chloride&#34;,
+         &#34;typeID&#34;: &#34;Cl-w&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Mg concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;magnesium&#34;,
+         &#34;typeID&#34;: &#34;Mg-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       },
+       {
+         &#34;description&#34;: &#34;Cl concentration in a gas sample&#34;,
+         &#34;name&#34;: &#34;chloride&#34;,
+         &#34;typeID&#34;: &#34;Cl-g&#34;,
+         &#34;unit&#34;: &#34;mg/L&#34;
+       }
+     ]
+   }</pre></div>
+	</div>
+	
+
+	
+	
+	<div id="footer" class="footer">
+	<div class="row">
+	<div class="col-sm-3 hidden-xs">
+	<ul id="logo">
+	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+	</ul>            
+	</div>
+
+	<div class="col-sm-6">
+	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
+	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
+	</div>
+
+	<div  class="col-sm-2 hidden-xs">
+	<ul id="logo">
+	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
+	</ul>
+	</div>
+	<div  class="col-sm-1 hidden-xs">
+	<ul id="logo">
+	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+	</ul>  
+	</div>
+	</div>
+
+	<div class="row">
+	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
+	<ul id="logo">
+	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
+	</ul>
+	</div>
+	</div>
+
+	</div>
+	</div>
+	</body>
+	</html>
+	
+	

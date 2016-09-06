@@ -1,3 +1,5 @@
+
+	
 	<html>
 	<head>
 	<meta charset="utf-8"/>
@@ -87,74 +89,121 @@
 	
 	
 	<ol class="breadcrumb">
-	<li class="active"><a href="/api-docs">Index</a></li>
+	<li><a href="/api-docs">Index</a></li>
+	<li>Endpoint</li>
+	<li class="active">Observation Statistics</li>
 	</ol>
-	<h1 class="page-header">GeoNet API</h1>
-	<p class="lead">Welcome to the FITS API.</p>
-
-	<p>The GeoNet project makes all its data and images freely available.
-	Please ensure you have read and understood our 
-	<a href="http://info.geonet.org.nz/x/BYIW">Data Policy</a> and <a href="http://info.geonet.org.nz/x/EIIW">Disclaimer</a> 
-	before using any of these services.</p>
-
-	<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
-			database.  If you are looking for other data then please check the 
-			<a href="http://info.geonet.org.nz/x/DYAO">full range of data</a> available from GeoNet. </p>
-
-	<h3 class="page-header">Endpoints</h3>
-
-	<p>The following endpoints are available:</p>
-	<ul class=>
-	
-	<li><a href="/api-docs/endpoint/map">/map</a> - Simple maps of sites.</li>
-	
-	<li><a href="/api-docs/endpoint/method">/method</a> - Look up method information.</li>
-	
-	<li><a href="/api-docs/endpoint/observation">/observation</a> - Look up observations.</li>
-	
-	<li><a href="/api-docs/endpoint/observation_stats">/observation/stats</a> - Get observation statistics.</li>
-	
-	<li><a href="/api-docs/endpoint/plot">/plot</a> - Simple plots of observations.</li>
-	
-	<li><a href="/api-docs/endpoint/site">/site</a> - Look up site information.</li>
-	
-	<li><a href="/api-docs/endpoint/spark">/spark</a> - Simple spark lines of recent observations.</li>
-	
-	<li><a href="/api-docs/endpoint/type">/type</a> - Look up observation type information.</li>
-	
+	<h2 class="page-header">Observation Statistics</h2>
+	<p class="lead">Get observation statistics.</p>
+	<h4>Query Index:</h4>
+	 
+	<ul>
+	<li><a href="#observationstatistics">Observation Statistics</a> - Observations statisctics as JSON</li>
 	</ul>
-
-	<h3 class="page-header">Versioning</h3>
-
-	
-	<p>API queries may be versioned via the Accept header.
-	Please specify the <code>Accept</code> header for your request exactly as specified for the endpoint query you are using.</p>
-
-	<p>If you don't specify an Accept header with a version then your request will be routed to the current highest API version of the query.</p>
-	
-	<p>Taking advantage of the API versioning will pay dividends in the future for any client that you write.  
-	We use the <a href="https://github.com/stedolan/jq">jq</a> command for JSON pretty printing etc.  A curl command might 
-	look like:</p>
-
-	<pre>curl -H "Accept: application/vnd.geo+json;version=1" "http://...API-QUERY..." | jq .</pre>
-
-	<p>You may also be able to find a browser plugin to help with setting the Accept header for requests.</p>
 	
 
-	<h3 class="page-header">Compression</h3>
-
-	<p>The response for a query can be compressed.  If your client can handle a compressed response then the
-	reduced download size is a great benifit.  Gzip compression is supported.  You can request a compressed response
-	by including <code>gzip</code> in your <code>Accept-Encoding</code> header.</p>
-
-	<h3 class="page-header">Bugs</h3>
+	 
+	<a id="observationstatistics" class="anchor"></a>
+	<h3 class="page-header">Observation Statistics</h3>
+	<p class="lead">Observations statisctics as JSON</p>
+	
+	<div class="panel panel-primary">
+	<div class="panel-heading">Method: GET</div>
+	<div class="panel-body">
+	<dl class="dl-horizontal">
+	<dt>URI</dt>
+	<dd>/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+	<dt>Accept</dt>
+	<dd>application/json;version=1</dd>
+	</dl>
+	</div>
+	</div>
+	<h4>Query Parameters</h4>
+	
+	<h5>Required:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>networkID</dt>
+	<dd>Network identifier e.g., <code>VO</code>.</dd>
+	
+	<dt>siteID</dt>
+	<dd>Site identifier e.g., <code>WI000</code>.</dd>
+	
+	<dt>typeID</dt>
+	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
+	
+	</dl>
+	
+	
+	<h5>Optional:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>days</dt>
+	<dd>The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.</dd>
+	
+	<dt>methodID</dt>
+	<dd>A valid method identifier for observation type e.g., <code>doas-s</code>.  typeID must be specified as well.</dd>
+	
+	</dl>
+	
+	<h4>Response Properties</h4>
+	<dl class="dl-horizontal">
+	
+	<dt>First</dt>
+	<dd>The date time, value, and error for the first observation.</dd>
+	
+	<dt>Last</dt>
+	<dd>The date time, value, and error for the last observation.</dd>
+	
+	<dt>Mean</dt>
+	<dd>The statistical average of the observations.</dd>
+	
+	<dt>Minimum</dt>
+	<dd>The date time, value, and error for the minimum observation.</dd>
+	
+	<dt>StddevPopulation</dt>
+	<dd>The population standard deviation of the observations.</dd>
+	
+	<dt>Unit</dt>
+	<dd>The unit of the observations.</dd>
+	
+	<dt>maximum</dt>
+	<dd>The date time, value, and error for the maximum observation.</dd>
+	
+	
+	</dl>
+	<h4>Example Query and Response</h4>
+	<div class="panel panel-success">
+	<div class="panel-heading">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;networkID=CG</div>
+	<div class="panel-body panel-height"><pre>{
+     &#34;First&#34;: {
+       &#34;DateTime&#34;: &#34;2007-03-16T11:59:00Z&#34;,
+       &#34;Error&#34;: 4.75,
+       &#34;Value&#34;: 93.85
+     },
+     &#34;Last&#34;: {
+       &#34;DateTime&#34;: &#34;2016-09-04T11:59:00Z&#34;,
+       &#34;Error&#34;: 3.35,
+       &#34;Value&#34;: -111.47
+     },
+     &#34;Maximum&#34;: {
+       &#34;DateTime&#34;: &#34;2007-03-18T11:59:00Z&#34;,
+       &#34;Error&#34;: 2.39,
+       &#34;Value&#34;: 105.49
+     },
+     &#34;Mean&#34;: -0.003536903039073806,
+     &#34;Minimum&#34;: {
+       &#34;DateTime&#34;: &#34;2016-09-04T11:59:00Z&#34;,
+       &#34;Error&#34;: 3.35,
+       &#34;Value&#34;: -111.47
+     },
+     &#34;StddevPopulation&#34;: 58.37241024287652,
+     &#34;Unit&#34;: &#34;mm&#34;
+   }</pre></div>
+	</div>
+	
 
 	
-	<p>The code that provide these services is available at <a href="https://github.com/GeoNet/fits">https://github.com/GeoNet/fits</a>  If you believe
-	you have found a bug please raise an issue or pull request there. 
-	Alternatively <a href="http://info.geonet.org.nz/x/JYAO">contact us</a> detailing the issue.</p>
-	
-
 	
 	<div id="footer" class="footer">
 	<div class="row">

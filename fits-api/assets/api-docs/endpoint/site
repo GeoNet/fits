@@ -1,0 +1,3814 @@
+
+	
+	<html>
+	<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>FITS API</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<style>
+	body { padding-top: 60px; }
+	a.anchor { 
+		display: block; position: relative; top: -60px; visibility: hidden; 
+	}
+
+	.panel-height {
+		height: 150px; 
+		overflow-y: scroll;
+	}
+
+	.footer {
+		margin-top: 20px;
+		padding: 20px 0 20px;
+		border-top: 1px solid #e5e5e5;
+	}
+
+	.footer p {
+		text-align: center;
+	}
+
+	#logo{position:relative;}
+	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
+	#logo li a span
+	{
+		position: absolute;
+		left: -10000px;
+	}
+
+	#gns li, #gns a
+	{
+		float: left;
+		display:block;
+		height: 90px;
+		width: 54px;
+	}
+
+	#gns{left:-20px;height:90px;width:54px;}
+	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
+
+	#eqc li, #eqc a
+	{
+		display:block;
+		height: 61px;
+		width: 132px;
+	}
+
+	#eqc{right:0px;height:79px;width:132px;}
+	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+
+	#ccby li, #ccby a
+	{
+		display:block;
+		height: 15px;
+		width: 80px;
+	}
+	#ccby{left:15px;height:15px;width:80px; }
+	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
+
+	#geonet{
+		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
+		width:137px; 
+		height:53px;
+		display:block;
+	}
+
+
+	</style>
+	</head>
+	<body>
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+	<div class="navbar-header">
+	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+	</div>
+	</div>
+	</div>
+
+	<div class="container-fluid">
+	
+	
+	<ol class="breadcrumb">
+	<li><a href="/api-docs">Index</a></li>
+	<li>Endpoint</li>
+	<li class="active">Site</li>
+	</ol>
+	<h2 class="page-header">Site</h2>
+	<p class="lead">Look up site information.</p>
+	<h4>Query Index:</h4>
+	 
+	<ul>
+	<li><a href="#sites">Sites</a> - Filter sites by observation type, method, and location.</li>
+	</ul>
+	 
+	<ul>
+	<li><a href="#site">Site</a> - Find information for individual sites.</li>
+	</ul>
+	
+
+	 
+	<a id="sites" class="anchor"></a>
+	<h3 class="page-header">Sites</h3>
+	<p class="lead">Filter sites by observation type, method, and location.</p>
+	
+	<div class="panel panel-primary">
+	<div class="panel-heading">Method: GET</div>
+	<div class="panel-body">
+	<dl class="dl-horizontal">
+	<dt>URI</dt>
+	<dd>/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))]</dd>
+	<dt>Accept</dt>
+	<dd>application/vnd.geo&#43;json;version=1</dd>
+	</dl>
+	</div>
+	</div>
+	<h4>Query Parameters</h4>
+	
+	
+	<h5>Optional:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>methodID</dt>
+	<dd>A valid method identifier for observation type e.g., <code>doas-s</code>.  typeID must be specified as well.</dd>
+	
+	<dt>typeID</dt>
+	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
+	
+	<dt>within</dt>
+	<dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
+	defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
+	(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
+	<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.</dd>
+	
+	</dl>
+	
+	<h4>Response Properties</h4>
+	<dl class="dl-horizontal">
+	
+	<dt>groundRelationship</dt>
+	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
+	
+	<dt>height</dt>
+	<dd>Site height (m).</dd>
+	
+	<dt>name</dt>
+	<dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+	
+	<dt>neworkID</dt>
+	<dd>Network identifier e.g., <code>VO</code>.</dd>
+	
+	<dt>siteID</dt>
+	<dd>Site identifier e.g., <code>WI000</code>.</dd>
+	
+	
+	</dl>
+	<h4>Example Query and Response</h4>
+	<div class="panel panel-success">
+	<div class="panel-heading">http://fits.geonet.org.nz/site?typeID=e</div>
+	<div class="panel-body panel-height"><pre>{
+     &#34;features&#34;: [
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.42277,
+             -39.42404
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 831,
+           &#34;name&#34;: &#34;Kaweka Forest&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KAWK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.37013505,
+             -39.64315592
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 520.891,
+           &#34;name&#34;: &#34;Kereru&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KERE&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.291223348,
+             -38.268212852
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.42,
+           &#34;height&#34;: 229.304,
+           &#34;name&#34;: &#34;Anaura Bay&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;ANAU&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.57486925,
+             -40.66869722
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.395,
+           &#34;height&#34;: 418.01,
+           &#34;name&#34;: &#34;Mangatainoka River&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MANG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.994779449,
+             -38.691851135
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.66,
+           &#34;height&#34;: 442.788,
+           &#34;name&#34;: &#34;C KAIAPO TLP&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;2406&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -169.927066765,
+             -19.076565719
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 90.121,
+           &#34;name&#34;: &#34;Niue Meteorological Station&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;NIUM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.46122191,
+             -40.53980682
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 432.94,
+           &#34;name&#34;: &#34;Akitio Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;AKTO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.92159255,
+             -40.80176403
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 468.459,
+           &#34;name&#34;: &#34;D&#39;Urville&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;DURV&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.254006,
+             -41.278147
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1,
+           &#34;height&#34;: 35,
+           &#34;name&#34;: &#34;Nelson Landslide 2&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;NLS2&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.459264187,
+             -39.976254724
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.613,
+           &#34;height&#34;: 365.8342,
+           &#34;name&#34;: &#34;Grange Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;GRNG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.1291161,
+             -38.6437598
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 231,
+           &#34;name&#34;: &#34;Makorori&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MAKO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.5845778,
+             -41.06199044
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.45,
+           &#34;height&#34;: 207.2031,
+           &#34;name&#34;: &#34;Masterton&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;MAST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.63521633,
+             -40.26637863
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.56,
+           &#34;height&#34;: 306.377,
+           &#34;name&#34;: &#34;Porangahau&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PORA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.67593,
+             -39.09867
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.316,
+           &#34;height&#34;: 1279.4,
+           &#34;name&#34;: &#34;North Tongariro&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGNT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.1091983,
+             -37.80675535
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.38,
+           &#34;height&#34;: 69.402,
+           &#34;name&#34;: &#34;Hamilton&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;HAMT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.697878483,
+             -38.814193241
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 634.663,
+           &#34;name&#34;: &#34;Paparatu&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PRTU&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.815818961,
+             -43.53167985
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.6,
+           &#34;height&#34;: 58.0333,
+           &#34;name&#34;: &#34;Quarry&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;QUAR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.255763078,
+             -41.278281772
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1,
+           &#34;height&#34;: 66.573,
+           &#34;name&#34;: &#34;Nelson Landslide 1&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;NLS1&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.583233327,
+             -41.062568733
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.495,
+           &#34;height&#34;: 204.802,
+           &#34;name&#34;: &#34;Wairarapa&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WRPA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.9843154,
+             -42.71290752
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -2,
+           &#34;height&#34;: 53.6588,
+           &#34;name&#34;: &#34;Hokitika&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;HOKI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.3082494,
+             -45.23101734
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.27,
+           &#34;height&#34;: 331.8506,
+           &#34;name&#34;: &#34;Alexandra&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;LEXA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.086052871,
+             -38.916179094
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 467.092,
+           &#34;name&#34;: &#34;Arahi&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RAHI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.7751584,
+             -43.6083749
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 1403.2832,
+           &#34;name&#34;: &#34;Karangarua&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;KARA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.238130872,
+             -40.080340364
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.43,
+           &#34;height&#34;: 90.307,
+           &#34;name&#34;: &#34;Greenbank&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;GNBK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.266333339,
+             -42.783371503
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.289,
+           &#34;height&#34;: 712.982,
+           &#34;name&#34;: &#34;Lake Taylor&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;LKTA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.07635309,
+             -39.65787439
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 234.903,
+           &#34;name&#34;: &#34;Cape Kidnappers&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;CKID&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.415398552,
+             -38.495555956
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.33,
+           &#34;height&#34;: 932,
+           &#34;name&#34;: &#34;Rawiri&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RAWI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.241362741,
+             -41.00157941
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.51,
+           &#34;height&#34;: 1207.295,
+           &#34;name&#34;: &#34;Mt. Quoin&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MTQN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.87627798,
+             -39.79375204
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 654.309,
+           &#34;name&#34;: &#34;Kahuranaki&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KAHU&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.06976,
+             -39.17226
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.499,
+           &#34;height&#34;: 181,
+           &#34;name&#34;: &#34;Te Kuta&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KUTA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.8343855,
+             -36.60284461
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.28,
+           &#34;height&#34;: 132.6823,
+           &#34;name&#34;: &#34;Whangaparaoa No 3&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;AUCK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.3033524,
+             -37.56104132
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 107.284,
+           &#34;name&#34;: &#34;Hicks Bay&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;HIKB&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.533658856,
+             -42.42546697
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.27,
+           &#34;height&#34;: 314.759,
+           &#34;name&#34;: &#34;Kaikoura&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;KAIK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.569366285,
+             -38.686822718
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 574.0468,
+           &#34;name&#34;: &#34;Hangaroa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;HANA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             166.680735,
+             -46.16617668
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 253.2414,
+           &#34;name&#34;: &#34;Puysegur Point&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;PYGR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.5262032,
+             -38.33384691
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.38,
+           &#34;height&#34;: 646.269,
+           &#34;name&#34;: &#34;Matawai&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MATW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.7527,
+             -43.5658
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 89.1,
+           &#34;name&#34;: &#34;Kinsey Terrace Sumner&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;CLSK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.06122055,
+             -43.756126439
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 2251.6797,
+           &#34;name&#34;: &#34;Annette Plateau&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;NETT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.515190045,
+             -40.897248036
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 469.6892,
+           &#34;name&#34;: &#34;Holdsworth Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;HOLD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -176.5658389,
+             -43.95578687
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.7,
+           &#34;height&#34;: 57.98,
+           &#34;name&#34;: &#34;Chatham Island&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;CHAT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.696548844,
+             -39.444191609
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 366.277,
+           &#34;name&#34;: &#34;McNeill Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MCNL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.667786,
+             -39.01610531
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 301.825,
+           &#34;name&#34;: &#34;Kokohu&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KOKO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.063174364,
+             -39.489184001
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.55,
+           &#34;height&#34;: 882.479,
+           &#34;name&#34;: &#34;Black Hill Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;BHST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.72222,
+             -43.60584
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -3.5,
+           &#34;height&#34;: 18.5,
+           &#34;name&#34;: &#34;Lyttelton Tide Gauge&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;LYTT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.684113905,
+             -45.038339955
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.562,
+           &#34;height&#34;: 379.329,
+           &#34;name&#34;: &#34;Lauder NIWA Station&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;LDRZ&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.792787824,
+             -42.552839216
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.505,
+           &#34;height&#34;: 321.718,
+           &#34;name&#34;: &#34;Hanmer Basin&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;HANM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -176.6171102,
+             -43.73547649
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 75.6782,
+           &#34;name&#34;: &#34;Chatham Island North&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;CHTI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.223377237,
+             -40.468646217
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 295.633,
+           &#34;name&#34;: &#34;Manuhara Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MNHR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.8860349,
+             -38.63533685
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.225,
+           &#34;height&#34;: 87.1846,
+           &#34;name&#34;: &#34;Gisborne&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;GISB&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.793817,
+             -41.291387
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 442,
+           &#34;name&#34;: &#34;Mahakipawa Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MAHA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.90976461,
+             -40.86090134
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.275,
+           &#34;height&#34;: 367.612,
+           &#34;name&#34;: &#34;Kapiti&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KAPT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             171.5753029,
+             -43.59135481
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.56,
+           &#34;height&#34;: 452.6539,
+           &#34;name&#34;: &#34;Methven&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;METH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.424056482,
+             -40.409333842
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 51.554,
+           &#34;name&#34;: &#34;Kooro&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;KORO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.105510772,
+             -43.777329049
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 960.366,
+           &#34;name&#34;: &#34;Hoophorn Spur&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;HORN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.99926884,
+             -40.60106131
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 511.639,
+           &#34;name&#34;: &#34;Puketoi&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PTOI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.93673005,
+             -39.332320765
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 114.0888,
+           &#34;name&#34;: &#34;Tangoio No 2&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;LEYL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -171.999524003,
+             -13.83221526
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -2,
+           &#34;height&#34;: 47.6006,
+           &#34;name&#34;: &#34;Faleolo&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;FALE&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.775199195,
+             -42.66175745
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 563.829,
+           &#34;name&#34;: &#34;Marble Point&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MRBL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.621161167,
+             -39.747201862
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 334.823,
+           &#34;name&#34;: &#34;Raukawa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RAKW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.74973,
+             -38.61686
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.54,
+           &#34;height&#34;: 458,
+           &#34;name&#34;: &#34;Minginui&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MING&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.046002897,
+             -38.411447554
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 563.221,
+           &#34;name&#34;: &#34;Ahititi&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;AHTI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.257359581,
+             -38.07141492
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.55,
+           &#34;height&#34;: 468.075,
+           &#34;name&#34;: &#34;Puketiti&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PUKE&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.8540875,
+             -38.51300912
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.185,
+           &#34;height&#34;: 302.4873,
+           &#34;name&#34;: &#34;Mahoenui&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;MAHO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.350531621,
+             -43.336407925
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.262,
+           &#34;height&#34;: 1548.855,
+           &#34;name&#34;: &#34;Mt Price&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MTPR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.726564,
+             -39.61703291
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.55,
+           &#34;height&#34;: 152.3494,
+           &#34;name&#34;: &#34;Hastings&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;HAST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.677525303,
+             -37.965002597
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 1140.976,
+           &#34;name&#34;: &#34;Raukumara Range&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RAUM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.409873784,
+             -38.939296943
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 169.463,
+           &#34;name&#34;: &#34;Frasertown&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;FRTN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.2731098,
+             -35.06893293
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.475,
+           &#34;height&#34;: 127.4349,
+           &#34;name&#34;: &#34;Kaitaia&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;KTIA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.210852928,
+             -38.352568427
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 490,
+           &#34;name&#34;: &#34;Waikite Valley Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGWV&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.858493018,
+             -38.97712911
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.19,
+           &#34;height&#34;: 520.659,
+           &#34;name&#34;: &#34;Rihia Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGRI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.896164405,
+             -38.003197011
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.56,
+           &#34;height&#34;: 104.798,
+           &#34;name&#34;: &#34;Awakeri&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGAW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.49251215,
+             -39.165523807
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.6,
+           &#34;height&#34;: 734.063,
+           &#34;name&#34;: &#34;Ripia&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RIPA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.365924493,
+             -38.093658784
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.28,
+           &#34;height&#34;: 515.484,
+           &#34;name&#34;: &#34;Hawthornden Drive&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGHD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             166.758014514,
+             -77.848984981
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.361,
+           &#34;height&#34;: -18.923,
+           &#34;name&#34;: &#34;Scott Base&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;SCTB&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.352287315,
+             -38.251936502
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 691.093,
+           &#34;name&#34;: &#34;Highlands Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGHL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.347494834,
+             -38.779631498
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 597,
+           &#34;name&#34;: &#34;Shannon Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;SNST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.2440538,
+             -38.02007133
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.501,
+           &#34;height&#34;: 497.32,
+           &#34;name&#34;: &#34;Kaharoa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGKA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.772812373,
+             -38.05253052
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.54,
+           &#34;height&#34;: 101.086,
+           &#34;name&#34;: &#34;Kawerau&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGKW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.962920076,
+             -40.061564113
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.09,
+           &#34;height&#34;: 698.854,
+           &#34;name&#34;: &#34;Takapari Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TAKP&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.38572413,
+             -38.0032793
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.151,
+           &#34;height&#34;: 386.968,
+           &#34;name&#34;: &#34;Lichenstein Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGLI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.0809947,
+             -38.74271665
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 427.0279,
+           &#34;name&#34;: &#34;Taupo Airport&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;TAUP&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.46711325,
+             -38.13834107
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.34,
+           &#34;height&#34;: 955.539,
+           &#34;name&#34;: &#34;Makatiti&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGMK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.005876841,
+             -38.162424733
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 713.456,
+           &#34;name&#34;: &#34;Tauwhareparae&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TAUW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.506100261,
+             -38.233772056
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 1063.3613,
+           &#34;name&#34;: &#34;Tarawera&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGTA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.890463218,
+             -41.106566527
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 515.1993,
+           &#34;name&#34;: &#34;Te Maipa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TEMA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.1941675,
+             -38.17664895
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.145,
+           &#34;height&#34;: 560.227,
+           &#34;name&#34;: &#34;Utuhina&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGUT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.99633101,
+             -38.812861691
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.75,
+           &#34;height&#34;: 385.999,
+           &#34;name&#34;: &#34;Horomatangi Reef&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGHO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.71191226,
+             -38.67811161
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.624,
+           &#34;height&#34;: 570.302,
+           &#34;name&#34;: &#34;Hingarae Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGHR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.192476273,
+             -37.524338674
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.17,
+           &#34;height&#34;: 36.764,
+           &#34;name&#34;: &#34;White Island Crater Floor&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGWC&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.3779633,
+             -38.10469303
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.61,
+           &#34;height&#34;: 701.092,
+           &#34;name&#34;: &#34;Cookson Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGCR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             168.1182145,
+             -45.36651843
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 592.4574,
+           &#34;name&#34;: &#34;Mavora Lakes&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;MAVL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.04746911,
+             -38.84583992
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.55,
+           &#34;height&#34;: 661.094,
+           &#34;name&#34;: &#34;Ouaha Hills&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGOH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -177.928950262,
+             -29.244665471
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 92.304,
+           &#34;name&#34;: &#34;Raoul Island&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RAUL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.177773718,
+             -37.518075632
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.16,
+           &#34;height&#34;: 292.351,
+           &#34;name&#34;: &#34;White Island Summit&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGWI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.404348702,
+             -41.186919382
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 110.6,
+           &#34;name&#34;: &#34;Ardelve&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RDLV&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.77014571,
+             -38.86337043
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.62,
+           &#34;height&#34;: 570.062,
+           &#34;name&#34;: &#34;Rangitukua&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGRA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.343032991,
+             -38.562045591
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 410.2951,
+           &#34;name&#34;: &#34;Allen Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGAR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.514616116,
+             -38.338892947
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.355,
+           &#34;height&#34;: 552.71,
+           &#34;name&#34;: &#34;Republican Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGRR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.464943,
+             -43.985706
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -2.4,
+           &#34;height&#34;: 1043.6557,
+           &#34;name&#34;: &#34;Mt John Observatory&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;MTJO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.724730796,
+             -37.915449996
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.49,
+           &#34;height&#34;: 399.5855,
+           &#34;name&#34;: &#34;Matata&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGMT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.23225032,
+             -38.256592088
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 595.279,
+           &#34;name&#34;: &#34;Ongahoro&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGON&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.90700192,
+             -39.152563727
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 322.4398,
+           &#34;name&#34;: &#34;Mahia Peninsula&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MAHI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.55625836,
+             -37.845881835
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.634,
+           &#34;height&#34;: 259.108,
+           &#34;name&#34;: &#34;Ohinepanea&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGOP&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.53615217,
+             -40.181361325
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.483,
+           &#34;height&#34;: 156.761,
+           &#34;name&#34;: &#34;Mount Blewitt No. 2&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MTBL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.5212,
+             -38.0573
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.64,
+           &#34;height&#34;: 552,
+           &#34;name&#34;: &#34;Rotoehu&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGRE&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.7704204,
+             -36.8437546
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -2.52,
+           &#34;height&#34;: 40.1,
+           &#34;name&#34;: &#34;Auckland Tide Gauge&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;AUKT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.389254483,
+             -43.39208023
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.195,
+           &#34;height&#34;: 1563.535,
+           &#34;name&#34;: &#34;Gunn Ridge&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;GUNR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.288,
+             -38.3858
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.64,
+           &#34;height&#34;: 644,
+           &#34;name&#34;: &#34;Handcock Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;RGHR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.24610828,
+             -40.67976734
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 308.983,
+           &#34;name&#34;: &#34;Birch Farm&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;BIRF&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.86388246,
+             -40.03308057
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.39,
+           &#34;height&#34;: 159.017,
+           &#34;name&#34;: &#34;Pawanui&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PAWA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.932860198,
+             -41.196440847
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -14.16,
+           &#34;height&#34;: 39.552,
+           &#34;name&#34;: &#34;Avalon Sound Stage&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;AVLN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.761337945,
+             -40.385438526
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 500.701,
+           &#34;name&#34;: &#34;North Range Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;NRRD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.5109203,
+             -45.86950159
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 26.16,
+           &#34;name&#34;: &#34;Otago University Survey Department&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;OUSD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.757,
+             -43.5715
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 96,
+           &#34;name&#34;: &#34;92 Richmond Hill Road&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;CLS3&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.684113905,
+             -45.038339955
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.597,
+           &#34;height&#34;: 379.329,
+           &#34;name&#34;: &#34;Lauder NIWA Station&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;LAUD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             168.2920867,
+             -46.58506441
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.265,
+           &#34;height&#34;: 124.6399,
+           &#34;name&#34;: &#34;Bluff&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;BLUF&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.95208121,
+             -41.02176626
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.315,
+           &#34;height&#34;: 443.238,
+           &#34;name&#34;: &#34;Paekakariki Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PAEK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.732502262,
+             -43.557364295
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.95,
+           &#34;height&#34;: 37.65,
+           &#34;name&#34;: &#34;8A Balmoral Lane&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;BM8A&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.240636358,
+             -40.58877883
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.64,
+           &#34;height&#34;: 96.127,
+           &#34;name&#34;: &#34;Moutere No.3&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;LEVN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.7521,
+             -43.5652
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 70,
+           &#34;name&#34;: &#34;8 Kinsey Terrace&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;CLS5&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.136541284,
+             -41.340489746
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 78.839,
+           &#34;name&#34;: &#34;Battery Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;BTHL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.028832116,
+             -39.703375975
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 832.205,
+           &#34;name&#34;: &#34;Makino Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;MKNO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.753279407,
+             -43.56565764
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 75.183,
+           &#34;name&#34;: &#34;Clifton Hill&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;CLS6&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.0826,
+             -37.89398
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.4,
+           &#34;height&#34;: 828,
+           &#34;name&#34;: &#34;Pakihiroa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PAKI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.20155589,
+             -40.90981771
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 173.636,
+           &#34;name&#34;: &#34;Castlepoint Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;CAST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.25478278,
+             -41.569229573
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.48,
+           &#34;height&#34;: 624.147,
+           &#34;name&#34;: &#34;Cape Palliser&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PALI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.65470301,
+             -43.702736156
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.95,
+           &#34;height&#34;: 154.655,
+           &#34;name&#34;: &#34;McQueens Valley&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;MQZG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.529562936,
+             -40.826596753
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.325,
+           &#34;height&#34;: 302.599,
+           &#34;name&#34;: &#34;Golden Bay&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;GLDB&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.14547309,
+             -41.14466931
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.61,
+           &#34;height&#34;: 830.724,
+           &#34;name&#34;: &#34;Mt. Climie&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;CLIM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.136412112,
+             -38.61758168
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.017,
+           &#34;height&#34;: 369.723,
+           &#34;name&#34;: &#34;Aratiatia Dam&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;ARTA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             168.7855527,
+             -44.07320552
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 1053.5437,
+           &#34;name&#34;: &#34;Haast&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;HAAS&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.170413249,
+             -40.816546002
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 245.0853,
+           &#34;name&#34;: &#34;Tuapaka Z&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;OTAK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.883276367,
+             -38.92257263
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 507.4359,
+           &#34;name&#34;: &#34;Paritu Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PARI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.42694283,
+             -41.38154972
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.32,
+           &#34;height&#34;: 556.899,
+           &#34;name&#34;: &#34;Paruwai&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PARW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.014270312,
+             -39.294371273
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.22,
+           &#34;height&#34;: 904.572,
+           &#34;name&#34;: &#34;Kahui Hut&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PGKH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.095449577,
+             -39.270019555
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.12,
+           &#34;height&#34;: 962.689,
+           &#34;name&#34;: &#34;North Egmont&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PGNE&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.213808544,
+             -41.7490459
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.445,
+           &#34;height&#34;: 256.105,
+           &#34;name&#34;: &#34;Cape Campbell No. 2&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;CMBL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.92154054,
+             -43.660592633
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 1753.313,
+           &#34;name&#34;: &#34;Pilkington Glacier&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;PILK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.1819269,
+             -39.804772533
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.6,
+           &#34;height&#34;: 328.308,
+           &#34;name&#34;: &#34;Parikino&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PKNO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.8558523,
+             -43.6662293
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 1222.3078,
+           &#34;name&#34;: &#34;Conical Hill&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;CNCL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.2004619,
+             -39.91677899
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 787.922,
+           &#34;name&#34;: &#34;Pukenui&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;PNUI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.211143529,
+             -38.48796629
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.6,
+           &#34;height&#34;: 242.6788,
+           &#34;name&#34;: &#34;Carnagh Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;CNST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.7495574,
+             -36.86543327
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 170.2423,
+           &#34;name&#34;: &#34;Coromandel&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;CORM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.1666583,
+             -40.29885761
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 457.6235,
+           &#34;name&#34;: &#34;Dannevirke&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;DNVK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.5971701,
+             -45.88366604
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.25,
+           &#34;height&#34;: 386.9193,
+           &#34;name&#34;: &#34;Dunedin&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;DUND&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.62941,
+             -45.81432
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -4.5,
+           &#34;height&#34;: 13.5,
+           &#34;name&#34;: &#34;Dunedin Tide Gauge&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;DUNT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.433730582,
+             -41.183508522
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.31,
+           &#34;height&#34;: 302.145,
+           &#34;name&#34;: &#34;Nelson&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;NLSN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.806622735,
+             -39.09704167
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 857.565,
+           &#34;name&#34;: &#34;Naumai&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;NMAI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.1181741,
+             -39.18255736
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.53,
+           &#34;height&#34;: 416.9288,
+           &#34;name&#34;: &#34;New Plymouth&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;NPLY&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.200037533,
+             -40.113323422
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 364.054,
+           &#34;name&#34;: &#34;Norsewood&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;NRSW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.790675494,
+             -39.918289832
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.6,
+           &#34;height&#34;: 530.658,
+           &#34;name&#34;: &#34;Ohingaiti&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;OHIN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.060283,
+             -41.019262
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 334,
+           &#34;name&#34;: &#34;Okoha&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;OKOH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.307578963,
+             -38.046521999
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 127.477,
+           &#34;name&#34;: &#34;Opotiki&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;OPTK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.68067166,
+             -40.10435506
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 279,
+           &#34;name&#34;: &#34;Oueroa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;OROA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.831366308,
+             -39.745423558
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 481.028,
+           &#34;name&#34;: &#34;Utiku Reference Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;UTKU&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.662934254,
+             -43.565822179
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 28.299,
+           &#34;name&#34;: &#34;27 Vernon Terrace&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;V27B&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.662844433,
+             -43.56722328
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 34.589,
+           &#34;name&#34;: &#34;47 Vernon Terrace&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;V47B&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.81083175,
+             -38.61103263
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.565,
+           &#34;height&#34;: 637.198,
+           &#34;name&#34;: &#34;Te Kawerauta 1836&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGTK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             -173.983150073,
+             -18.650683524
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 67.384,
+           &#34;name&#34;: &#34;Vava&#39;u&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;VAVS&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.93904,
+             -38.67344
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.65,
+           &#34;height&#34;: 660,
+           &#34;name&#34;: &#34;Whakaroa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TGWH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.893211967,
+             -43.637707217
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 1494.695,
+           &#34;name&#34;: &#34;Vexation&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;VEXA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.785601523,
+             -39.682492569
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 572.796,
+           &#34;name&#34;: &#34;Taihape&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;THAP&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.710752,
+             -39.135707
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.16,
+           &#34;height&#34;: 1231.863,
+           &#34;name&#34;: &#34;East Tongariro&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGET&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.88567373,
+             -40.77603359
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 538.547,
+           &#34;name&#34;: &#34;Tintock&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TINT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.5525,
+             -39.255
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 2049.505,
+           &#34;name&#34;: &#34;Far West&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGFW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.81144,
+             -38.43747
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 287,
+           &#34;name&#34;: &#34;Te Karaka&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TKAR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.641309034,
+             -39.094406187
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.17,
+           &#34;height&#34;: 1210.537,
+           &#34;name&#34;: &#34;Karewarewa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGKR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.960484583,
+             -41.033682601
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.495,
+           &#34;height&#34;: 450.192,
+           &#34;name&#34;: &#34;Takaka Hill&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TKHL&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.754300805,
+             -39.407404947
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.195,
+           &#34;height&#34;: 899.61,
+           &#34;name&#34;: &#34;Moawhango Dam&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGMO&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.28008007,
+             -41.19157695
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.255,
+           &#34;height&#34;: 499.118,
+           &#34;name&#34;: &#34;Arapawa No. 2&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TORY&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.470461,
+             -39.38458308
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.05,
+           &#34;height&#34;: 836.5315,
+           &#34;name&#34;: &#34;Mangateitei&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;VGMT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.68790903,
+             -41.39800488
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 365.601,
+           &#34;name&#34;: &#34;Traveller&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TRAV&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.2608773,
+             -37.72881204
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.09,
+           &#34;height&#34;: 151.1033,
+           &#34;name&#34;: &#34;Tauranga&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;TRNG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.627646369,
+             -41.278054409
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 470.299,
+           &#34;name&#34;: &#34;Terawhiti&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TRWH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.382558492,
+             -40.26498279
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 538.166,
+           &#34;name&#34;: &#34;Te Uri&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;TURI&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.837824498,
+             -39.750125284
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -2.2,
+           &#34;height&#34;: 340.005,
+           &#34;name&#34;: &#34;Utiku Borehole 1&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;UTK1&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.837768869,
+             -39.74637494
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.7,
+           &#34;height&#34;: 365.874,
+           &#34;name&#34;: &#34;Utiku Borehole 2&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;UTK2&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.83609922,
+             -39.748363886
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.7,
+           &#34;height&#34;: 367.494,
+           &#34;name&#34;: &#34;Utiku Borehole 3&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;UTK3&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.837339094,
+             -39.749223772
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.7,
+           &#34;height&#34;: 352.416,
+           &#34;name&#34;: &#34;Utiku Borehole 4&#34;,
+           &#34;networkID&#34;: &#34;XX&#34;,
+           &#34;siteID&#34;: &#34;UTK4&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.589695416,
+             -39.115141445
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.345,
+           &#34;height&#34;: 1189.705,
+           &#34;name&#34;: &#34;West Tongariro&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGWT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.234413566,
+             -39.077210643
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 219,
+           &#34;name&#34;: &#34;Waihua&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WAHU&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.9203024,
+             -44.65570499
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.28,
+           &#34;height&#34;: 1044.8601,
+           &#34;name&#34;: &#34;Waimate&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WAIM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             169.8853067,
+             -43.5840269
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.4,
+           &#34;height&#34;: 1416.1,
+           &#34;name&#34;: &#34;Waka Mara&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;WAKA&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.821447392,
+             -39.786881
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.27,
+           &#34;height&#34;: 289.675,
+           &#34;name&#34;: &#34;Wanganui&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WANG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             170.190142352,
+             -43.862486612
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.45,
+           &#34;height&#34;: 757.772,
+           &#34;name&#34;: &#34;Burnett Rock&#34;,
+           &#34;networkID&#34;: &#34;SA&#34;,
+           &#34;siteID&#34;: &#34;BNET&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.6627794,
+             -36.4344143
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 111.277,
+           &#34;name&#34;: &#34;Warkworth&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WARK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             171.806222964,
+             -41.744746806
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 665.356,
+           &#34;name&#34;: &#34;Westport&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WEST&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.60115,
+             -39.17556
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.51,
+           &#34;height&#34;: 1453.644,
+           &#34;name&#34;: &#34;Ngauruhoe&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGNG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.805894052,
+             -41.323457044
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -0.609,
+           &#34;height&#34;: 26.023,
+           &#34;name&#34;: &#34;Wellington Airport&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WGTN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.7815955,
+             -41.29043953
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -999,
+           &#34;height&#34;: 42.9611,
+           &#34;name&#34;: &#34;Wellington Tide Gauge&#34;,
+           &#34;networkID&#34;: &#34;GN&#34;,
+           &#34;siteID&#34;: &#34;WGTT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.542240377,
+             -39.199838765
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.136,
+           &#34;height&#34;: 1161.26,
+           &#34;name&#34;: &#34;Chateau Observatory&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGOB&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             177.013878,
+             -37.98168628
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 231.8381,
+           &#34;name&#34;: &#34;Whakatane&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WHKT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.6651391,
+             -39.163065898
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.19,
+           &#34;height&#34;: 1508.174,
+           &#34;name&#34;: &#34;Oturere&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGOT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             174.3145665,
+             -35.80377159
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.2,
+           &#34;height&#34;: 172.7753,
+           &#34;name&#34;: &#34;Whangarei&#34;,
+           &#34;networkID&#34;: &#34;LI&#34;,
+           &#34;siteID&#34;: &#34;WHNG&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.451742011,
+             -39.730097955
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.535,
+           &#34;height&#34;: 690.052,
+           &#34;name&#34;: &#34;Whangaehu Valley Road&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WHVR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.346406757,
+             -39.28927387
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.215,
+           &#34;height&#34;: 788.09,
+           &#34;name&#34;: &#34;Pokaka&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGPK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             173.9842523,
+             -41.5606413
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.505,
+           &#34;height&#34;: 408,
+           &#34;name&#34;: &#34;Wither Hills&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WITH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.675955827,
+             -39.098681588
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: 0,
+           &#34;height&#34;: 1279.773,
+           &#34;name&#34;: &#34;Tongariro 8&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGT8&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.704128875,
+             -39.115609131
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.27,
+           &#34;height&#34;: 1222.382,
+           &#34;name&#34;: &#34;Te Maari&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGTM&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             178.4087,
+             -37.825
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.42,
+           &#34;height&#34;: 356,
+           &#34;name&#34;: &#34;Waiomatatini&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WMAT&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.548312102,
+             -39.298415848
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.39,
+           &#34;height&#34;: 2085.06,
+           &#34;name&#34;: &#34;Turoa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGTR&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.54300597,
+             -39.89587961
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 293.452,
+           &#34;name&#34;: &#34;Waipawa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WPAW&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.608943389,
+             -39.277259937
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.555,
+           &#34;height&#34;: 1766.6,
+           &#34;name&#34;: &#34;Tukino Ski Field&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGTS&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             176.44059928,
+             -40.06420523
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.5,
+           &#34;height&#34;: 344.435,
+           &#34;name&#34;: &#34;Waipukurau&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;WPUK&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.588983537,
+             -39.282405456
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.421,
+           &#34;height&#34;: 2088.156,
+           &#34;name&#34;: &#34;Whangaehu Hut&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGWH&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.597857026,
+             -39.32692751
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.14,
+           &#34;height&#34;: 1564.718,
+           &#34;name&#34;: &#34;Wahianoa&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;VGWN&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       },
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             172.481135613,
+             -43.490771093
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.61,
+           &#34;height&#34;: 64.653,
+           &#34;name&#34;: &#34;Yaldhurst&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;YALD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       }
+     ],
+     &#34;type&#34;: &#34;FeatureCollection&#34;
+   }</pre></div>
+	</div>
+	
+
+	 
+	<a id="site" class="anchor"></a>
+	<h3 class="page-header">Site</h3>
+	<p class="lead">Find information for individual sites.</p>
+	
+	<div class="panel panel-primary">
+	<div class="panel-heading">Method: GET</div>
+	<div class="panel-body">
+	<dl class="dl-horizontal">
+	<dt>URI</dt>
+	<dd>/site?siteID=(siteID)&amp;networkID=(networkID)</dd>
+	<dt>Accept</dt>
+	<dd>application/vnd.geo&#43;json;version=1</dd>
+	</dl>
+	</div>
+	</div>
+	<h4>Query Parameters</h4>
+	
+	<h5>Required:</h5>
+	<dl class="dl-horizontal">
+	
+	<dt>networkID</dt>
+	<dd>Network identifier e.g., <code>VO</code>.</dd>
+	
+	<dt>siteID</dt>
+	<dd>Site identifier e.g., <code>WI000</code>.</dd>
+	
+	</dl>
+	
+	
+	<h4>Response Properties</h4>
+	<dl class="dl-horizontal">
+	
+	<dt>groundRelationship</dt>
+	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
+	
+	<dt>height</dt>
+	<dd>Site height (m).</dd>
+	
+	<dt>name</dt>
+	<dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+	
+	<dt>neworkID</dt>
+	<dd>Network identifier e.g., <code>VO</code>.</dd>
+	
+	<dt>siteID</dt>
+	<dd>Site identifier e.g., <code>WI000</code>.</dd>
+	
+	
+	</dl>
+	<h4>Example Query and Response</h4>
+	<div class="panel panel-success">
+	<div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD&amp;networkID=CG</div>
+	<div class="panel-body panel-height"><pre>{
+     &#34;features&#34;: [
+       {
+         &#34;geometry&#34;: {
+           &#34;coordinates&#34;: [
+             175.515190045,
+             -40.897248036
+           ],
+           &#34;type&#34;: &#34;Point&#34;
+         },
+         &#34;properties&#34;: {
+           &#34;groundRelationship&#34;: -1.15,
+           &#34;height&#34;: 469.6892,
+           &#34;name&#34;: &#34;Holdsworth Station&#34;,
+           &#34;networkID&#34;: &#34;CG&#34;,
+           &#34;siteID&#34;: &#34;HOLD&#34;
+         },
+         &#34;type&#34;: &#34;Feature&#34;
+       }
+     ],
+     &#34;type&#34;: &#34;FeatureCollection&#34;
+   }</pre></div>
+	</div>
+	
+
+	
+	
+	<div id="footer" class="footer">
+	<div class="row">
+	<div class="col-sm-3 hidden-xs">
+	<ul id="logo">
+	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+	</ul>            
+	</div>
+
+	<div class="col-sm-6">
+	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
+	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
+	</div>
+
+	<div  class="col-sm-2 hidden-xs">
+	<ul id="logo">
+	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
+	</ul>
+	</div>
+	<div  class="col-sm-1 hidden-xs">
+	<ul id="logo">
+	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+	</ul>  
+	</div>
+	</div>
+
+	<div class="row">
+	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
+	<ul id="logo">
+	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
+	</ul>
+	</div>
+	</div>
+
+	</div>
+	</div>
+	</body>
+	</html>
+	
+	
