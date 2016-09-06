@@ -39,7 +39,6 @@ var routes = wt.Requests{
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=0"},
 
 	// CSV routes that should bad request
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/bob"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
@@ -47,17 +46,15 @@ var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
 
 	// GeoJSON routes that should bad request
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/bob"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?methodID=m1"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52))"},                             // not enough points
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,178.18+-37.52))"}, // doesn't close
 
-	// JSON routes that should bad request
-	{ID: wt.L(), Accept: v1JSON, Content: v1JSON, Status: http.StatusBadRequest, URL: "/bob"},
+	// Routes that should 404
+	{ID: wt.L(), Status: http.StatusNotFound, URL: "/bob"},
 
 	// CSV routes that should bad request
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/bob"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
@@ -67,7 +64,7 @@ var routes = wt.Requests{
 }
 
 // Test all routes give the expected response.  Also check with
-// cache busters and extra query paramters.
+// cache busters and extra query parameters.
 func TestRoutes(t *testing.T) {
 	setup()
 	defer teardown()

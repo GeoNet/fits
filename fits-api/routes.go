@@ -1,99 +1,80 @@
 package main
 
 import (
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
 	"net/http"
-	"strings"
+	"github.com/GeoNet/weft"
+	"bytes"
 )
 
-// TODO (Geoff) hard coded the Production and APIHost values.
-// will switch to weft which removes the need for these.
-var docs = apidoc.Docs{
-	Production: true,
-	APIHost:    "fits.geonet.org.nz",
-	Title:      `FITS API`,
-	Description: `<p>The FITS API provides access to the observations and associated meta data in the Field Time Series
-			database.  If you are looking for other data then please check the 
-			<a href="http://info.geonet.org.nz/x/DYAO">full range of data</a> available from GeoNet. </p>`,
-	RepoURL:          `https://github.com/GeoNet/fits`,
-	StrictVersioning: false,
-}
+var mux = http.NewServeMux()
 
 func init() {
-	docs.AddEndpoint("site", &siteDoc)
-	docs.AddEndpoint("observation", &observationDoc)
-	docs.AddEndpoint("observation/stats", &observationStatsDoc)
-	docs.AddEndpoint("observation_results", &observationResultsDoc)
-	docs.AddEndpoint("charts", &chartsDoc)
-	docs.AddEndpoint("method", &methodDoc)
-	docs.AddEndpoint("type", &typeDoc)
-	docs.AddEndpoint("plot", &plotDoc)
-	docs.AddEndpoint("map", &mapDoc)
-	docs.AddEndpoint("spark", &sparkDoc)
+	mux.HandleFunc("/spark", weft.MakeHandlerAPI(spark))
+	mux.HandleFunc("/map/site", weft.MakeHandlerAPI(siteMapHandler))
+	mux.HandleFunc("/observation_results", weft.MakeHandlerAPI(observationResults))
+	mux.HandleFunc("/observation_stats", weft.MakeHandlerAPI(observationStats))
+	mux.HandleFunc("/type", weft.MakeHandlerAPI(types))
+	mux.HandleFunc("/method", weft.MakeHandlerAPI(method))
+	mux.HandleFunc("/plot", weft.MakeHandlerAPI(plotHandler))
+	mux.HandleFunc("/observation", weft.MakeHandlerAPI(observationHandler))
+	mux.HandleFunc("/site", weft.MakeHandlerAPI(siteHandler))
+	mux.HandleFunc("/", weft.MakeHandlerPage(charts))
+	mux.HandleFunc("/charts", weft.MakeHandlerPage(charts))
+	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
+	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
+	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
 }
 
-// TODO (Geoff) hard coded the Production and APIHost values.
-// will switch to weft which removes the need for these.
-var exHost = "http://localhost:8080"
+func inbound(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			h.ServeHTTP(w, r)
+		default:
+			weft.Write(w, r, &weft.MethodNotAllowed)
+			weft.MethodNotAllowed.Count()
+			return
+		}
+	})
+}
 
-func router(w http.ResponseWriter, r *http.Request) {
 
-	// requests that don't have a specific version header are routed to the latest version.
-	var latest bool
-	accept := r.Header.Get("Accept")
-	switch accept {
-	case web.V1GeoJSON, web.V1JSON, web.V1CSV:
-	default:
-		latest = true
+// these handlers take care of the extra routing based on optional query parameters
+
+func observationHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if r.URL.Query().Get("siteID") != "" {
+		return observation(r, h, b)
+	} else {
+		return spatialObs(r, h, b)
 	}
+}
+
+func siteMapHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	v := r.URL.Query()
 
 	switch {
-	case r.URL.Path == "/plot":
-		if r.URL.Query().Get("siteID") != "" {
-			plotSite(w, r)
-		} else {
-			plotSites(w, r)
-		}
-	case r.URL.Path == "/spark":
-		spark(w, r)
-	case r.URL.Path == "/map/site":
-		if r.URL.Query().Get("siteID") != "" {
-			siteMap(w, r)
-		} else if r.URL.Query().Get("sites") != "" {
-			siteMap(w, r)
-		} else {
-			siteTypeMap(w, r)
-		}
-	case r.URL.Path == "/observation" && (accept == web.V1CSV || latest):
-		if r.URL.Query().Get("siteID") != "" {
-			observation(w, r)
-		} else {
-			spatialObs(w, r)
-		}
-	case r.URL.Path == "/observation_results" && (accept == web.V1JSON || latest):
-		observationResults(w, r)
-	case r.URL.Path == "/observation/stats" && (accept == web.V1JSON || latest):
-		observationStats(w, r)
-	case r.URL.Path == "/site" && (accept == web.V1GeoJSON || latest):
-		if r.URL.Query().Get("siteID") != "" {
-			site(w, r)
-		} else {
-			siteType(w, r)
-		}
-	case r.URL.Path == "/type" && (accept == web.V1JSON || latest):
-		typeH(w, r)
-	case r.URL.Path == "/method" && (accept == web.V1JSON || latest):
-		method(w, r)
-	case r.URL.Path == "/charts":
-		charts(w, r)
-	case r.URL.Path == "/":
-		charts(w, r)
-	case r.URL.Path == "":
-		charts(w, r)
-	case strings.HasPrefix(r.URL.Path, apidoc.Path):
-		docs.Serve(w, r)
+	case v.Get("siteID") != "":
+		return siteMap(r, h, b)
+	case v.Get("sites") != "":
+		return siteMap(r, h, b)
 	default:
-		web.BadRequest(w, r, "Can't find a route for this request. Please refer to /api-docs")
+		return siteTypeMap(r, h, b)
 	}
 }
+
+func plotHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if r.URL.Query().Get("siteID") != "" {
+		return plotSite(r, h, b)
+	} else {
+		return plotSites(r, h, b)
+	}
+}
+
+func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if r.URL.Query().Get("siteID") != "" {
+		return site(r, h, b)
+	} else {
+		return siteType(r, h, b)
+	}
+}
+

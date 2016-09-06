@@ -1,47 +1,24 @@
 package main
 
 import (
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
-	"html/template"
 	"net/http"
+	"bytes"
+	"github.com/GeoNet/weft"
 )
 
-var methodDoc = apidoc.Endpoint{Title: "Method",
-	Description: `Look up method information.`,
-	Queries: []*apidoc.Query{
-		methodD,
-	},
-}
-
-var methodD = &apidoc.Query{
-	Accept:      web.V1JSON,
-	Title:       "Method",
-	Description: "Look up method information.",
-	Example:     "/method?typeID=e",
-	ExampleHost: exHost,
-	URI:         "/method?[typeID=(typeID)]",
-	Optional: map[string]template.HTML{
-		"typeID": typeIDDoc,
-	},
-	Props: map[string]template.HTML{
-		"description": `A description of the method e.g., <code>Bernese v5.0 GNS processing software</code>.`,
-		"methodID":    methodIDDoc,
-		"name":        `The method name e.g., <code>Bernese v5.0</code>.`,
-		"reference":   `A link to further information about the method.`,
-	},
-}
-
-func method(w http.ResponseWriter, r *http.Request) {
-	if err := methodD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func method(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{}, []string{"typeID"}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "application/json;version=1")
 
 	typeID := r.URL.Query().Get("typeID")
 
-	if typeID != "" && !validType(w, r, typeID) {
-		return
+	if typeID != "" {
+		if res := validType(typeID); !res.Ok {
+			return res
+		}
 	}
 
 	var d string
@@ -65,13 +42,11 @@ func method(w http.ResponseWriter, r *http.Request) {
 			where type.typeID = $1) as m) as fc`, typeID).Scan(&d)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 
 	}
 
-	w.Header().Set("Content-Type", web.V1JSON)
+	b.WriteString(d)
 
-	b := []byte(d)
-	web.Ok(w, r, &b)
+	return &weft.StatusOK
 }

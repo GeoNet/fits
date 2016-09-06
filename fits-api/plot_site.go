@@ -5,109 +5,23 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/GeoNet/fits/ts"
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
-	"html/template"
 	"net/http"
 	"time"
+	"github.com/GeoNet/weft"
 )
 
 type plt struct {
 	ts.Plot
 }
 
-var plotDoc = apidoc.Endpoint{Title: "Plot",
-	Description: `Simple plots of observations.`,
-	Queries: []*apidoc.Query{
-		plotSiteD,
-		plotSitesD,
-	},
-}
-
-var plotSiteD = &apidoc.Query{
-	Accept:      "",
-	Title:       "Single Site",
-	Description: "Plot observations for a single site as Scalable Vector Graphic (SVG)",
-	Discussion: `<p><b><i>Caution:</i></b> these plots should be used with caution
-	and some understanding of the underlying data.  FITS data is often unevenly sampled.  The requested data range may not be 
-	accurately represented at the resolution of these plots.  No down sampling of any kind is attempted for plotting.  There is 
-	potential for signal to be obscured or visual artifacts created.  If you think you have seen 
-	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
-	<br/>Plots show data with errors.  The minimum, maximum, and latest values are labeled.  The plot can be 
-	used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e"/></code> or as
-	an object or inline depending on your needs.
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
-	<br/>The number of days displayed can be changed with the <code>days</code> query parameter.  If <code>start</code> is not specifed then 
-	the number of days before now is displayed.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200" style="width: 100% \9" class="img-responsive" />
-	<br/>A fixed time range for the plot can be specified by setting <code>start</code> and <code>days</code>.  
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50" style="width: 100% \9" class="img-responsive" />
-	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.  A single value sets a fixed range centered on the data.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=-15,50" style="width: 100% \9" class="img-responsive" />
-	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.  A pair of values fixes the y axis range.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=-15,50"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf&yrange=50" style="width: 100% \9" class="img-responsive" />
-	<br />Not all observations have an associated error estimate.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e_rf&days=300"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop" style="width: 100% \9" class="img-responsive" />
-	<br />Scatter plots may be more appropriate for some observations.  The population standard deviation can also be shown on a plot.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop"/></code>
-	</p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true" style="width: 100% \9" class="img-responsive" />
-	<br />The method used for an observation type can also be indicated on a scatter plot.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true"/></code>
-	</p>
-	<p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
-	<br />If <code>yrange</code> is set and data values would be out of range the background colour of the plot changes.  This happens
-	with <code>line</code> and <code>scatter</code> plots.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
-	</p>
-            `,
-	URI: "/plot?typeID=(typeID)&siteID=(siteID)&networkID=(networkID)&[days=int]&[yrange=float64]&[type=(line|scatter)&[showMethod=true]&[stddev=pop]]",
-	Required: map[string]template.HTML{
-		"typeID":    typeIDDoc,
-		"siteID":    siteIDDoc,
-		"networkID": networkIDDoc,
-	},
-	Optional: map[string]template.HTML{
-		"days": `The number of days of data to display e.g., <code>250</code>.  If <code>start</code> is not specified then the number of days
-		before now is displayed.  If <code>start</code> is specified then the number of days after <code>start</code> is displayed.  Maximum value is 365000.`,
-		"yrange": yrangeDoc,
-		"type":   plotTypeDoc,
-		"showMethod": `If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
-		markers based on methodID.`,
-		`stddev`: stddevDoc,
-		"start": `the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.  <code>days</code>
-		must also be specified.`,
-	},
-	Props: map[string]template.HTML{
-		"SVG": `This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.`,
-	},
-}
-
-func plotSite(w http.ResponseWriter, r *http.Request) {
-	if err := plotSiteD.CheckParams(r.URL.Query()); err != nil {
-		web.BadRequest(w, r, err.Error())
-		return
+func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID", "networkID"}, []string{"days", "yrange", "type", "start", "stddev"}); !res.Ok {
+		return res
 	}
+
+	h.Set("Content-Type", "image/svg+xml")
+
+	v := r.URL.Query()
 
 	var plotType string
 	var s siteQ
@@ -117,55 +31,54 @@ func plotSite(w http.ResponseWriter, r *http.Request) {
 	var ymin, ymax float64
 	var showMethod bool
 	var stddev string
-	var ok bool
+	var res *weft.Result
 
-	if plotType, ok = getPlotType(w, r); !ok {
-		return
+	if plotType, res = getPlotType(v); !res.Ok {
+		return res
 	}
 
-	if showMethod, ok = getShowMethod(w, r); !ok {
-		return
+	if showMethod, res = getShowMethod(v); !res.Ok {
+		return res
 	}
 
-	if stddev, ok = getStddev(w, r); !ok {
-		return
+	if stddev, res = getStddev(v); !res.Ok {
+		return res
 	}
 
-	if start, ok = getStart(w, r); !ok {
-		return
+	if start, res = getStart(v); !res.Ok {
+		return res
 	}
 
-	if days, ok = getDays(w, r); !ok {
-		return
+	if days, res = getDays(v); !res.Ok {
+		return res
 	}
 
-	if ymin, ymax, ok = getYRange(w, r); !ok {
-		return
+	if ymin, ymax, res = getYRange(v); !res.Ok {
+		return res
 	}
 
-	if t, ok = getType(w, r); !ok {
-		return
+	if t, res = getType(v); !res.Ok {
+		return res
 	}
 
-	if s, ok = getSite(w, r); !ok {
-		return
+	if s, res = getSite(v); !res.Ok {
+		return res
 	}
 
 	var p plt
 
 	switch {
 	case start.IsZero() && days == 0:
-		// do nothing - autorange on the data.
+	// do nothing - autorange on the data.
 	case start.IsZero() && days > 0:
 		n := time.Now().UTC()
-		start = n.Add(time.Duration(days*-1) * time.Hour * 24)
+		start = n.Add(time.Duration(days * -1) * time.Hour * 24)
 		p.SetXAxis(start, n)
 		days = 0 // add all data > than start by setting 0.  Allows for adding start end to URL.
 	case !start.IsZero() && days > 0:
-		p.SetXAxis(start, start.Add(time.Duration(days*1)*time.Hour*24))
+		p.SetXAxis(start, start.Add(time.Duration(days * 1) * time.Hour * 24))
 	case !start.IsZero() && days == 0:
-		web.BadRequest(w, r, "Invalid start specified without days")
-		return
+		return weft.BadRequest("Invalid start specified without days")
 	}
 
 	switch {
@@ -189,19 +102,15 @@ func plotSite(w http.ResponseWriter, r *http.Request) {
 		err = p.addSeriesLabelMethod(t, start, days, s)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 
 	if stddev == `pop` {
 		err = p.setStddevPop(s, t, start, days)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
-
-	b := new(bytes.Buffer)
 
 	switch plotType {
 	case ``, `line`:
@@ -210,12 +119,10 @@ func plotSite(w http.ResponseWriter, r *http.Request) {
 		err = ts.Scatter.Draw(p.Plot, b)
 	}
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 
-	w.Header().Set("Content-Type", "image/svg+xml")
-	web.OkBuf(w, r, b)
+	return &weft.StatusOK
 }
 
 /*
@@ -261,7 +168,7 @@ func (plt *plt) addSeries(t typeQ, start time.Time, days int, sites ...siteQ) (e
 		)
 	AND time > $4
 	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
+	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days * 1) * time.Hour * 24))
 		}
 		if err != nil {
 			return
@@ -326,7 +233,7 @@ func (plt *plt) addSeriesLabelMethod(t typeQ, start time.Time, days int, s siteQ
 		)
 	AND time > $4
 	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
+	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days * 1) * time.Hour * 24))
 	}
 	if err != nil {
 		return

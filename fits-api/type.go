@@ -2,41 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
-	"html/template"
 	"net/http"
+	"github.com/GeoNet/weft"
+	"bytes"
 )
 
-var typeDoc = apidoc.Endpoint{Title: "Type",
-	Description: `Look up observation type information.`,
-	Queries: []*apidoc.Query{
-		typeD,
-	},
-}
-
-var typeD = &apidoc.Query{
-	Accept:      web.V1JSON,
-	Title:       "Type",
-	Description: "List all observation types.",
-	Example:     "/type",
-	ExampleHost: exHost,
-	URI:         "/type",
-	Props: map[string]template.HTML{
-		"description": `Type description e.g., <code>displacement from initial position</code>`,
-		"name":        `Type name e.g., <code>east</code>`,
-		"typeID":      typeIDDoc,
-		"unit":        `Type unit e.g., <code>mm</code>.`,
-	},
-}
-
-func typeH(w http.ResponseWriter, r *http.Request) {
-	if len(r.URL.Query()) != 0 {
-		web.BadRequest(w, r, "incorrect number of query params.")
-		return
+func types(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
+		return res
 	}
 
-	w.Header().Set("Content-Type", web.V1JSON)
+	h.Set("Content-Type", "application/json;version=1")
 
 	var d string
 
@@ -45,45 +21,41 @@ func typeH(w http.ResponseWriter, r *http.Request) {
 		    from (select typeid as "typeID", type.name, symbol as unit, description 
 		    	from fits.type join fits.unit using (unitpk)) as t) as fc`).Scan(&d)
 	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return
+		return weft.ServiceUnavailableError(err)
 	}
 
-	b := []byte(d)
-	web.Ok(w, r, &b)
+	b.WriteString(d)
+
+	return &weft.StatusOK
 }
 
 // validType checks that the typeID exists in the DB.
-func validType(w http.ResponseWriter, r *http.Request, typeID string) bool {
+func validType(typeID string) *weft.Result {
 	var d string
 
-	err := db.QueryRow("select typeID FROM fits.type where typeID = $1", typeID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid typeID: "+typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+	if err := db.QueryRow("select typeID FROM fits.type where typeID = $1", typeID).Scan(&d); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+		return weft.ServiceUnavailableError(err)
 	}
 
-	return true
+	return &weft.StatusOK
 }
 
 // validTypeMethod checks that the typeID and methodID exists in the DB
 // and are a valid combination.
-func validTypeMethod(w http.ResponseWriter, r *http.Request, typeID, methodID string) bool {
+func validTypeMethod(typeID, methodID string) *weft.Result {
 	var d string
 
-	err := db.QueryRow("SELECT typepk FROM fits.type join fits.type_method using (typepk) join fits.method using (methodpk)  WHERE typeid = $1 and methodid = $2", typeID, methodID).Scan(&d)
-	if err == sql.ErrNoRows {
-		web.NotFound(w, r, "invalid methodID for typeID: "+methodID+" "+typeID)
-		return false
-	}
-	if err != nil {
-		web.ServiceUnavailable(w, r, err)
-		return false
+	if err := db.QueryRow("SELECT typepk FROM fits.type join fits.type_method using (typepk) join fits.method using (methodpk)  WHERE typeid = $1 and methodid = $2",
+		typeID, methodID).Scan(&d); err != nil {
+		if err == sql.ErrNoRows {
+			return &weft.NotFound
+		}
+
+		return weft.ServiceUnavailableError(err)
 	}
 
-	return true
+	return &weft.StatusOK
 }

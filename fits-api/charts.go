@@ -1,39 +1,28 @@
 package main
 
 import (
-	"github.com/GeoNet/web"
-	"github.com/GeoNet/web/api/apidoc"
 	"html/template"
 	"net/http"
+	"github.com/GeoNet/weft"
+	"bytes"
 )
-
-var chartsDoc = apidoc.Endpoint{Title: "Interactive chart",
-	Description: `Interactive chart for observation results.`,
-	Queries: []*apidoc.Query{
-		chartsD,
-	},
-}
-
-var chartsD = &apidoc.Query{
-	Accept: web.HtmlContent,
-	Title:  "Chart",
-	Description: `Interactive chart for observation results, shows regions and sites on interactive map, click on a site to show interactive chart of observation results
-                  for the site and parameter.`,
-	URI: "/charts",
-}
 
 var templates = template.Must(template.ParseFiles("assets/charts.html"))
 
-func init() {
-	//handle js files
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
-	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
-}
-
-func charts(w http.ResponseWriter, r *http.Request) {
-	err := templates.ExecuteTemplate(w, "charts.html", nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func charts(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
+		return res
 	}
+
+	switch r.URL.Path {
+	case "/", "/charts":
+	default:
+		return &weft.NotFound
+	}
+
+	if err := templates.ExecuteTemplate(b, "charts.html", nil); err != nil {
+		return weft.InternalServerError(err)
+	}
+
+	return &weft.StatusOK
 }
