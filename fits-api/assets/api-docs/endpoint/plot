@@ -157,18 +157,22 @@
 	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true"/></code>
 	</p>
 	<p>
+	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector" style="width: 100% \9" class="img-responsive" />
+	<br />The <code>scheme=projector</code> parameter makes scatter/line plots with higher saturate colours so they'll be clearer for projectors.
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector"/></code>
+	</p>
 	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
 	<br />If <code>yrange</code> is set and data values would be out of range the background colour of the plot changes.  This happens
 	with <code>line</code> and <code>scatter</code> plots.
 	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
 	</p>
-            
+
 	<div class="panel panel-primary">
 	<div class="panel-heading">Method: GET</div>
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]]</dd>
+	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -219,6 +223,9 @@
 	the y-axis range will be -20 to 60.  yrange must be > 0 for single value dynamic range.  If there are data in the time range that would be out of range on the plot then the background
 	colour of the plot is changed.</dd>
 	
+	<dt>scheme</dt>
+	<dd>Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and <code>projector</code>. The default value is <code>web</code>.</dd>
+
 	</dl>
 	
 	<h4>Response Properties</h4>
@@ -241,7 +248,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]]</dd>
+	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -283,6 +290,9 @@
 	the y-axis range will be -20 to 60.  yrange must be > 0 for single value dynamic range.  If there are data in the time range that would be out of range on the plot then the background
 	colour of the plot is changed.</dd>
 	
+	<dt>scheme</dt>
+	<dd>Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and <code>projector</code>. The default value is <code>web</code>.</dd>
+
 	</dl>
 	
 	<h4>Response Properties</h4>
