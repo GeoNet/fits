@@ -10,7 +10,7 @@ import (
 )
 
 func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start", "scheme"}); !res.Ok {
 		return res
 	}
 
@@ -76,13 +76,17 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	p.SetTitle(fmt.Sprintf("%s", t.description))
 	p.SetUnit(t.unit)
-	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
 
+	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
 	var err error
 
 	err = p.addSeries(t, start, days, s...)
 	if err != nil {
 		return weft.ServiceUnavailableError(err)
+	}
+
+	if v.Get("scheme") != "" {
+		p.SetScheme(v.Get("scheme"))
 	}
 
 	switch plotType {

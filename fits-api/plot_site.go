@@ -15,7 +15,7 @@ type plt struct {
 }
 
 func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID", "networkID"}, []string{"days", "yrange", "type", "start", "stddev"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID", "networkID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme"}); !res.Ok {
 		return res
 	}
 
@@ -110,6 +110,10 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	}
 	if err != nil {
 		return weft.ServiceUnavailableError(err)
+	}
+
+	if v.Get("scheme") != "" {
+		p.SetScheme(v.Get("scheme"))
 	}
 
 	switch plotType {
