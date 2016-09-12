@@ -11,4 +11,5 @@ VERSION='git-'`git rev-parse --short HEAD`
 for i in "$@"
 do
 		docker push quay.io/geonet/${i}:$VERSION 
+		docker push quay.io/geonet/${i}:latest
 done
