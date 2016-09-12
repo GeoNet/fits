@@ -22,6 +22,16 @@ type SVGPlot struct {
 func (s *SVGPlot) Draw(p Plot, b *bytes.Buffer) error {
 	p.plt.width = s.width
 	p.plt.height = s.height
+
+	// Force default scheme to web
+	if p.plt.Scheme == "" || colours[p.plt.Scheme] == nil {
+		p.plt.Scheme = "web"
+	}
+
+	if p.plt.Scheme != "web" {
+		p.plt.Fill = true
+	}
+
 	p.setColours()
 	p.scaleData()
 	p.setAxes()
@@ -50,7 +60,7 @@ func (p pts) ErrorPoly() string {
 	var b bytes.Buffer
 
 	// the first half of the error polygon - left to right and above the value.
-	for i, _ := range p {
+	for i := range p {
 		b.WriteString(fmt.Sprintf("%d,%d ", p[i].X, p[i].Y-p[i].E))
 	}
 	// the second half of the error polygon - right to left and below the value
@@ -71,23 +81,29 @@ const plotBaseTemplate = `<?xml version="1.0"?>
 <g transform="translate(70,40)">
 {{if .RangeAlert}}<rect x="0" y="0" width="600" height="170" fill="mistyrose"/>{{end}}
 
+{{/* axis */}}
+<polyline fill="none" stroke="black" stroke-width="1" points="0,0 0,170"/>
+<polyline fill="none" stroke="black" stroke-width="1" points="0,170 600,170"/>
+
 {{/* Grid, axes, title */}}
 {{range .Axes.X}}
 {{if .L}}
 <polyline fill="none" stroke="paleturquoise" stroke-width="2" points="{{.X}},0 {{.X}},170"/>
+<polyline fill="none" stroke="black" stroke-width="1" points="{{.X}},166 {{.X}},174"/>
 <text x="{{.X}}" y="190" text-anchor="middle">{{.L}}</text>
 {{else}}
 <polyline fill="none" stroke="paleturquoise" stroke-width="2" points="{{.X}},0 {{.X}},170"/>
+<polyline fill="none" stroke="black" stroke-width="1" points="{{.X}},168 {{.X}},172"/>
 {{end}}
 {{end}}
 
 {{range .Axes.Y}}
 {{if .L}}
 <polyline fill="none" stroke="paleturquoise" stroke-width="1" points="0,{{.Y}} 600,{{.Y}}"/>
-<polyline fill="none" stroke="darkslategrey" stroke-width="1" points="-4,{{.Y}} 4,{{.Y}}"/>
+<polyline fill="none" stroke="black" stroke-width="1" points="-4,{{.Y}} 4,{{.Y}}"/>
 <text x="-7" y="{{.Y}}" text-anchor="end" dominant-baseline="middle">{{.L}}</text>
 {{else}}
-<polyline fill="none" stroke="darkslategrey" stroke-width="1" points="-2,{{.Y}} 2,{{.Y}}"/>
+<polyline fill="none" stroke="black" stroke-width="1" points="-2,{{.Y}} 2,{{.Y}}"/>
 {{end}}
 {{end}}
 
@@ -116,14 +132,14 @@ const plotBaseTemplate = `<?xml version="1.0"?>
 <polyline fill="none" stroke="gainsboro" stroke-width="1.0" points="0,{{.Stddev.M}} {{600}},{{.Stddev.M}}"/>
 {{end}}
 {{template "data" .}}
-<circle cx="{{.LastPt.X}}" cy="{{.LastPt.Y}}" r="4" stroke="red" fill="none" />
-<circle cx="{{.MinPt.X}}" cy="{{.MinPt.Y}}" r="4" stroke="blue" fill="none" />
-<circle cx="{{.MaxPt.X}}" cy="{{.MaxPt.Y}}" r="4" stroke="blue" fill="none" />
+<circle cx="{{.LastPt.X}}" cy="{{.LastPt.Y}}" r="4" stroke="red" fill="{{if .Fill}}red{{else}}none{{end}}" />
+<circle cx="{{.MinPt.X}}" cy="{{.MinPt.Y}}" r="4" stroke="blue" fill="{{if .Fill}}blue{{else}}none{{end}}" />
+<circle cx="{{.MaxPt.X}}" cy="{{.MaxPt.Y}}" r="4" stroke="blue" fill="{{if .Fill}}blue{{else}}none{{end}}" />
 </g>
 <g transform="translate(690,50)">
 {{range .PlotKey}}
 {{if .Marker.L}}
-{{template "keyMarker" .Marker}}
+{{template "keyMarker" .}}
 {{end}}
 {{range .Text}}
 <text x="{{.X}}" y="{{.Y}}" text-anchor="start"  dominant-baseline="middle">{{.L}}</text>
@@ -151,19 +167,20 @@ const plotLineTemplate = `
 {{end}}
 
 {{define "keyMarker"}}
-<polyline fill="none" stroke="{{.L}}" stroke-width="3.0" points="-3, {{.Y}}, 3, {{.Y}}"/>
+<polyline fill="{{if .Fill}}{{.Marker.L}}{else}}none{{end}}" stroke="{{.Marker.L}}" stroke-width="3.0" points="-3, {{.Marker.Y}}, 3, {{.Marker.Y}}"/>
 {{end}}
 `
 
 const plotScatterTemplate = `
 {{define "data"}}
+{{$Fill := .Fill}}
 {{range .Data}}
 {{$Colour := .Colour}}
 {{if .HasErrors}}{{range .Pts}}<polyline fill="none" stroke="{{$Colour}}" stroke-opacity="0.25" stroke-width="1.0" points="{{.ErrorBar}}"/>{{end}}{{end}}
-{{range .Pts}}<circle cx="{{.X}}" cy="{{.Y}}" r="2" fill="none" stroke="{{$Colour}}"/>{{end}}{{end}}
+{{range .Pts}}<circle cx="{{.X}}" cy="{{.Y}}" r="2" fill="{{if $Fill}}{{$Colour}}{{else}}none{{end}}" stroke="{{$Colour}}"/>{{end}}{{end}}
 {{end}}
 
 {{define "keyMarker"}}
-<circle cx="{{.X}}" cy="{{.Y}}" r="2" fill="none" stroke="{{.L}}"/> 
+<circle cx="{{.Marker.X}}" cy="{{.Marker.Y}}" r="2" fill="{{if .Fill}}{{.Marker.L}}{{else}}none{{end}}" stroke="{{.Marker.L}}"/>
 {{end}}
 `

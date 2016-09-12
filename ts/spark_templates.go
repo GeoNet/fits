@@ -17,7 +17,7 @@ func (s *SVGSpark) Draw(p Plot, b *bytes.Buffer) error {
 	// don't display error for spark plots.  Set them all zero so they are not included
 	// in the range.
 	for i, d := range p.plt.Data {
-		for j, _ := range d.Series.Points {
+		for j := range d.Series.Points {
 			p.plt.Data[i].Series.Points[j].Error = 0
 		}
 	}

@@ -36,11 +36,14 @@ type plt struct {
 	width, height                 int // the graph height, smaller than the image height
 	dx, dy                        float64
 	xShift                        int
+	Scheme                        string
+	Fill                          bool
 }
 
 type plotKey struct {
 	Marker pt // the label is the colour for the marker
 	Text   []pt
+	Fill   bool
 }
 
 type Plot struct {
@@ -122,23 +125,39 @@ func (p *Plot) AddSeries(s Series) {
 	p.plt.Data = append(p.plt.Data, data{Series: s})
 }
 
-var colours = [...]string{
-	"darkcyan",
-	"darkgoldenrod",
-	"lawngreen",
-	"orangered",
-	"darkcyan",
-	"forestgreen",
-	"mediumslateblue",
+func (p *Plot) SetScheme(s string) {
+	p.plt.Scheme = s
 }
 
-var numColours = len(colours) - 1
+var colours = map[string][]string{
+	"web": {
+		"darkcyan",
+		"darkgoldenrod",
+		"lawngreen",
+		"orangered",
+		"darkcyan",
+		"forestgreen",
+		"mediumslateblue",
+	},
+	"projector": {
+		"black",
+		"red",
+		"blue",
+		"magenta",
+		"orange",
+		"indigo",
+		"purple",
+	},
+}
+
+var numColours = len(colours["web"]) - 1
 
 // order by labels to keep the colours the same
 // for each label between redraws of the plot
+// Note: Scheme must being set before calling this
 func (p *Plot) setColours() {
 	if len(p.plt.Data) == 1 {
-		p.plt.Data[0].Colour = colours[0]
+		p.plt.Data[0].Colour = colours[p.plt.Scheme][0]
 		return
 	}
 
@@ -156,11 +175,12 @@ func (p *Plot) setColours() {
 		if i > numColours {
 			i = 0
 		}
-		p.plt.Data[colourMap[k]].Colour = colours[i]
+		p.plt.Data[colourMap[k]].Colour = colours[p.plt.Scheme][i]
 		i++
 	}
 }
 
+// Note: Scheme must being set before calling this
 func (p *Plot) setKey() {
 	labels := make(map[string]string)
 	var keys []string
@@ -174,7 +194,7 @@ func (p *Plot) setKey() {
 
 	y := 0
 	for _, k := range keys {
-		pk := plotKey{Marker: pt{Y: y, L: labels[k]}}
+		pk := plotKey{Marker: pt{Y: y, L: labels[k]}, Fill: p.plt.Fill}
 		str := strings.Fields(k)
 		pk.Text = append(pk.Text, pt{L: str[0], X: 6, Y: y})
 		y = y + 12
@@ -191,9 +211,9 @@ func (p *Plot) setKey() {
 		// no marker for stddev
 		y = y + 5
 		p.plt.PlotKey = append(p.plt.PlotKey, plotKey{Text: []pt{
-			pt{X: 0, Y: y, L: fmt.Sprintf("mean: %.3f", p.plt.Stddev.Mean)},
-			pt{X: 0, Y: y + 13, L: fmt.Sprintf("stddev: %.3f", p.plt.Stddev.Stddev)},
-		}})
+			{X: 0, Y: y, L: fmt.Sprintf("mean: %.3f", p.plt.Stddev.Mean)},
+			{X: 0, Y: y + 13, L: fmt.Sprintf("stddev: %.3f", p.plt.Stddev.Stddev)},
+		}, Fill: p.plt.Fill})
 	}
 }
 
@@ -261,10 +281,10 @@ func (p *Plot) scaleData() {
 		p.plt.dy = float64(p.plt.height) / math.Abs(p.plt.YMax-p.plt.YMin)
 	}
 
-	for i, _ := range p.plt.Data {
+	for i := range p.plt.Data {
 		p.plt.Data[i].Pts = make([]pt, len(p.plt.Data[i].Series.Points))
 
-		for j, _ := range p.plt.Data[i].Series.Points {
+		for j := range p.plt.Data[i].Series.Points {
 			p.plt.Data[i].Pts[j] = pt{
 				X: int((p.plt.Data[i].Series.Points[j].DateTime.Sub(p.plt.First.DateTime).Seconds()*p.plt.dx)+0.5) + p.plt.xShift,
 				Y: p.plt.height - int(((p.plt.Data[i].Series.Points[j].Value-p.plt.YMin)*p.plt.dy)+0.5),
