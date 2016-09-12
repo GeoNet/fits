@@ -76,8 +76,8 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	p.SetTitle(fmt.Sprintf("%s", t.description))
 	p.SetUnit(t.unit)
-
 	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
+
 	var err error
 
 	err = p.addSeries(t, start, days, s...)
