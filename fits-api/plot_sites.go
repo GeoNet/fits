@@ -53,8 +53,6 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	var p plt
 
 	switch {
-	case start.IsZero() && days == 0:
-		// do nothing - autorange on the data.
 	case start.IsZero() && days > 0:
 		n := time.Now().UTC()
 		start = n.Add(time.Duration(days*-1) * time.Hour * 24)
@@ -63,7 +61,7 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	case !start.IsZero() && days > 0:
 		p.SetXAxis(start, start.Add(time.Duration(days*1)*time.Hour*24))
 	case !start.IsZero() && days == 0:
-		return weft.BadRequest("Invalid start specified without days")
+		p.SetXAxis(start, time.Now().UTC())
 	}
 
 	switch {

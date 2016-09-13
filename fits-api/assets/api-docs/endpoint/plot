@@ -207,8 +207,7 @@
 		markers based on methodID.</dd>
 	
 	<dt>start</dt>
-	<dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.  <code>days</code>
-		must also be specified.</dd>
+	<dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.</dd>
 	
 	<dt>stddev</dt>
 	<dd>Show standard deviation for the time window selected for the plot.  Allowable value is <code>pop</code> for population standard deviation.</dd>
@@ -277,8 +276,7 @@
 		before now is displayed.  If <code>start</code> is specified then the number of days after <code>start</code> is displayed.  Maximum value is 365000.</dd>
 	
 	<dt>start</dt>
-	<dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.  <code>days</code>
-		must also be specified.</dd>
+	<dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.</dd>
 	
 	<dt>type</dt>
 	<dd>Plot type. Default <code>line</code>.  Either <code>line</code> or <code>scatter</code>.</dd>
