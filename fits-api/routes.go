@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/weft"
+	"log"
 	"net/http"
 )
 
@@ -26,6 +27,10 @@ func init() {
 
 	// TODO (geoff) the api docs are served as static html pages. convert to markdown.
 	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", http.FileServer(http.Dir("assets/api-docs"))))
+
+	// routes for balancers and probes.
+	mux.HandleFunc("/soh/up", http.HandlerFunc(up))
+	mux.HandleFunc("/soh", http.HandlerFunc(soh))
 }
 
 func inbound(h http.Handler) http.Handler {
@@ -78,4 +83,57 @@ func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	} else {
 		return siteType(r, h, b)
 	}
+}
+
+// up is for testing that the app has started e.g., for with load balancers.
+// It indicates the app is started.  It may still be serving errors.
+// Not useful for inclusion in app metrics so weft not used.
+func up(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
+		w.Header().Set("Surrogate-Control", "max-age=86400")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if r.URL.Path != "/soh/up" {
+		w.Header().Set("Surrogate-Control", "max-age=600")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.Write([]byte("<html><head></head><body>up</body></html>"))
+	log.Print("up ok")
+}
+
+// soh is for external service probes.
+// writes a service unavailable error to w if the service is not working.
+// Not useful for inclusion in app metrics so weft not used.
+func soh(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
+		w.Header().Set("Surrogate-Control", "max-age=86400")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if r.URL.Path != "/soh" {
+		w.Header().Set("Surrogate-Control", "max-age=600")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	var c int
+
+	if err := db.QueryRow("SELECT 1").Scan(&c); err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("<html><head></head><body>service error</body></html>"))
+		log.Printf("ERROR: soh service error %s", err)
+		return
+	}
+
+	w.Write([]byte("<html><head></head><body>ok</body></html>"))
+	log.Print("soh ok")
 }

@@ -61,6 +61,9 @@ var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))"},             // not enough points
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
 
+	// soh routes
+	{ID: wt.L(), URL: "/soh"},
+	{ID: wt.L(), URL: "/soh/up"},
 }
 
 // Test all routes give the expected response.  Also check with
