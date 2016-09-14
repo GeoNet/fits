@@ -3,11 +3,10 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "ks1IXfZT5mIz8563JnQqFjkxQn4=",
-			"origin": "github.com/GeoNet/fits/vendor/github.com/GeoNet/log/logentries",
+			"checksumSHA1": "CoYwxPlpMO8OrsObcBMwgpDe2Fc=",
 			"path": "github.com/GeoNet/log/logentries",
-			"revision": "7444b7fd57bd08515924fdf8515888c5fbe2f530",
-			"revisionTime": "2016-04-13T16:41:35+12:00"
+			"revision": "cd4ed67848db80e4865170ca2625253cff31e917",
+			"revisionTime": "2016-09-14T05:56:08Z"
 		},
 		{
 			"path": "github.com/GeoNet/map180",
