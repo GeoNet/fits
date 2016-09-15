@@ -97,12 +97,6 @@ func up(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path != "/soh/up" {
-		w.Header().Set("Surrogate-Control", "max-age=600")
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
 	w.Write([]byte("<html><head></head><body>up</body></html>"))
 	log.Print("up ok")
 }
@@ -116,12 +110,6 @@ func soh(w http.ResponseWriter, r *http.Request) {
 	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
 		w.Header().Set("Surrogate-Control", "max-age=86400")
 		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if r.URL.Path != "/soh" {
-		w.Header().Set("Surrogate-Control", "max-age=600")
-		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
