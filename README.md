@@ -16,9 +16,19 @@ Run all tests (including any in sub dirs):
 
 ### Database
 
-You will need Postgres 9.x+ and Postgis 2+.  
+There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
-You can then init the DB and load a small amount of test data with:
+```
+docker build --rm=true -t quay.io/geonet/fits-db:9.5 -f database/Dockerfile database
+```
+
+Add test data to the DB with:
+
+```
+./database/scripts/initdb-test.sh
+```
+
+Full DB init and load a small amount of test data with:
 
 ```
 cd scripts; ./initdb.sh
