@@ -10,6 +10,6 @@ VERSION='git-'`git rev-parse --short HEAD`
 
 for i in "$@"
 do
-		docker push quay.io/geonet/${i}:$VERSION 
-		docker push quay.io/geonet/${i}:latest
+		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 
+		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 done

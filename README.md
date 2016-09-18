@@ -2,24 +2,16 @@
 
 Field Time Series data.
 
-### Dependencies and Compilation
+### Compilation
 
-Dependencies are included in this repo using Go 1.6+ vendoring and govendor.
-
-Run:
-
-```go build && ./fits```
-
-Run all tests (including any in sub dirs):
-
-```go test ./...```
+There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 
 ### Database
 
 There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
 ```
-docker build --rm=true -t quay.io/geonet/fits-db:9.5 -f database/Dockerfile database
+docker build --rm=true -t geonet/fits-db:9.5 -f database/Dockerfile database
 ```
 
 Add test data to the DB with:
@@ -39,3 +31,19 @@ cd scripts; ./initdb.sh
 The database logical model.
 
 ![database logical model](ddl/FITS_Logical_Model.png)
+
+
+### Deployment
+
+Deployment on AWS Elastic Beanstalk (EB) using Docker containers.
+
+#### fits-api
+
+There is are files for EB - both to deploy the application and also set
+up logging from the container (application) to CloudWatch Logs.  Create a zip file and then upload the 
+zip to EB.
+
+```
+cd deploy
+zip fits.zip Dockerrun.aws.json .ebextensions/*
+```

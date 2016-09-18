@@ -67,9 +67,9 @@ do
 
         rsync --ignore-missing-args ${i}/Dockerfile docker-build-tmp/
 
-		docker build -t quay.io/geonet/${i}:$VERSION -f docker-build-tmp/Dockerfile docker-build-tmp
+		docker build -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION -f docker-build-tmp/Dockerfile docker-build-tmp
 		# tag latest.  Makes it easier to test with compose. 
-		docker tag quay.io/geonet/${i}:$VERSION quay.io/geonet/${i}:latest
+		docker tag 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 
 		rm -f $DOCKER_TMP/$i
 done
