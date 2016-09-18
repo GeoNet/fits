@@ -28,9 +28,6 @@ rm -rf $DOCKER_TMP/*
 
 VERSION='git-'`git rev-parse --short HEAD`
 
-# Prefix for the logs.  Will be ignored if log/logentries is not used.
-BUILD='-X github.com/GeoNet/haz/vendor/github.com/GeoNet/log/logentries.Prefix='$VERSION
-
 # The current working dir to use in GOBIN etc e.g., geonet-web
 CWD=${PWD##*/}
 
@@ -50,7 +47,7 @@ do
 	docker run -e "GOBIN=/usr/src/go/src/github.com/GeoNet/${CWD}/${DOCKER_TMP}" -e "GOPATH=/usr/src/go" -e "CGO_ENABLED=0" -e "GOOS=linux" -e "BUILD=$BUILD" --rm \
 		-v "$PWD":/usr/src/go/src/github.com/GeoNet/${CWD} \
 		-w /usr/src/go/src/github.com/GeoNet/${CWD} ${BUILD_CONTAINER} \
-		go install -a  -ldflags "${BUILD}" -installsuffix cgo ./${i}
+		go install -a -ldflags "-X main.Prefix=${i}/${VERSION}" -installsuffix cgo ./${i}
 
 		rm -rf $DOCKER_TMP/assets
 		mkdir $DOCKER_TMP/assets

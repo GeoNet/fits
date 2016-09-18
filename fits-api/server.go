@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	db *sql.DB
-	wm *map180.Map180
+	db     *sql.DB
+	wm     *map180.Map180
+	Prefix string // prefix for logging
 )
 
 // These constants represent part of a public API and can't be changed.
@@ -24,6 +25,9 @@ const (
 )
 
 func init() {
+	if Prefix != "" {
+		log.SetPrefix(Prefix + " ")
+	}
 }
 
 // main connects to the database, sets up request routing, and starts the http server.
