@@ -34,12 +34,7 @@ deploy:
      script: ./build-push.sh fits-api
      on: 
        branch: master
-   - provider: script
-     skip_cleanup: true
-     script: ./build-push-prod.sh fits-api
-     on:
-       branch: release
- 
+
 env:
     global:
          - secure: "RfKhktSoKtY/PZkzWu8ul4dayQ2IhFU2KL7TDdNptfAJlA1E0r+LQD3EStIph13eWI1MZsTYvXO3DXVGbp43VIQoVDBXmz3GxIU/6BT8p6Q3epX+fUn0Lod19PWwL2n/2mAYbE7LdVvzmEQr4YGs61TdpR8atQTP2WXCXn7beRw="
