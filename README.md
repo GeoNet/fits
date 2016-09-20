@@ -39,7 +39,7 @@ Deployment on AWS Elastic Beanstalk (EB) using Docker containers.
 
 #### fits-api
 
-There is are files for EB - both to deploy the application and also set
+There are files for EB - both to deploy the application and also set
 up logging from the container (application) to CloudWatch Logs.  Create a zip file and then upload the 
 zip to EB.
 
