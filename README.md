@@ -2,23 +2,25 @@
 
 Field Time Series data.
 
-### Dependencies and Compilation
+### Compilation
 
-Dependencies are included in this repo using Go 1.6+ vendoring and govendor.
-
-Run:
-
-```go build && ./fits```
-
-Run all tests (including any in sub dirs):
-
-```go test ./...```
+There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 
 ### Database
 
-You will need Postgres 9.x+ and Postgis 2+.  
+There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
-You can then init the DB and load a small amount of test data with:
+```
+docker build --rm=true -t geonet/fits-db:9.5 -f database/Dockerfile database
+```
+
+Add test data to the DB with:
+
+```
+./database/scripts/initdb-test.sh
+```
+
+Full DB init and load a small amount of test data with:
 
 ```
 cd scripts; ./initdb.sh
@@ -29,3 +31,19 @@ cd scripts; ./initdb.sh
 The database logical model.
 
 ![database logical model](ddl/FITS_Logical_Model.png)
+
+
+### Deployment
+
+Deployment on AWS Elastic Beanstalk (EB) using Docker containers.
+
+#### fits-api
+
+There are files for EB - both to deploy the application and also set
+up logging from the container (application) to CloudWatch Logs.  Create a zip file and then upload the 
+zip to EB.
+
+```
+cd deploy
+zip fits.zip Dockerrun.aws.json .ebextensions/*
+```

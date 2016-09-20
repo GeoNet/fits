@@ -7,18 +7,21 @@ services:
   - docker
 
 before_deploy:
-  - docker login --email="." --username="geonet+dockerbuild" --password="$docker_password" quay.io
+  - docker --version
+  - pip install --user awscli
+  - export PATH=$PATH:$HOME/.local/bin
+  - eval $(aws ecr get-login --region ap-southeast-2) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
 
 # trying to fix postgis bug which comes on the travis infrastructure that has sudo.
 before_install:
  - export DEBIAN_FRONTEND=noninteractive;
    sudo -E apt-get -yq update &>> ~/apt-get-update.log;
-   sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.4-postgis-2.2
+   sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.5-postgis-2.2
  - sudo apt-get install -y xsltproc
 
 install: true
 addons:
-  postgresql: '9.4'
+  postgresql: '9.5'
 before_script:
 - psql -U postgres -c "create extension postgis"
 - ./database/scripts/initdb.sh
@@ -34,4 +37,5 @@ deploy:
  
 env:
     global:
-         - secure: aAfJcT7S90E7eHVHnbW54iD6AhVZJW1qF9yEUmQ75t9pf12yAhr4wr8Jp7/Dy0JbQ4nk5kdv2KTEU5ZUYhnxexc936/iYEWauAYHvffFeXtKKEVovEuKI0nO0I3rU5kw8lMf2YCQQx1P2b4VV/foFh6SnT6QjBPmmZLXdI9l8Ck=
+         - secure: "RfKhktSoKtY/PZkzWu8ul4dayQ2IhFU2KL7TDdNptfAJlA1E0r+LQD3EStIph13eWI1MZsTYvXO3DXVGbp43VIQoVDBXmz3GxIU/6BT8p6Q3epX+fUn0Lod19PWwL2n/2mAYbE7LdVvzmEQr4YGs61TdpR8atQTP2WXCXn7beRw="
+         - secure: "w9nrZfBdKV4pB7EqkowpF1Vp6YuphPKFrQ3ZYJPHWGWoDZQA3ID0Uk6zJaCxomtlVnj5TM1gjgRDwICYqkROPGquwwZ03Uj0IaMHeFljHPdo8H4VYjYWDpK5MlYo2P0fRFJGC9H3z9hc5qhqdS8yrHQgCzBT7paT/hhlINXY1UE="

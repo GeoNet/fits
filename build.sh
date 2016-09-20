@@ -28,9 +28,6 @@ rm -rf $DOCKER_TMP/*
 
 VERSION='git-'`git rev-parse --short HEAD`
 
-# Prefix for the logs.  Will be ignored if log/logentries is not used.
-BUILD='-X github.com/GeoNet/haz/vendor/github.com/GeoNet/log/logentries.Prefix='$VERSION
-
 # The current working dir to use in GOBIN etc e.g., geonet-web
 CWD=${PWD##*/}
 
@@ -50,7 +47,7 @@ do
 	docker run -e "GOBIN=/usr/src/go/src/github.com/GeoNet/${CWD}/${DOCKER_TMP}" -e "GOPATH=/usr/src/go" -e "CGO_ENABLED=0" -e "GOOS=linux" -e "BUILD=$BUILD" --rm \
 		-v "$PWD":/usr/src/go/src/github.com/GeoNet/${CWD} \
 		-w /usr/src/go/src/github.com/GeoNet/${CWD} ${BUILD_CONTAINER} \
-		go install -a  -ldflags "${BUILD}" -installsuffix cgo ./${i}
+		go install -a -ldflags "-X main.Prefix=${i}/${VERSION}" -installsuffix cgo ./${i}
 
 		rm -rf $DOCKER_TMP/assets
 		mkdir $DOCKER_TMP/assets
@@ -70,9 +67,9 @@ do
 
         rsync --ignore-missing-args ${i}/Dockerfile docker-build-tmp/
 
-		docker build -t quay.io/geonet/${i}:$VERSION -f docker-build-tmp/Dockerfile docker-build-tmp
+		docker build -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION -f docker-build-tmp/Dockerfile docker-build-tmp
 		# tag latest.  Makes it easier to test with compose. 
-		docker tag quay.io/geonet/${i}:$VERSION quay.io/geonet/${i}:latest
+		docker tag 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 
 		rm -f $DOCKER_TMP/$i
 done
