@@ -33,7 +33,12 @@ deploy:
      skip_cleanup: true
      script: ./build-push.sh fits-api
      on: 
-       branch: master 
+       branch: master
+   - provider: script
+     skip_cleanup: true
+     script: ./build-push-prod.sh fits-api
+     on:
+       branch: release
  
 env:
     global:
