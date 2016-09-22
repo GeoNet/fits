@@ -51,7 +51,7 @@ do
 
 		rm -rf $DOCKER_TMP/assets
 		mkdir $DOCKER_TMP/assets
-		rsync --archive --quiet --ignore-missing-args  ${i}/assets docker-build-tmp/
+		rsync --archive --quiet --ignore-missing-args ${i}/assets docker-build-tmp/
 
         # Add a default Dockerfile
 
