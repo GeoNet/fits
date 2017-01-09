@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # code will be compiled in this container
-BUILD_CONTAINER=golang:1.7.0-alpine
+BUILD_CONTAINER=golang:1.7.4-alpine
 
 DOCKER_TMP=docker-build-tmp
 
@@ -31,13 +31,14 @@ VERSION='git-'`git rev-parse --short HEAD`
 # The current working dir to use in GOBIN etc e.g., geonet-web
 CWD=${PWD##*/}
 
+mkdir -p ${DOCKER_TMP}/etc/ssl/certs
+mkdir -p ${DOCKER_TMP}/usr/share
+
 # Assemble common resource for ssl and timezones from the build container
-docker run --rm -v "$PWD":"$PWD"  ${BUILD_CONTAINER} \
-	apk add --update ca-certificates tzdata; \
-	mkdir -p "$PWD"/${DOCKER_TMP}/etc/ssl/certs; \
-	mkdir -p "$PWD"/${DOCKER_TMP}/usr/share; \
-	cp /etc/ssl/certs/ca-certificates.crt "$PWD"/${DOCKER_TMP}/etc/ssl/certs; \
-	cp -Ra /usr/share/zoneinfo "$PWD"/${DOCKER_TMP}/usr/share
+docker run --rm -v ${PWD}:${PWD} ${BUILD_CONTAINER} \
+    /bin/ash -c "apk add --update ca-certificates tzdata && \
+    cp /etc/ssl/certs/ca-certificates.crt ${PWD}/${DOCKER_TMP}/etc/ssl/certs && \
+    cp -Ra /usr/share/zoneinfo ${PWD}/${DOCKER_TMP}/usr/share"
 
 # Assemble common resource for user.
 echo "nobody:x:65534:65534:Nobody:/:" > ${DOCKER_TMP}/etc/passwd
