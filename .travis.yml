@@ -16,7 +16,7 @@ before_deploy:
 before_install:
  - export DEBIAN_FRONTEND=noninteractive;
    sudo -E apt-get -yq update &>> ~/apt-get-update.log;
-   sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.5-postgis-2.2
+   sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.5-postgis-2.3
  - sudo apt-get install -y xsltproc
 
 install: true
