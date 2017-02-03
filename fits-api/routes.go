@@ -13,7 +13,7 @@ func init() {
 	mux.HandleFunc("/spark", weft.MakeHandlerAPI(spark))
 	mux.HandleFunc("/map/site", weft.MakeHandlerAPI(siteMapHandler))
 	mux.HandleFunc("/observation_results", weft.MakeHandlerAPI(observationResults))
-	mux.HandleFunc("/observation_stats", weft.MakeHandlerAPI(observationStats))
+	mux.HandleFunc("/observation/stats", weft.MakeHandlerAPI(observationStats))
 	mux.HandleFunc("/type", weft.MakeHandlerAPI(types))
 	mux.HandleFunc("/method", weft.MakeHandlerAPI(method))
 	mux.HandleFunc("/plot", weft.MakeHandlerAPI(plotHandler))
