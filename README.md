@@ -11,14 +11,14 @@ There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
 ```
-docker build --rm=true -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:9.5 -f database/Dockerfile database
+docker build --rm=true -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:9.5 -f etc/Dockerfile database
 docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:9.5
 ```
 
 Add test data to the DB with:
 
 ```
-./database/scripts/initdb-test.sh
+./etc/scripts/initdb-test.sh
 ```
 
 Full DB init and load a small amount of test data with:
@@ -31,7 +31,7 @@ cd scripts; ./initdb.sh
 
 The database logical model.
 
-![database logical model](ddl/FITS_Logical_Model.png)
+![database logical model](etc/ddl/FITS_Logical_Model.png)
 
 
 ### Deployment

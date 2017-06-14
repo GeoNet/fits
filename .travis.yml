@@ -2,7 +2,7 @@ sudo: required
 
 language: go
 go:
-- 1.7.4
+- 1.8.3
 services:
   - docker
 
@@ -24,7 +24,7 @@ addons:
   postgresql: '9.5'
 before_script:
 - psql -U postgres -c "create extension postgis"
-- ./database/scripts/initdb.sh
+- ./etc/scripts/initdb.sh
 script: 
 - ./all.sh
 

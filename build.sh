@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # code will be compiled in this container
-BUILD_CONTAINER=golang:1.7.4-alpine
+BUILD_CONTAINER=golang:1.8.3-alpine
 
 DOCKER_TMP=docker-build-tmp
 
@@ -48,11 +48,11 @@ do
 	docker run -e "GOBIN=/usr/src/go/src/github.com/GeoNet/${CWD}/${DOCKER_TMP}" -e "GOPATH=/usr/src/go" -e "CGO_ENABLED=0" -e "GOOS=linux" -e "BUILD=$BUILD" --rm \
 		-v "$PWD":/usr/src/go/src/github.com/GeoNet/${CWD} \
 		-w /usr/src/go/src/github.com/GeoNet/${CWD} ${BUILD_CONTAINER} \
-		go install -a -ldflags "-X main.Prefix=${i}/${VERSION}" -installsuffix cgo ./${i}
+		go install -a -ldflags "-X main.Prefix=${i}/${VERSION}" -installsuffix cgo ./cmd/${i}
 
 		rm -rf $DOCKER_TMP/assets
 		mkdir $DOCKER_TMP/assets
-		rsync --archive --quiet --ignore-missing-args ${i}/assets docker-build-tmp/
+		rsync --archive --quiet --ignore-missing-args cmd/${i}/assets docker-build-tmp/
 
         # Add a default Dockerfile
 
@@ -66,7 +66,7 @@ do
 
         # If a project specifies a Dockerfile then copy it over the top of the default file.
 
-        rsync --ignore-missing-args ${i}/Dockerfile docker-build-tmp/
+        rsync --ignore-missing-args cmd/${i}/Dockerfile docker-build-tmp/
 
 		docker build -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION -f docker-build-tmp/Dockerfile docker-build-tmp
 		# tag latest.  Makes it easier to test with compose. 
