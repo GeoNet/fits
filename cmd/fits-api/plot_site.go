@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/GeoNet/fits/ts"
+	"github.com/GeoNet/fits/internal/ts"
 	"github.com/GeoNet/weft"
 	"net/http"
 	"time"
