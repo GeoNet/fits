@@ -6,18 +6,26 @@ import (
 	"testing"
 )
 
+// networkID is now optional and ignored.  Test existing routes with and without networkID
+// to make sure there are no errors.
+
 var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1&methodID=m1"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?siteID=TEST1&networkID=TN1"},
+	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?siteID=TEST1"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1&methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&networkID=TN1"},
+	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&networkID=TN1&methodID=m1"},
+	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&methodID=m1"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&networkID=TN1&methodID=m1&days=400"},
+	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&methodID=m1&days=400"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&networkID=TN1&days=400"},
+	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&siteID=TEST1&days=400"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m1"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
@@ -26,17 +34,24 @@ var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1JSON, Content: v1JSON, URL: "/method?typeID=t1"},
 	{ID: wt.L(), Accept: v1JSON, Content: v1JSON, URL: "/method"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1"},
+	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=12.2"},
+	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&yrange=12.2"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000"},
+	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&days=10000"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=10000&yrange=12.2"},
+	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&siteID=TEST1&days=10000&yrange=12.2"},
 
 	// Routes that should bad request.
-	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1"},
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1"},
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=nan"},
+	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&days=nan"},
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&days=1000000000000"},
+	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&days=1000000000000"},
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=-12.2"},
+	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&yrange=-12.2"},
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&networkID=TN1&yrange=0"},
+	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&yrange=0"},
 
 	// CSV routes that should bad request
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},

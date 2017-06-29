@@ -15,7 +15,7 @@ type plt struct {
 }
 
 func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID", "networkID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme", "networkID"}); !res.Ok {
 		return res
 	}
 
@@ -142,35 +142,35 @@ func (plt *plt) addSeries(t typeQ, start time.Time, days int, sites ...siteQ) (e
 				`SELECT time, value, error FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID)
+	ORDER BY time ASC;`, s.siteID, t.typeID)
 		case !start.IsZero() && days == 0:
 			rows, err = db.Query(`SELECT time, value, error FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	AND time > $4
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start)
+	AND time > $3
+	ORDER BY time ASC;`, s.siteID, t.typeID, start)
 		case !start.IsZero() && days != 0:
 			rows, err = db.Query(`SELECT time, value, error FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	AND time > $4
-	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
+	AND time > $3
+	AND time < $4
+	ORDER BY time ASC;`, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
 		}
 		if err != nil {
 			return
@@ -178,7 +178,7 @@ func (plt *plt) addSeries(t typeQ, start time.Time, days int, sites ...siteQ) (e
 		defer rows.Close()
 
 		var ser ts.Series
-		ser.Label = fmt.Sprintf("%s.%s", s.networkID, s.siteID)
+		ser.Label = fmt.Sprintf("%s", s.siteID)
 
 		for rows.Next() {
 			p := ts.Point{}
@@ -205,37 +205,37 @@ func (plt *plt) addSeriesLabelMethod(t typeQ, start time.Time, days int, s siteQ
 			`SELECT time, value, error, methodpk FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID)
+	ORDER BY time ASC;`, s.siteID, t.typeID)
 	case !start.IsZero() && days == 0:
 		rows, err = db.Query(
 			`SELECT time, value, error, methodpk FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	AND time > $4
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start)
+	AND time > $3
+	ORDER BY time ASC;`, s.siteID, t.typeID, start)
 	case !start.IsZero() && days != 0:
 		rows, err = db.Query(
 			`SELECT time, value, error, methodpk FROM fits.observation
 		WHERE
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	AND time > $4
-	AND time < $5
-	ORDER BY time ASC;`, s.networkID, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
+	AND time > $3
+	AND time < $4
+	ORDER BY time ASC;`, s.siteID, t.typeID, start, start.Add(time.Duration(days*1)*time.Hour*24))
 	}
 	if err != nil {
 		return
@@ -277,17 +277,16 @@ func (plt *plt) setStddevPop(s siteQ, t typeQ, start time.Time, days int) (err e
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
          WHERE
-         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
-         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )`,
-			s.networkID, s.siteID, t.typeID).Scan(&m, &d)
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join where siteid = $1)
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $2 )`,
+			s.siteID, t.typeID).Scan(&m, &d)
 	case !start.IsZero() && days == 0:
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
           WHERE
-          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
-	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $3 )
-	      AND time > $4`,
-			s.networkID, s.siteID, t.typeID, start).Scan(&m, &d)
+          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
+	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $2 )
+	      AND time > $3`, s.siteID, t.typeID, start).Scan(&m, &d)
 	}
 	if err != nil {
 		return
