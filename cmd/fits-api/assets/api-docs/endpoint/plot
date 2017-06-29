@@ -116,55 +116,55 @@
 	potential for signal to be obscured or visual artifacts created.  If you think you have seen 
 	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e" style="width: 100% \9" class="img-responsive" />
 	<br/>Plots show data with errors.  The minimum, maximum, and latest values are labeled.  The plot can be 
-	used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e"/></code> or as
+	used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e"/></code> or as
 	an object or inline depending on your needs.
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e&days=300" style="width: 100% \9" class="img-responsive" />
 	<br/>The number of days displayed can be changed with the <code>days</code> query parameter.  If <code>start</code> is not specifed then 
 	the number of days before now is displayed.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e&days=300"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200" style="width: 100% \9" class="img-responsive" />
 	<br/>A fixed time range for the plot can be specified by setting <code>start</code> and <code>days</code>.  
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e&start=2010-01-01T00:00:00Z&days=200"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e&days=300&yrange=50" style="width: 100% \9" class="img-responsive" />
 	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.  A single value sets a fixed range centered on the data.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=50"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e&days=300&yrange=50"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=-15,50" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e&days=300&yrange=-15,50" style="width: 100% \9" class="img-responsive" />
 	<br/>The range of the y-axis can be set with the <code>yrange</code> query parameter.  A pair of values fixes the y axis range.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e&days=300&yrange=-15,50"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e&days=300&yrange=-15,50"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=LI&siteID=GISB&typeID=e_rf&yrange=50" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=GISB&typeID=e_rf&yrange=50" style="width: 100% \9" class="img-responsive" />
 	<br />Not all observations have an associated error estimate.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=LI&siteID=GISB&typeID=e_rf&days=300"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=GISB&typeID=e_rf&days=300"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop" style="width: 100% \9" class="img-responsive" />
 	<br />Scatter plots may be more appropriate for some observations.  The population standard deviation can also be shown on a plot.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&stddev=pop"/></code>
 	</p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true" style="width: 100% \9" class="img-responsive" />
 	<br />The method used for an observation type can also be indicated on a scatter plot.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true"/></code>
 	</p>
 	<p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector" style="width: 100% \9" class="img-responsive" />
 	<br />The <code>scheme=projector</code> parameter makes scatter/line plots with higher saturate colours so they'll be clearer for projectors.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&showMethod=true&scheme=projector"/></code>
 	</p>
-	<img src="/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
+	<img src="/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400" style="width: 100% \9" class="img-responsive" />
 	<br />If <code>yrange</code> is set and data values would be out of range the background colour of the plot changes.  This happens
 	with <code>line</code> and <code>scatter</code> plots.
-	<code>&lt;img src="http://fits.geonet.org.nz/plot?networkID=VO&siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
+	<code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
 	</p>
 
 	<div class="panel panel-primary">
@@ -172,7 +172,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
+	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -182,9 +182,6 @@
 	
 	<h5>Required:</h5>
 	<dl class="dl-horizontal">
-	
-	<dt>networkID</dt>
-	<dd>Network identifier e.g., <code>VO</code>.</dd>
 	
 	<dt>siteID</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>
@@ -247,7 +244,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
+	<dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -259,8 +256,7 @@
 	<dl class="dl-horizontal">
 	
 	<dt>sites</dt>
-	<dd>A comma separated list of sites specified by the <code>networkID</code> 
-		and <code>siteID</code> joined with a <code>.</code> e.g., <code>LI.GISB,LI.TAUP</code>.</dd>
+	<dd>A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
 	
 	<dt>typeID</dt>
 	<dd>A type identifier for observations e.g., <code>e</code>.</dd>

@@ -3702,7 +3702,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/site?siteID=(siteID)&amp;networkID=(networkID)</dd>
+	<dd>/site?siteID=(siteID)</dd>
 	<dt>Accept</dt>
 	<dd>application/vnd.geo&#43;json;version=1</dd>
 	</dl>
@@ -3712,9 +3712,6 @@
 	
 	<h5>Required:</h5>
 	<dl class="dl-horizontal">
-	
-	<dt>networkID</dt>
-	<dd>Network identifier e.g., <code>VO</code>.</dd>
 	
 	<dt>siteID</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>
@@ -3744,7 +3741,7 @@
 	</dl>
 	<h4>Example Query and Response</h4>
 	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD&amp;networkID=CG</div>
+	<div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD</div>
 	<div class="panel-body panel-height"><pre>{
      &#34;features&#34;: [
        {

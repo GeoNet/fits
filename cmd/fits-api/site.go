@@ -19,15 +19,14 @@ const (
                          		siteid AS "siteID",
                                 height,
                                 ground_relationship AS "groundRelationship",
-                                name,
-                                networkID as "networkID"
+                                name
                            ) as l
-                         )) as properties FROM (fits.site join fits.network using (networkpk)) as s `
+                         )) as properties FROM fits.site as s `
 	fc = ` ) As f )  as fc`
 )
 
 func site(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "networkID"}, []string{}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID"}, []string{"networkID"}); !res.Ok {
 		return res
 	}
 
@@ -35,20 +34,18 @@ func site(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	v := r.URL.Query()
 
-	networkID := v.Get("networkID")
 	siteID := v.Get("siteID")
 
 	var d string
 
-	if err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
-		networkID, siteID).Scan(&d); err != nil {
+	if err := db.QueryRow("select siteID FROM fits.site where siteid = $1", siteID).Scan(&d); err != nil {
 		if err == sql.ErrNoRows {
 			return &weft.NotFound
 		}
 		return weft.ServiceUnavailableError(err)
 	}
 
-	by, err := geoJSONSite(networkID, siteID)
+	by, err := geoJSONSite(siteID)
 	if err != nil {
 		weft.ServiceUnavailableError(err)
 	}
@@ -106,12 +103,12 @@ func siteType(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	return &weft.StatusOK
 }
 
-// validSite checks that the siteID and networkID combination exists in the DB.
-func validSite(networkID, siteID string) *weft.Result {
+// validSite checks that the siteID exists in the DB.
+func validSite(siteID string) *weft.Result {
 	var d string
 
-	if err := db.QueryRow("select siteID FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1",
-		networkID, siteID).Scan(&d); err != nil {
+	if err := db.QueryRow("select siteID FROM fits.site WHERE siteid = $1",
+		siteID).Scan(&d); err != nil {
 		if err == sql.ErrNoRows {
 			return &weft.NotFound
 		}
@@ -121,10 +118,10 @@ func validSite(networkID, siteID string) *weft.Result {
 	return &weft.StatusOK
 }
 
-func geoJSONSite(networkID, siteID string) ([]byte, error) {
+func geoJSONSite(siteID string) ([]byte, error) {
 	var d string
 	err := db.QueryRow(
-		siteGeoJSON+` WHERE siteid = $1 and networkid = $2`+fc, siteID, networkID).Scan(&d)
+		siteGeoJSON+` WHERE siteid = $1`+fc, siteID).Scan(&d)
 
 	return []byte(d), err
 }

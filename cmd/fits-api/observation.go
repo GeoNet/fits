@@ -19,7 +19,7 @@ func init() {
 }
 
 func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "networkID", "typeID"}, []string{"days", "methodID"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}); !res.Ok {
 		return res
 	}
 
@@ -34,7 +34,6 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		return res
 	}
 
-	networkID := v.Get("networkID")
 	siteID := v.Get("siteID")
 
 	var days int
@@ -77,53 +76,53 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
                                sitepk = (
-                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
                                             )
                                AND typepk = (
-                                                        SELECT typepk FROM fits.type WHERE typeid = $3
+                                                        SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
-                                 ORDER BY time ASC;`, networkID, siteID, typeID)
+                                 ORDER BY time ASC;`, siteID, typeID)
 	case days != 0 && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
                                sitepk = (
-                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
                                             )
                                AND typepk = (
-                                                        SELECT typepk FROM fits.type WHERE typeid = $3
+                                                        SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
                                 AND time > (now() - interval '`+strconv.Itoa(days)+` days')
-                  		ORDER BY time ASC;`, networkID, siteID, typeID)
+                  		ORDER BY time ASC;`, siteID, typeID)
 	case days == 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
                                sitepk = (
-                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
                                             )
                                AND typepk = (
-                                                         SELECT typepk FROM fits.type WHERE typeid = $3
+                                                         SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
 			AND methodpk = (
-					SELECT methodpk FROM fits.method WHERE methodid = $4
+					SELECT methodpk FROM fits.method WHERE methodid = $3
 				)
-                                 ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+                                 ORDER BY time ASC;`, siteID, typeID, methodID)
 	case days != 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
                            WHERE 
                                sitepk = (
-                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+                                              SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
                                             )
                                AND typepk = (
-                                                         SELECT typepk FROM fits.type WHERE typeid = $3
+                                                         SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
 		AND methodpk = (
-					SELECT methodpk FROM fits.method WHERE methodid = $4
+					SELECT methodpk FROM fits.method WHERE methodid = $3
 				)
                                 AND time > (now() - interval '`+strconv.Itoa(days)+` days')
-                  		ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+                  		ORDER BY time ASC;`, siteID, typeID, methodID)
 	}
 	if err != nil {
 		return weft.ServiceUnavailableError(err)
@@ -143,16 +142,16 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	rows.Close()
 
 	if methodID != "" {
-		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+siteID+`-`+typeID+`-`+methodID+`.csv"`)
 	} else {
-		h.Set("Content-Disposition", `attachment; filename="FITS-`+networkID+`-`+siteID+`-`+typeID+`.csv"`)
+		h.Set("Content-Disposition", `attachment; filename="FITS-`+siteID+`-`+typeID+`.csv"`)
 	}
 
 	return &weft.StatusOK
 }
 
 func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "networkID", "typeID"}, []string{"days", "methodID"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}); !res.Ok {
 		return res
 	}
 
@@ -198,15 +197,14 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 		return weft.ServiceUnavailableError(err)
 	}
 
-	networkID := v.Get("networkID")
 	siteID := v.Get("siteID")
 
-	values, err := loadObs(networkID, siteID, typeID, methodID, tmin)
+	values, err := loadObs(siteID, typeID, methodID, tmin)
 	if err != nil {
 		return weft.ServiceUnavailableError(err)
 	}
 
-	mean, stdDev, err := stddevPop(networkID, siteID, typeID, methodID, tmin)
+	mean, stdDev, err := stddevPop(siteID, typeID, methodID, tmin)
 	if err != nil {
 		return weft.ServiceUnavailableError(err)
 	}
@@ -425,11 +423,11 @@ type obstats struct {
 }
 
 /*
-stddevPop finds the mean and population stddev for the networkID, siteID, and typeID query.
+stddevPop finds the mean and population stddev for the siteID, and typeID query.
 The start of data range can be restricted using the start parameter.  To query all data pass
 a zero value uninitialized Time.
 */
-func stddevPop(networkID, siteID, typeID string, methodID string, start time.Time) (m, d float64, err error) {
+func stddevPop(siteID, typeID string, methodID string, start time.Time) (m, d float64, err error) {
 	tZero := time.Time{}
 
 	switch {
@@ -437,50 +435,50 @@ func stddevPop(networkID, siteID, typeID string, methodID string, start time.Tim
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
          WHERE
-         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
-         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )`,
-			networkID, siteID, typeID).Scan(&m, &d)
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $2 )`,
+			siteID, typeID).Scan(&m, &d)
 
 	case start != tZero && methodID == "":
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
           WHERE
-          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
-	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $3 )
-	      AND time > $4`,
-			networkID, siteID, typeID, start).Scan(&m, &d)
+          sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
+	      AND typepk = (SELECT typepk FROM fits.type WHERE typeid = $2 )
+	      AND time > $3`,
+			siteID, typeID, start).Scan(&m, &d)
 
 	case start == tZero && methodID != "":
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
          WHERE
-         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1)
-	      AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3)
-	      AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $4 )`,
-			networkID, siteID, typeID, methodID).Scan(&m, &d)
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
+	      AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $2)
+	      AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $3 )`,
+			siteID, typeID, methodID).Scan(&m, &d)
 
 	case start != tZero && methodID != "":
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
          WHERE
-         sitepk = ( SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 )
-         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $3 )
-         AND methodpk = ( SELECT methodpk FROM fits.method WHERE methodid = $5 )
-         AND time > $4`,
-			networkID, siteID, typeID, start, methodID).Scan(&m, &d)
+         sitepk = ( SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
+         AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $2 )
+         AND methodpk = ( SELECT methodpk FROM fits.method WHERE methodid = $4 )
+         AND time > $3`,
+			siteID, typeID, start, methodID).Scan(&m, &d)
 	}
 
 	return
 }
 
 /*
-loadObs returns observation values for  the networkID, siteID, and typeID query.
+loadObs returns observation values for the siteID, and typeID query.
 The start of data range can be restricted using the start parameter.  To query all data pass
 a zero value uninitialized Time.
 Passing a non zero methodID will further restrict the result set.
 []values is ordered so the latest value will always be values[len(values) -1]
 */
-func loadObs(networkID, siteID, typeID, methodID string, start time.Time) (values []value, err error) {
+func loadObs(siteID, typeID, methodID string, start time.Time) (values []value, err error) {
 	var rows *sql.Rows
 	tZero := time.Time{}
 
@@ -490,53 +488,53 @@ func loadObs(networkID, siteID, typeID, methodID string, start time.Time) (value
 			`SELECT time, value, error FROM fits.observation 
 		WHERE 
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
-	ORDER BY time ASC;`, networkID, siteID, typeID)
+	ORDER BY time ASC;`, siteID, typeID)
 	case start != tZero && methodID == "":
 		rows, err = db.Query(
 			`SELECT time, value, error FROM fits.observation 
 		WHERE 
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		) 
-	AND time > $4
-	ORDER BY time ASC;`, networkID, siteID, typeID, start)
+	AND time > $3
+	ORDER BY time ASC;`, siteID, typeID, start)
 	case start == tZero && methodID != "":
 		rows, err = db.Query(
 			`SELECT time, value, error FROM fits.observation 
 		WHERE 
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		)
 	AND methodpk = (
-			SELECT methodpk FROM fits.method WHERE methodid = $4
+			SELECT methodpk FROM fits.method WHERE methodid = $3
 			)	
-	ORDER BY time ASC;`, networkID, siteID, typeID, methodID)
+	ORDER BY time ASC;`, siteID, typeID, methodID)
 	case start != tZero && methodID != "":
 		rows, err = db.Query(
 			`SELECT time, value, error FROM fits.observation 
 		WHERE 
 		sitepk = (
-			SELECT DISTINCT ON (sitepk) sitepk from fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1 
+			SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
 			)
 	AND typepk = (
-		SELECT typepk FROM fits.type WHERE typeid = $3
+		SELECT typepk FROM fits.type WHERE typeid = $2
 		) 
 	AND methodpk = (
-		SELECT methodpk FROM fits.method WHERE methodid = $5
+		SELECT methodpk FROM fits.method WHERE methodid = $4
 		)	
-	AND time > $4
-	ORDER BY time ASC;`, networkID, siteID, typeID, start, methodID)
+	AND time > $3
+	ORDER BY time ASC;`, siteID, typeID, start, methodID)
 	}
 	if err != nil {
 		return

@@ -110,35 +110,35 @@
 	<a id="sitemaps" class="anchor"></a>
 	<h3 class="page-header">Site Maps</h3>
 	<p class="lead">Maps of specific sites</p>
-	<p>A minimal query specifies a single site by <code>networkID</code> and <code>siteID</code>.  The map bounds 
+	<p>A minimal query specifies a single site by <code>siteID</code>.  The map bounds
 	are calculated to suit the selected site and keep New Zealand in the map.  The site is marked with a red triangle with the 
 	site at the center.  Width defaults to 130 and the height is calculated from the map bounds and width.  If the map is included in
 	a page using an object tag (and viewed using a recent web browser) then when the site marker is moused over a label for 
 	the site is briefly displayed.  If the image is included in an img tag the mouse over functionality is not available.</p>
 	<p>
-	<object data="/map/site?networkID=LI&siteID=GISB" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?networkID=LI&siteID=GISB" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?siteID=GISB" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?siteID=GISB" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
 	Multiple sites can be specified with the <code>sites</code> query parameter.  The map bounds are calculated from 
 	the sites and maps wrap the 180 meridian.<br /><br />
-	<object data="/map/site?sites=LI.GISB,LI.CHTI,CG.RAUL" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=LI.GISB,LI.CHTI,CG.RAUL" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?sites=GISB,CHTI,RAUL" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=GISB,CHTI,RAUL" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
-	<object data="/map/site?sites=LI.GISB,LI.CHTI,CG.RAUL,GN.FALE" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=LI.GISB,LI.CHTI,GN.FALE" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?sites=GISB,CHTI,RAUL,FALE" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=GISB,CHTI,FALE" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p>
-	<object data="/map/site?sites=LI.GISB,LI.CHTI,CG.RAUL,GN.FALE,LI.SCTB" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=LI.GISB,LI.CHTI,GN.FALE,LI.SCTB" type="image/svg+xml">&lt;/object></code><br/><br/>
+	<object data="/map/site?sites=GISB,CHTI,RAUL,FALE,SCTB" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=GISB,CHTI,FALE,SCTB" type="image/svg+xml">&lt;/object></code><br/><br/>
 	</p>
 	<p> 
 	The size of the map can be changed with the <code>width</code> parameter.  The map bounds can be controlled with the 
 	<code>bbox</code> query parameter either by specifiying the lower left and upper right corners or by using one of the named
 	map bounds.  Zoomed in maps have higher resolution map data.  When width allows the full site name is included in the label.<br />
-	<object data="/map/site?sites=CG.RAUL&width=500&bbox=RaoulIsland" type="image/svg+xml"></object><br/><br/>
-	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=CG.RAUL&width=500&bbox=RaoulIsland" type="image/svg+xml">&lt;/object></code>
+	<object data="/map/site?sites=RAUL&width=500&bbox=RaoulIsland" type="image/svg+xml"></object><br/><br/>
+	<code>&lt;object data="http://fits.geonet.org.nz/map/site?sites=RAUL&width=500&bbox=RaoulIsland" type="image/svg+xml">&lt;/object></code>
 	</p>
 	<p><br/>
 	Map data are assembled from a number of sources:
@@ -158,7 +158,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/map/site?(networkID=(string)&amp;siteID=(string)|&amp;sites=(networkID.siteID,...))[&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
+	<dd>/map/site?siteID=(string)|&amp;sites=(siteID,...))[&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -189,15 +189,11 @@
 	<dd> If specified then is used to draw a small inset map in the upper left corner.  Useful for
 		giving context to zoomed in regions.  Same specification options as <code>bbox</code>.</dd>
 	
-	<dt>networkID</dt>
-	<dd>Network identifier e.g., <code>VO</code>.  Specify <code>networkID</code> and <code>siteID</code> or <code>sites</code></dd>
-	
 	<dt>siteID</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>
 	
 	<dt>sites</dt>
-	<dd>A comma separated list of sites specified by the <code>networkID</code> 
-		and <code>siteID</code> joined with a <code>.</code> e.g., <code>LI.GISB,LI.TAUP</code>.</dd>
+	<dd>A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
 	
 	<dt>width</dt>
 	<dd>Default <code>130</code>.  The width of the returned image in px.</dd>
