@@ -48,3 +48,13 @@ zip to EB.
 cd deploy
 zip fits.zip Dockerrun.aws.json .ebextensions/*
 ```
+
+### FITS-GRPC
+
+Provides a GRPC api for FITS. 
+
+#### Developing clients
+
+fits-grpc generates a self signed TLS cert.  In production connections will be terminated on a load balancer that 
+ uses a valid cert.  To develop clients and test against fits-grpc on localhost skip verifying the TLS cert when connecting
+  see `main_test.go`.  Only skip verify for dev and test.  Split the code up and use a devmode build tag.

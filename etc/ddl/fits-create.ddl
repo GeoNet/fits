@@ -23,7 +23,7 @@ CREATE TABLE fits.type (
 	typeID TEXT NOT NULL UNIQUE,
 	name TEXT NOT NULL,
 	description TEXT NOT NULL,	
-	unitPK BIGINT REFERENCES fits.unit(unitPK) NOT NULL
+	unitPK BIGINT REFERENCES fits.unit(unitPK) ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE fits.method (
@@ -35,7 +35,7 @@ CREATE TABLE fits.method (
 );
 
 CREATE TABLE fits.type_method (
-	typePK BIGINT REFERENCES fits.type(typePK) NOT NULL,
+	typePK BIGINT REFERENCES fits.type(typePK) ON DELETE CASCADE NOT NULL,
 	methodPK BIGINT REFERENCES fits.method(methodPK) NOT NULL,
 	PRIMARY KEY (typePK, methodPK)
 );
@@ -48,16 +48,16 @@ CREATE TABLE fits.system (
 
 CREATE TABLE fits.sample (
 	samplePK SERIAL PRIMARY KEY,
-	systemPK BIGINT REFERENCES fits.system(systemPK) NOT NULL,
+	systemPK BIGINT REFERENCES fits.system(systemPK) ON DELETE CASCADE NOT NULL,
 	sampleID TEXT NOT NULL,
 	UNIQUE(systemPK, sampleID)
 );
 
 CREATE TABLE fits.observation (
-	sitePK BIGINT REFERENCES fits.site(sitePK) NOT NULL,
-	typePK BIGINT REFERENCES fits.type(typePK) NOT NULL,
-	methodPK BIGINT REFERENCES fits.method(methodPK) NOT NULL,
-	samplePK BIGINT REFERENCES fits.sample(samplePK) NOT NULL,
+	sitePK BIGINT REFERENCES fits.site(sitePK) ON DELETE CASCADE NOT NULL,
+	typePK BIGINT REFERENCES fits.type(typePK) ON DELETE CASCADE NOT NULL,
+	methodPK BIGINT REFERENCES fits.method(methodPK) ON DELETE CASCADE NOT NULL,
+	samplePK BIGINT REFERENCES fits.sample(samplePK) ON DELETE CASCADE NOT NULL,
 	time TIMESTAMP(6) WITH TIME ZONE NOT NULL,
 	value NUMERIC NOT NULL,
 	error NUMERIC NOT NULL,
@@ -69,7 +69,7 @@ CREATE INDEX ON fits.observation (typePK);
 CREATE INDEX ON fits.observation (time);
 
 CREATE TABLE fits.visual_observation (
-	sitePK BIGINT REFERENCES fits.site(sitePK) NOT NULL,
+	sitePK BIGINT REFERENCES fits.site(sitePK) ON DELETE CASCADE NOT NULL,
 	time TIMESTAMP(6) WITH TIME ZONE NOT NULL,
 	image_url TEXT NOT NULL,
 	notes TEXT NOT NULL,

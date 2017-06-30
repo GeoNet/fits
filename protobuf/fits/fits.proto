@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package fits;
+option go_package = "fits";
+
+// protoc --proto_path=protobuf/fits --go_out=plugins=grpc:internal/fits protobuf/fits/*
+
+service Fits {
+    // the following calls do not require authentication.
+
+    // GetSite returns the Site referred to by SiteID.
+    rpc GetSite (SiteID) returns (Site);
+    //
+    rpc GetObservations (ObservationRequest) returns (stream ObservationResult);
+
+    // the following calls require authentication.
+
+    // SaveSite saves or updates Site.
+    rpc SaveSite (Site) returns (Response);
+    // DeleteSite deletes the site referred to by SiteID.
+    // Any observations for the site are also deleted.
+    rpc DeleteSite (SiteID) returns (Response);
+    // SaveObservations saves or updates the stream of Observation.
+    rpc SaveObservations (stream Observation) returns (Response);
+}
+
+message Site {
+    // siteID - a short code uniquely identifying Site e.g., GISB. Required.
+    string siteID = 1;
+    // name of the site. Required.
+    string name = 2;
+    // latitude (WGS84) of the site. Required.
+    double latitude = 3;
+    // longitude (WGS84) of the site.  Required.
+    double longitude = 4;
+    // height of the site in meters.  Required.
+    double height = 5;
+    // groundRelationship - the distance from the site to the ground in meters.
+    // e.g., a site above ground has a negative ground relationship.  Required.
+    double ground_relationship = 6;
+}
+
+// Observation is uniquely identified by (siteID, typeID, methodID, sampleID, seconds, nanoSeconds).
+message Observation {
+    // siteID for the observation e.g., GISB.  Required.
+    string siteID = 1;
+    // typeID for the observation e.g., e.  Required.
+    string typeID = 2;
+    // methodID for the observation e.g., bernese.  Required.
+    string methodID = 3;
+    // sampleID for the observation.  Defaults to "none",
+    string sampleID = 4;
+    // systemID for the sampleID for the observation.  Defaults to "none",
+    string systemID = 5;
+    // seconds - Unix time of the observation in seconds.
+    int64 seconds = 6;
+    // nanoSeconds - fractional part of observation time in nanoseconds.
+    int64 nano_seconds = 7;
+    // observation value.
+    double value = 8;
+    // error of the observation value.
+    double error = 9;
+}
+
+message Response {
+    // affected - the number of records affected.
+    int64 affected = 1;
+}
+
+message SiteID {
+    // siteID - a short code uniquely identifying Site e.g., GISB.
+    string siteID = 1;
+}
+
+message ObservationRequest {
+    // siteID for the observation e.g., GISB.  Required.
+    string siteID = 1;
+    // typeID for the observation e.g., e.  Required.
+    string typeID = 2;
+}
+
+message ObservationResult {
+    // seconds - Unix time of the observation in seconds.
+    int64 seconds = 1;
+    // nanoSeconds - fractional part of observation time in nanoseconds.
+    int64 nano_seconds = 2;
+    // observation value.
+    double value = 3;
+    // error of the observation value.
+    double error = 4;
+}
