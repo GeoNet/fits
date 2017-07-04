@@ -1,0 +1,17 @@
+ {
+ 	"type": "Point",
+ 	"coordinates": [
+ 	175.673170826,
+ 	-39.108617051
+ 	],
+ 	"properties": {
+ 		"siteID": "VGT2",
+ 		"height": -999.9,
+ 		"groundRelationship": -999.9,
+ 		"name": "Te Maari 2",
+ 		"networkID": "CG",
+ 		"typeID": "e",
+ 		"methodID": "bernese5"
+ 	}
+ }
+

@@ -1,5 +1,7 @@
 cmd/fits-api/fits-api
 cmd/fits-grpc/fits-grpc
+cmd/fits-loader/fits-loader
+cmd/fits-cli/fits-cli
 gnss-test/
 prod/
 Godeps/_workspace/src/github.com/GeoNet/map180/data/new_zealand_map_layers.ddl.gz
