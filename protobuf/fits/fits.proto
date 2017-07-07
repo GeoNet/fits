@@ -17,9 +17,11 @@ service Fits {
 
     // SaveSite saves or updates Site.
     rpc SaveSite (Site) returns (Response);
+
     // DeleteSite deletes the site referred to by SiteID.
     // Any observations for the site are also deleted.
     rpc DeleteSite (SiteID) returns (Response);
+
     // SaveObservations saves or updates the stream of Observation.
     rpc SaveObservations (stream Observation) returns (Response);
 }

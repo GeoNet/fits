@@ -16,6 +16,7 @@ import (
 )
 
 var testServer *grpc.Server
+var fs fitsServer
 var conn *grpc.ClientConn
 var connNoCreds *grpc.ClientConn
 
@@ -26,8 +27,6 @@ func TestMain(m *testing.M) {
 	tokenWrite = "testwrite"
 
 	var err error
-
-	var fs fitsServer
 
 	fs.db, err = sql.Open("postgres", "host=localhost connect_timeout=300 user=fits_w password=test dbname=fits sslmode=disable statement_timeout=600000")
 	if err != nil {
