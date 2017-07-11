@@ -17,10 +17,11 @@ import (
 const vers = "1.0"
 
 var (
-	token   string
-	connStr string
-	dataDir string
-	version bool
+	token    string
+	connStr  string
+	dataDir  string
+	version  bool
+	skipCert bool
 )
 
 var conn *grpc.ClientConn
@@ -30,6 +31,7 @@ func initConfig() {
 	flag.StringVar(&dataDir, "data-dir", "", "path to directory of observation and source files.")
 	flag.StringVar(&token, "token", "", "token id to write to fits-grpc.")
 	flag.BoolVar(&version, "version", false, "prints the version and exits.")
+	flag.BoolVar(&skipCert, "testing", false, "don't verify server's certificate.")
 	flag.Parse()
 
 	if version {
@@ -45,7 +47,7 @@ func main() {
 
 	conn, err = grpc.Dial(connStr,
 		grpc.WithPerRPCCredentials(tk.New(token)),
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: "", InsecureSkipVerify: true})))
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: "", InsecureSkipVerify: skipCert})))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

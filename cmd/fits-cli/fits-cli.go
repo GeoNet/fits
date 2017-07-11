@@ -23,6 +23,7 @@ var (
 	connStr        string
 	siteID, typeID string
 	version        bool
+	skipCert       bool
 )
 
 var conn *grpc.ClientConn
@@ -33,6 +34,7 @@ func initConfig() {
 	flag.StringVar(&siteID, "siteID", "", "siteID")
 	flag.StringVar(&typeID, "typeID", "", "typeID")
 	flag.BoolVar(&version, "version", false, "prints the version and exits.")
+	flag.BoolVar(&skipCert, "testing", false, "don't verify server's certificate.")
 	flag.Parse()
 
 	if version {
@@ -56,7 +58,7 @@ func main() {
 
 	conn, err = grpc.Dial(connStr,
 		grpc.WithPerRPCCredentials(tk.New(token)),
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: "", InsecureSkipVerify: true})))
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{ServerName: "", InsecureSkipVerify: skipCert})))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
