@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/GeoNet/fits/internal/fits"
 	"github.com/GeoNet/mtr/mtrapp"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
@@ -33,6 +34,19 @@ func (s *fitsServer) SaveObservations(stream fits.Fits_SaveObservationsServer) e
 
 		res.Affected += a
 	}
+}
+
+func (s *fitsServer) SaveObservation(ctx context.Context, in *fits.Observation) (*fits.Response, error) {
+	if err := write(ctx); err != nil {
+		return nil, err
+	}
+
+	a, err := s.saveObservation(in)
+	if err != nil {
+		return nil, err
+	}
+
+	return &fits.Response{Affected: a}, nil
 }
 
 func (s *fitsServer) GetObservations(in *fits.ObservationRequest, stream fits.Fits_GetObservationsServer) error {
@@ -86,6 +100,40 @@ func (s *fitsServer) GetObservations(in *fits.ObservationRequest, stream fits.Fi
 	}
 
 	return nil
+}
+
+func (s *fitsServer) DeleteObservations(ctx context.Context, in *fits.DeleteObservationsRequest) (*fits.Response, error) {
+	if err := write(ctx); err != nil {
+		return nil, err
+	}
+
+	err := s.validSiteID(in.GetSiteID())
+	if err != nil {
+		return &fits.Response{}, err
+	}
+
+	err = s.validTypeID(in.GetTypeID())
+	if err != nil {
+		return &fits.Response{}, err
+	}
+
+	r, err := s.db.Exec(`DELETE FROM fits.observation
+						WHERE
+						sitePK = (SELECT DISTINCT ON (sitePK) sitePK FROM fits.site WHERE siteID = $1)
+						AND
+						typePK = (SELECT DISTINCT ON (typePK) typePK FROM fits.type WHERE typeID = $2)`, in.GetSiteID(), in.GetTypeID())
+
+	if err != nil {
+		return &fits.Response{}, status.Errorf(codes.Internal, err.Error())
+	}
+
+	a, err := r.RowsAffected()
+	if err != nil {
+		return &fits.Response{}, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &fits.Response{Affected: a}, nil
+
 }
 
 // saveObservation saves or updates fits.Observation in the db.
