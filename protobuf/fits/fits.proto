@@ -17,11 +17,19 @@ service Fits {
 
     // SaveSite saves or updates Site.
     rpc SaveSite (Site) returns (Response);
+
     // DeleteSite deletes the site referred to by SiteID.
     // Any observations for the site are also deleted.
     rpc DeleteSite (SiteID) returns (Response);
+
+    // SaveObservations saves or updates the Observation.
+    rpc SaveObservation (Observation) returns (Response);
+
     // SaveObservations saves or updates the stream of Observation.
     rpc SaveObservations (stream Observation) returns (Response);
+
+    // DeleteObservations deletes all the Observations for the request.
+    rpc DeleteObservations (DeleteObservationsRequest) returns (Response);
 }
 
 message Site {
@@ -88,4 +96,11 @@ message ObservationResult {
     double value = 3;
     // error of the observation value.
     double error = 4;
+}
+
+message DeleteObservationsRequest {
+    // siteID for the observation e.g., GISB.  Required.
+    string siteID = 1;
+    // typeID for the observation e.g., e.  Required.
+    string typeID = 2;
 }

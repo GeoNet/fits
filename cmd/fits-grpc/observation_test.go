@@ -106,10 +106,44 @@ func TestObservations(t *testing.T) {
 
 	// request a stream of observations, we should get the same number back as we sent.
 
-	streamObs, err := c.GetObservations(context.Background(), &fits.ObservationRequest{SiteID: "TEST_GRPC", TypeID: "t1"})
+	n, err := countObs("TEST_GRPC", "t1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if n != lines {
+		t.Errorf("exected %d results got %d", lines, n)
+	}
+
+	// delete the observations and then search and count again to make sure we get no results back.
+
+	deleteResult, err := c.DeleteObservations(context.Background(), &fits.DeleteObservationsRequest{SiteID: "TEST_GRPC", TypeID: "t1"})
 	if err != nil {
 		t.Errorf("unexpected error %+v", err)
 	}
+
+	if deleteResult.Affected != lines {
+		t.Errorf("exected %d results got %d", lines, n)
+	}
+
+	n, err = countObs("TEST_GRPC", "t1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if n != 0 {
+		t.Errorf("exected 0 results got %d", n)
+	}
+}
+
+func countObs(siteID, typeID string) (int64, error) {
+	c := fits.NewFitsClient(conn)
+
+	streamObs, err := c.GetObservations(context.Background(), &fits.ObservationRequest{SiteID: siteID, TypeID: typeID})
+	if err != nil {
+		return 0, err
+	}
+	defer streamObs.CloseSend()
 
 	var obsResult []fits.ObservationResult
 
@@ -120,13 +154,11 @@ func TestObservations(t *testing.T) {
 			break
 		}
 		if err != nil {
-			t.Fatal(err)
+			return 0, err
 		}
 
 		obsResult = append(obsResult, r)
 	}
 
-	if int64(len(obsResult)) != lines {
-		t.Errorf("exected %d results got %d", lines, len(obsResult))
-	}
+	return int64(len(obsResult)), nil
 }

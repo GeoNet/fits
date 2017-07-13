@@ -11,6 +11,8 @@ import (
 func TestAuth(t *testing.T) {
 	var err error
 
+	// TODO grpc.Code is deprecated.
+
 	c := fits.NewFitsClient(connNoCreds)
 
 	_, err = c.SaveSite(context.Background(), &fits.Site{})
@@ -19,6 +21,16 @@ func TestAuth(t *testing.T) {
 	}
 
 	_, err = c.DeleteSite(context.Background(), &fits.SiteID{})
+	if grpc.Code(err) != codes.Unauthenticated {
+		t.Errorf("should get unuathenicated error %+v.", err)
+	}
+
+	_, err = c.DeleteObservations(context.Background(), &fits.DeleteObservationsRequest{})
+	if grpc.Code(err) != codes.Unauthenticated {
+		t.Errorf("should get unuathenicated error %+v.", err)
+	}
+
+	_, err = c.SaveObservation(context.Background(), &fits.Observation{})
 	if grpc.Code(err) != codes.Unauthenticated {
 		t.Errorf("should get unuathenicated error %+v.", err)
 	}
