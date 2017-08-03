@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 // Client is used to make requests to the test server.
@@ -18,19 +18,19 @@ type Request struct {
 	// An identifier for the request.  Used in error messages.
 	ID string
 	// Method for the request e.g., "PUT".  Defaults to "GET".
-	Method         string
+	Method string
 	// Accept header for the request.  Defaults to */*
-	Accept         string
+	Accept string
 	// The URL to be tested e.g.., /path/to/test.  The server can be added at test time.
-	URL            string
+	URL string
 	// Credentials for basic auth if required.
 	User, Password string
 	// The expected HTTP status code for the request.  Defaults to http.StatusOK (200)
-	Status         int
+	Status int
 	// The expected content type.  Not tested if zero.
-	Content        string
+	Content string
 	// The expected Surrogate-Control.  Not tested if zero.
-	Surrogate      string
+	Surrogate string
 }
 
 type Requests []Request
@@ -40,7 +40,6 @@ func L() (loc string) {
 	_, _, l, _ := runtime.Caller(1)
 	return "L" + strconv.Itoa(l)
 }
-
 
 // DoAllStatusOK runs all Requests in r that should return http.StatusOK (200).
 // Returns for the first non nil error.
@@ -156,7 +155,7 @@ func (r Request) Do(server string) ([]byte, error) {
 	default:
 		// Content-Type should not be empty
 		if res.Header.Get("Content-Type") == "" {
-			return nil, fmt.Errorf("%s %s %s got empty Content-Type.",r.ID, r.URL, r.Method)
+			return nil, fmt.Errorf("%s %s %s got empty Content-Type.", r.ID, r.URL, r.Method)
 		}
 
 		// Surrogate-Control for intermediate caches.

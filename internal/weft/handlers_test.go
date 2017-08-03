@@ -219,7 +219,6 @@ func TestWrite(t *testing.T) {
 	checkResponse(t, w, 999, "max-age=10", "", res.Msg)
 }
 
-
 /*
 Before and after benchmarks for adding bytes.Buffer pool. Also compare passing nil &bytes.Buffer
 for non GET requests in MakeHandlerAPI.  Faster, fewer allocations (less work for the garbage collector).
@@ -237,7 +236,7 @@ After:
     BenchmarkMakeHandlerPage-4            500000              3268 ns/op             800 B/op          8 allocs/op
     BenchmarkMakeHandlerAPIGet-4          500000              3279 ns/op             800 B/op          8 allocs/op
     BenchmarkMakeHandlerAPIPut-4         2000000               998 ns/op             560 B/op          5 allocs/op
- */
+*/
 func BenchmarkMakeHandlerPage(b *testing.B) {
 	var w *httptest.ResponseRecorder
 

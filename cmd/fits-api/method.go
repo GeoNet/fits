@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/GeoNet/weft"
+	"github.com/GeoNet/fits/internal/weft"
 	"net/http"
 )
 

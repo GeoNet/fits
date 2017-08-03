@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	"github.com/GeoNet/weft"
+	"github.com/GeoNet/fits/internal/weft"
 	"net/http"
 	"strconv"
 	"strings"

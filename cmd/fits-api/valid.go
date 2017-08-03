@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/weft"
+	"github.com/GeoNet/fits/internal/weft"
 	"net/url"
 	"strconv"
 	"strings"

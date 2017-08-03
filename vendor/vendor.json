@@ -19,12 +19,6 @@
 			"revisionTime": "2016-08-08T01:52:32Z"
 		},
 		{
-			"checksumSHA1": "A51+2Dnl57dtI+oA0FGMW5TEv58=",
-			"path": "github.com/GeoNet/weft",
-			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",
-			"revisionTime": "2016-08-12T00:01:52Z"
-		},
-		{
 			"checksumSHA1": "qxcW1hstrjlHw/t4qGzigqDudcc=",
 			"path": "github.com/GeoNet/weft/wefttest",
 			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",

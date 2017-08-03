@@ -155,7 +155,6 @@ const (
 	</html>
 	`
 
-
 	err503 = `<html>
 	<head>
 	<title>GeoNet 503</title>
@@ -202,9 +201,9 @@ const (
 )
 
 var errorPages = map[int][]byte{
-	http.StatusNotFound: []byte(err404),
-	http.StatusBadRequest: []byte(err400),
-	http.StatusMethodNotAllowed: []byte(err405),
+	http.StatusNotFound:            []byte(err404),
+	http.StatusBadRequest:          []byte(err400),
+	http.StatusMethodNotAllowed:    []byte(err405),
 	http.StatusInternalServerError: []byte(err503),
-	http.StatusServiceUnavailable: []byte(err503),
+	http.StatusServiceUnavailable:  []byte(err503),
 }

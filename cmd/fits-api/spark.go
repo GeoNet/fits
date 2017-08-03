@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/fits/internal/ts"
-	"github.com/GeoNet/weft"
+	"github.com/GeoNet/fits/internal/weft"
 	"net/http"
 	"time"
 )

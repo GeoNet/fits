@@ -1,7 +1,7 @@
 package main
 
 import (
-	wt "github.com/GeoNet/weft/wefttest"
+	wt "github.com/GeoNet/fits/internal/weft/wefttest"
 	"net/http"
 	"testing"
 )

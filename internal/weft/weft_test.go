@@ -1,8 +1,8 @@
 package weft
 
 import (
-	"testing"
 	"net/http"
+	"testing"
 )
 
 func TestCheckQuery(t *testing.T) {
@@ -11,19 +11,19 @@ func TestCheckQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !CheckQuery(r, []string{},[]string{}).Ok {
+	if !CheckQuery(r, []string{}, []string{}).Ok {
 		t.Error("expected true")
 	}
 
-	if !CheckQuery(r, []string{},[]string{"optional"}).Ok {
+	if !CheckQuery(r, []string{}, []string{"optional"}).Ok {
 		t.Error("expected true")
 	}
 
-	if CheckQuery(r, []string{"required"},[]string{}).Ok {
+	if CheckQuery(r, []string{"required"}, []string{}).Ok {
 		t.Error("expected false missing required param")
 	}
 
-	if CheckQuery(r, []string{"required"},[]string{"optional"}).Ok {
+	if CheckQuery(r, []string{"required"}, []string{"optional"}).Ok {
 		t.Error("expected false missing required param")
 	}
 
@@ -32,7 +32,7 @@ func TestCheckQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !CheckQuery(r, []string{"required"},[]string{}).Ok {
+	if !CheckQuery(r, []string{"required"}, []string{}).Ok {
 		t.Error("expected true")
 	}
 
@@ -41,7 +41,7 @@ func TestCheckQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if CheckQuery(r, []string{"required"},[]string{}).Ok {
+	if CheckQuery(r, []string{"required"}, []string{}).Ok {
 		t.Error("expected false, extra query param")
 	}
 
@@ -50,7 +50,7 @@ func TestCheckQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if CheckQuery(r, []string{},[]string{}).Ok {
+	if CheckQuery(r, []string{}, []string{}).Ok {
 		t.Error("expected false, cache busta")
 	}
 
@@ -59,7 +59,7 @@ func TestCheckQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if CheckQuery(r, []string{"required"},[]string{}).Ok {
+	if CheckQuery(r, []string{"required"}, []string{}).Ok {
 		t.Error("expected false, cache busta")
 	}
 }

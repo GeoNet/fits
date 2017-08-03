@@ -3,8 +3,8 @@
 package weft
 
 import (
-	"net/http"
 	"log"
+	"net/http"
 )
 
 func (res Result) log(r *http.Request) {
