@@ -7,18 +7,6 @@
 			"revision": "9382916fcb62438a7fc8406f6e2d931e33a316cf"
 		},
 		{
-			"checksumSHA1": "FcAtIa3dCgJBin+SrFiTOEU/bsA=",
-			"path": "github.com/GeoNet/mtr/internal",
-			"revision": "f63af4b93e2415b26382bcdb21ccce1d6e91d4bf",
-			"revisionTime": "2016-08-08T01:52:32Z"
-		},
-		{
-			"checksumSHA1": "oyzYMUNOEaxnse/GPkadnPeMjTM=",
-			"path": "github.com/GeoNet/mtr/mtrapp",
-			"revision": "f63af4b93e2415b26382bcdb21ccce1d6e91d4bf",
-			"revisionTime": "2016-08-08T01:52:32Z"
-		},
-		{
 			"checksumSHA1": "qxcW1hstrjlHw/t4qGzigqDudcc=",
 			"path": "github.com/GeoNet/weft/wefttest",
 			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",

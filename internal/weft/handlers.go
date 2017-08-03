@@ -3,7 +3,7 @@ package weft
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/GeoNet/mtr/mtrapp"
+	"github.com/GeoNet/fits/internal/platform/metrics"
 	"log"
 	"net/http"
 	"strings"
@@ -59,7 +59,7 @@ HTML error pages are written to the client when res.Code is not http.StatusOK.
 */
 func MakeHandlerPage(f RequestHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := mtrapp.Start()
+		t := metrics.Start()
 
 		b := bufferPool.Get().(*bytes.Buffer)
 		defer bufferPool.Put(b)
@@ -101,7 +101,7 @@ Surrogate-Control headers are also set for intermediate caches.
 */
 func MakeHandlerAPI(f RequestHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := mtrapp.Start()
+		t := metrics.Start()
 		var res *Result
 
 		switch r.Method {
