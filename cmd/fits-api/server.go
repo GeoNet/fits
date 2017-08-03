@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/GeoNet/fits/internal/ddoghttp"
 	"github.com/GeoNet/map180"
 	_ "github.com/lib/pq"
 	"log"
