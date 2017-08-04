@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/GeoNet/weft"
+	"github.com/GeoNet/fits/internal/weft"
 	"log"
 	"net/http"
 	"strconv"

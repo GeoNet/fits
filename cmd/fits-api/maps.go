@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"github.com/GeoNet/fits/internal/weft"
 	"github.com/GeoNet/map180"
-	"github.com/GeoNet/weft"
 	"net/http"
 	"strconv"
 	"strings"
