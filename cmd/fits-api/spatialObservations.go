@@ -89,36 +89,36 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	switch {
 	case within == "" && methodID == "":
 		rows, err = db.Query(
-			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
-		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) AND 
 		time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid)
 	case within != "" && methodID == "":
 		rows, err = db.Query(
-			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
-		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
 		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, within)
 	case within == "" && methodID != "":
 		rows, err = db.Query(
-			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
-		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $5)
 		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, methodID)
 	case within != "" && methodID != "":
 		rows, err = db.Query(
-			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s,%s', networkid, siteid,  
+			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
 		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
-		as csv FROM fits.observation join fits.site using (sitepk) join fits.network using (networkpk)
+		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND methodpk = (SELECT methodpk FROM fits.method WHERE methodid = $6)
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
@@ -132,7 +132,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	}
 	defer rows.Close()
 
-	b.Write([]byte("networkID, siteID, X (" + srsName + "), Y (" + srsName + "), height, groundRelationship, date-time, " + typeID + " (" + unit + "), error (" + unit + ")"))
+	b.Write([]byte("siteID, X (" + srsName + "), Y (" + srsName + "), height, groundRelationship, date-time, " + typeID + " (" + unit + "), error (" + unit + ")"))
 	b.Write(eol)
 	for rows.Next() {
 		err := rows.Scan(&d)

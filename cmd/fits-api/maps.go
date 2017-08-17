@@ -10,7 +10,7 @@ import (
 )
 
 type st struct {
-	networkID, siteID string
+	siteID string
 }
 
 func siteMap(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
@@ -34,16 +34,12 @@ func siteMap(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		}
 	}
 
-	if v.Get("sites") == "" && (v.Get("siteID") == "" && v.Get("networkID") == "") {
-		return weft.BadRequest("please specify sites or networkID and siteID")
+	if v.Get("sites") == "" && v.Get("siteID") == "" {
+		return weft.BadRequest("please specify sites or siteID")
 	}
 
-	if v.Get("sites") != "" && (v.Get("siteID") != "" || v.Get("networkID") != "") {
-		return weft.BadRequest("please specify either sites or networkID and siteID")
-	}
-
-	if v.Get("sites") == "" && (v.Get("siteID") == "" || v.Get("networkID") == "") {
-		return weft.BadRequest("please specify networkID and siteID")
+	if v.Get("sites") != "" && v.Get("siteID") != "" {
+		return weft.BadRequest("please specify either sites or siteID")
 	}
 
 	err := map180.ValidBbox(bbox)
@@ -63,27 +59,22 @@ func siteMap(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	var s []st
 
 	if v.Get("sites") != "" {
-		for _, ns := range strings.Split(v.Get("sites"), ",") {
-			nss := strings.Split(ns, ".")
-			if len(nss) != 2 {
-				return weft.BadRequest("invalid sites query.")
-			}
-			s = append(s, st{networkID: nss[0], siteID: nss[1]})
+		for _, si := range strings.Split(v.Get("sites"), ",") {
+			s = append(s, st{siteID: si})
 		}
 	} else {
-		s = append(s, st{networkID: v.Get("networkID"),
-			siteID: v.Get("siteID")})
+		s = append(s, st{siteID: v.Get("siteID")})
 	}
 
 	markers := make([]map180.Marker, 0)
 
 	for _, site := range s {
 
-		if res := validSite(site.networkID, site.siteID); !res.Ok {
+		if res := validSite(site.siteID); !res.Ok {
 			return res
 		}
 
-		g, err := geoJSONSite(site.networkID, site.siteID)
+		g, err := geoJSONSite(site.siteID)
 		if err != nil {
 			return weft.ServiceUnavailableError(err)
 		}

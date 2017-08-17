@@ -113,8 +113,8 @@
 	potential for signal to be obscured or visual artifacts created.  If you think you have seen 
 	something interesting then please use the raw CSV observations and more sophisticated analysis techniques to confirm your observations.</p>
 	<p>
-	<img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=365" style="width: 100% \9" class="img-responsive" />
-	<br/>Spark lines can be used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/spark?networkID=LI&siteID=GISB&typeID=e&days=365"/></code> or as
+	<img src="/spark?siteID=GISB&typeID=e&days=365" style="width: 100% \9" class="img-responsive" />
+	<br/>Spark lines can be used in an html img tag e.g., <code>&lt;img src="http://fits.geonet.org.nz/spark?siteID=GISB&typeID=e&days=365"/></code> or as
 	an object or inline depending on your needs.
 	</p>
 
@@ -126,15 +126,15 @@
 	<td><code>label</code></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=none" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=none" style="width: 100% \9" class="img-responsive" /></td>
 	<td>none</td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest" style="width: 100% \9" class="img-responsive" /></td>
 	<td>latest</td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=all" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=all" style="width: 100% \9" class="img-responsive" /></td>
 	<td>all (default)</td></tr>
 	</table>
 	</p>
@@ -147,11 +147,11 @@
 	<td><code>type</code></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
 	<td>line (default)</td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=scatter" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=scatter" style="width: 100% \9" class="img-responsive" /></td>
 	<td>scatter</td></tr>
 	</table>
 	</p>
@@ -165,17 +165,17 @@
 	<td></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
 	<td>100</td>
 	<td></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=365&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=365&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
 	<td>365</td>
 	<td></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=3650&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=3650&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
 	<td>3650</td>
 	<td>Data is not aggregated.  Consider the plot resolution.</td>
 	</tr>
@@ -191,21 +191,21 @@
 	<td></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line" style="width: 100% \9" class="img-responsive" /></td>
 	<td></td>
 	<td>Not set - auto range on the data.</td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=50" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=50" style="width: 100% \9" class="img-responsive" /></td>
 	<td>50</td>
 	<td>Single value - fixed range centered on the data</td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-15,50" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-15,50" style="width: 100% \9" class="img-responsive" /></td>
 	<td>-15,50</td>
 	<td>Pair of values - fixes the y axis range</td>
 	</tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-5,5" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line&yrange=-5,5" style="width: 100% \9" class="img-responsive" /></td>
 	<td>-5,5</td>
 	<td>For a set y axis data out of range changes the background.</td>
 	</tr>
@@ -221,7 +221,7 @@
 	<td></td>
 	</tr>
 	<tr>
-	<td><img src="/spark?networkID=LI&siteID=GISB&typeID=e&days=100&label=latest&type=line&stddev=pop" style="width: 100% \9" class="img-responsive" /></td>
+	<td><img src="/spark?siteID=GISB&typeID=e&days=100&label=latest&type=line&stddev=pop" style="width: 100% \9" class="img-responsive" /></td>
 	<td>pop</td>
 	<td></td>
 	</tr>
@@ -233,7 +233,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/spark?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[yrange=float64]&amp;[type=(line|scatter)]</dd>
+	<dd>/spark?typeID=(typeID)&amp;siteID=(siteID)&amp;[yrange=float64]&amp;[type=(line|scatter)]</dd>
 	<dt>Accept</dt>
 	<dd></dd>
 	</dl>
@@ -243,9 +243,6 @@
 	
 	<h5>Required:</h5>
 	<dl class="dl-horizontal">
-	
-	<dt>networkID</dt>
-	<dd>Network identifier e.g., <code>VO</code>.</dd>
 	
 	<dt>siteID</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>

@@ -112,7 +112,7 @@
 	<div class="panel-body">
 	<dl class="dl-horizontal">
 	<dt>URI</dt>
-	<dd>/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;networkID=(networkID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+	<dd>/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
 	<dt>Accept</dt>
 	<dd>application/json;version=1</dd>
 	</dl>
@@ -122,9 +122,6 @@
 	
 	<h5>Required:</h5>
 	<dl class="dl-horizontal">
-	
-	<dt>networkID</dt>
-	<dd>Network identifier e.g., <code>VO</code>.</dd>
 	
 	<dt>siteID</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>
@@ -174,7 +171,7 @@
 	</dl>
 	<h4>Example Query and Response</h4>
 	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;networkID=CG</div>
+	<div class="panel-heading">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;</div>
 	<div class="panel-body panel-height"><pre>{
      &#34;First&#34;: {
        &#34;DateTime&#34;: &#34;2007-03-16T11:59:00Z&#34;,

@@ -10,7 +10,7 @@ import (
 )
 
 type siteQ struct {
-	networkID, siteID, name string
+	siteID, name string
 }
 
 type typeQ struct {
@@ -64,11 +64,10 @@ func getType(v url.Values) (typeQ, *weft.Result) {
 
 func getSite(v url.Values) (siteQ, *weft.Result) {
 	s := siteQ{
-		networkID: v.Get("networkID"),
-		siteID:    v.Get("siteID"),
+		siteID: v.Get("siteID"),
 	}
 
-	err := db.QueryRow("select name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", s.networkID, s.siteID).Scan(&s.name)
+	err := db.QueryRow("select name FROM fits.site where siteid = $1", s.siteID).Scan(&s.name)
 	if err == sql.ErrNoRows {
 		return s, &weft.NotFound
 	}
@@ -85,17 +84,22 @@ returns a zero length list if no sites are found.
 func getSites(v url.Values) ([]siteQ, *weft.Result) {
 	var sites = make([]siteQ, 0)
 
+	// sites can include the optional and ignored network code e.g.,
+	// NZ.TAUP or TAUP
 	for _, ns := range strings.Split(v.Get("sites"), ",") {
 		nss := strings.Split(ns, ".")
-		if len(nss) != 2 {
-
+		switch len(nss) {
+		case 1:
+			sites = append(sites, siteQ{siteID: nss[0]})
+		case 2:
+			sites = append(sites, siteQ{siteID: nss[1]})
+		default:
 			return sites, weft.BadRequest("invalid sites query.")
 		}
-		sites = append(sites, siteQ{networkID: nss[0], siteID: nss[1]})
 	}
 
 	for _, s := range sites {
-		err := db.QueryRow("select name FROM fits.site join fits.network using (networkpk) where siteid = $2 and networkid = $1", s.networkID, s.siteID).Scan(&s.name)
+		err := db.QueryRow("select name FROM fits.site where siteid = $1", s.siteID).Scan(&s.name)
 		if err == sql.ErrNoRows {
 			return sites, &weft.NotFound
 		}

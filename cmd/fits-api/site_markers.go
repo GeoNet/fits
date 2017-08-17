@@ -20,9 +20,8 @@ type geometry struct {
 }
 
 type properties struct {
-	NetworkID string `json:"networkID"`
-	SiteID    string `json:"siteID"`
-	Name      string `json:"name"`
+	SiteID string `json:"siteID"`
+	Name   string `json:"name"`
 }
 
 func geoJSONToMarkers(b []byte) (m []map180.Marker, err error) {
@@ -30,9 +29,9 @@ func geoJSONToMarkers(b []byte) (m []map180.Marker, err error) {
 	err = json.Unmarshal(b, &f)
 
 	for _, s := range f.Features {
-		mr := map180.NewMarker(s.Geometry.Coordinates[0], s.Geometry.Coordinates[1], s.Properties.NetworkID+s.Properties.SiteID,
-			fmt.Sprintf("%s (%s.%s)", s.Properties.Name, s.Properties.NetworkID, s.Properties.SiteID),
-			fmt.Sprintf("%s.%s", s.Properties.NetworkID, s.Properties.SiteID))
+		mr := map180.NewMarker(s.Geometry.Coordinates[0], s.Geometry.Coordinates[1], s.Properties.SiteID,
+			fmt.Sprintf("%s (%s)", s.Properties.Name, s.Properties.SiteID),
+			fmt.Sprintf("%s", s.Properties.SiteID))
 		m = append(m, mr)
 	}
 	return

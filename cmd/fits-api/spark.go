@@ -9,7 +9,7 @@ import (
 )
 
 func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID", "networkID"}, []string{"days", "yrange", "type", "stddev", "label"}); !res.Ok {
+	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"}); !res.Ok {
 		return res
 	}
 
