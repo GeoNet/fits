@@ -1,7 +1,7 @@
 package metrics_test
 
 import (
-	"github.com/GeoNet/fits/internal/platform/metrics"
+	"github.com/GeoNet/kit/metrics"
 	"testing"
 	"time"
 )

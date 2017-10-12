@@ -9,7 +9,7 @@ package weft
 
 import (
 	"bytes"
-	"github.com/GeoNet/fits/internal/platform/metrics"
+	"github.com/GeoNet/kit/metrics"
 	"net/http"
 	"reflect"
 	"runtime"
