@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/GeoNet/fits/internal/ddoghttp"
 	"github.com/GeoNet/map180"
 	_ "github.com/lib/pq"
 	"log"
@@ -12,9 +11,8 @@ import (
 )
 
 var (
-	db     *sql.DB
-	wm     *map180.Map180
-	Prefix string // prefix for logging
+	db *sql.DB
+	wm *map180.Map180
 )
 
 // These constants represent part of a public API and can't be changed.
@@ -24,12 +22,6 @@ const (
 	v1CSV     = "text/csv;version=1"
 	svg       = "image/svg+xml"
 )
-
-func init() {
-	if Prefix != "" {
-		log.SetPrefix(Prefix + " ")
-	}
-}
 
 // main connects to the database, sets up request routing, and starts the http server.
 func main() {

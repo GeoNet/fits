@@ -3,6 +3,12 @@
 	"ignore": "",
 	"package": [
 		{
+			"checksumSHA1": "CHY/L104ksVKNLjM6S/DPAWb4Gg=",
+			"path": "github.com/GeoNet/kit/metrics",
+			"revision": "b70b65c158ef416836de9c2f5ec482c55fe69d2c",
+			"revisionTime": "2017-10-12T00:34:39Z"
+		},
+		{
 			"path": "github.com/GeoNet/map180",
 			"revision": "9382916fcb62438a7fc8406f6e2d931e33a316cf"
 		},

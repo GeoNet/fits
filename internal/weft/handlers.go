@@ -3,7 +3,7 @@ package weft
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/GeoNet/fits/internal/platform/metrics"
+	"github.com/GeoNet/kit/metrics"
 	"log"
 	"net/http"
 	"strings"
