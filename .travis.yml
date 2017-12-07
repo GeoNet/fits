@@ -23,10 +23,12 @@ install: true
 addons:
   postgresql: '9.5'
 before_script:
-- psql -U postgres -c "create extension postgis"
-- ./etc/scripts/initdb.sh
+  - psql -U postgres -c "create extension postgis"
+  - ./etc/scripts/initdb.sh
 script: 
-- ./all.sh
+  - test -z "$(gofmt -s -l `find . -type f -name "*.go" -not -path './vendor/*'` | tee /dev/stderr)"
+  - go vet ./...
+  - ./all.sh
 
 deploy:
    - provider: script
