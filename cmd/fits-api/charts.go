@@ -5,7 +5,6 @@ import (
 	"github.com/GeoNet/fits/internal/weft"
 	"html/template"
 	"net/http"
-	"os"
 )
 
 var templates = template.Must(template.ParseFiles("assets/charts.html"))
@@ -21,16 +20,10 @@ func charts(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		return &weft.NotFound
 	}
 
-	var p chartPage
-	p.ApiKey = os.Getenv("BING_API_KEY")
-	if err := templates.ExecuteTemplate(b, "base", p); err != nil {
+	if err := templates.ExecuteTemplate(b, "base", nil); err != nil {
 		return weft.InternalServerError(err)
 
 	}
 
 	return &weft.StatusOK
-}
-
-type chartPage struct {
-	ApiKey string
 }
