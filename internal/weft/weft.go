@@ -107,7 +107,7 @@ func name(f RequestHandler) string {
 		n = fn.Name()
 		i := strings.LastIndex(n, ".")
 		if i > 0 && i+1 < len(n) {
-			n = n[i+1 : len(n)]
+			n = n[i+1:]
 		}
 	}
 	return n
