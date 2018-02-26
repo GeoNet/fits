@@ -3682,30 +3682,27 @@
 	<dl class="dl-horizontal">
 	
 	<dt>column 1</dt>
-	<dd>Network identifier e.g., <code>VO</code>.</dd>
-	
-	<dt>column 2</dt>
 	<dd>Site identifier e.g., <code>WI000</code>.</dd>
 	
-	<dt>column 3</dt>
+	<dt>column 2</dt>
 	<dd>The longitude (X) of the observation site.</dd>
 	
-	<dt>column 4</dt>
+	<dt>column 3</dt>
 	<dd>The latitude (Y) of the observation site.</dd>
 	
-	<dt>column 5</dt>
+	<dt>column 4</dt>
 	<dd>Site height (m).</dd>
 	
-	<dt>column 6</dt>
+	<dt>column 5</dt>
 	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
 	
-	<dt>column 7</dt>
+	<dt>column 6</dt>
 	<dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.</dd>
 	
-	<dt>column 8</dt>
+	<dt>column 7</dt>
 	<dd>The observation value.</dd>
 	
-	<dt>column 9</dt>
+	<dt>column 8</dt>
 	<dd>The observation error.  0 is used for an unknown error.</dd>
 	
 	
