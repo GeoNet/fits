@@ -3,55 +3,54 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/fits/internal/ts"
-	"github.com/GeoNet/fits/internal/weft"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
 
-func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"}); !res.Ok {
-		return res
+func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
 	v := r.URL.Query()
 
-	var plotType string
-	var s siteQ
-	var t typeQ
-	var days int
-	var ymin, ymax float64
-	var stddev string
-	var label string
-	var res *weft.Result
-
-	if plotType, res = getPlotType(v); !res.Ok {
-		return res
+	plotType, err := getPlotType(v)
+	if err != nil {
+		return err
 	}
 
-	if stddev, res = getStddev(v); !res.Ok {
-		return res
+	stddev, err := getStddev(v)
+	if err != nil {
+		return err
 	}
 
-	if label, res = getSparkLabel(v); !res.Ok {
-		return res
+	label, err := getSparkLabel(v)
+	if err != nil {
+		return err
 	}
 
-	if days, res = getDays(v); !res.Ok {
-		return res
+	days, err := getDays(v)
+	if err != nil {
+		return err
 	}
 
-	if ymin, ymax, res = getYRange(v); !res.Ok {
-		return res
+	ymin, ymax, err := getYRange(v)
+	if err != nil {
+		return err
 	}
 
-	if t, res = getType(v); !res.Ok {
-		return res
+	t, err := getType(v)
+	if err != nil {
+		return err
 	}
 
-	if s, res = getSite(v); !res.Ok {
-		return res
+	s, err := getSite(v)
+	if err != nil {
+		return err
 	}
 
 	var p plt
@@ -74,18 +73,16 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	p.SetUnit(t.unit)
 
-	var err error
-
 	if stddev == `pop` {
 		err = p.setStddevPop(s, t, tmin, days)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	err = p.addSeries(t, tmin, days, s)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	switch plotType {
@@ -109,8 +106,8 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		}
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }

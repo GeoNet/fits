@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/GeoNet/fits/internal/ts"
-	"github.com/GeoNet/fits/internal/weft"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
@@ -14,55 +14,54 @@ type plt struct {
 	ts.Plot
 }
 
-func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme", "networkID"}); !res.Ok {
-		return res
+func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme", "networkID"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
 	v := r.URL.Query()
 
-	var plotType string
-	var s siteQ
-	var t typeQ
-	var start time.Time
-	var days int
-	var ymin, ymax float64
-	var showMethod bool
-	var stddev string
-	var res *weft.Result
-
-	if plotType, res = getPlotType(v); !res.Ok {
-		return res
+	plotType, err := getPlotType(v)
+	if err != nil {
+		return err
 	}
 
-	if showMethod, res = getShowMethod(v); !res.Ok {
-		return res
+	showMethod, err := getShowMethod(v)
+	if err != nil {
+		return err
 	}
 
-	if stddev, res = getStddev(v); !res.Ok {
-		return res
+	stddev, err := getStddev(v)
+	if err != nil {
+		return err
 	}
 
-	if start, res = getStart(v); !res.Ok {
-		return res
+	start, err := getStart(v)
+	if err != nil {
+		return err
 	}
 
-	if days, res = getDays(v); !res.Ok {
-		return res
+	days, err := getDays(v)
+	if err != nil {
+		return err
 	}
 
-	if ymin, ymax, res = getYRange(v); !res.Ok {
-		return res
+	ymin, ymax, err := getYRange(v)
+	if err != nil {
+		return err
 	}
 
-	if t, res = getType(v); !res.Ok {
-		return res
+	t, err := getType(v)
+	if err != nil {
+		return err
 	}
 
-	if s, res = getSite(v); !res.Ok {
-		return res
+	s, err := getSite(v)
+	if err != nil {
+		return err
 	}
 
 	var p plt
@@ -91,8 +90,6 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	p.SetUnit(t.unit)
 	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
 
-	var err error
-
 	switch showMethod {
 	case false:
 		err = p.addSeries(t, start, days, s)
@@ -100,14 +97,14 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		err = p.addSeriesLabelMethod(t, start, days, s)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	if stddev == `pop` {
 		err = p.setStddevPop(s, t, start, days)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	if v.Get("scheme") != "" {
@@ -121,10 +118,10 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		err = ts.Scatter.Draw(p.Plot, b)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }
 
 /*

@@ -2,25 +2,24 @@ package main
 
 import (
 	"bytes"
-	"github.com/GeoNet/fits/internal/weft"
-	"log"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 )
 
 var mux = http.NewServeMux()
 
 func init() {
-	mux.HandleFunc("/spark", weft.MakeHandlerAPI(spark))
-	mux.HandleFunc("/map/site", weft.MakeHandlerAPI(siteMapHandler))
-	mux.HandleFunc("/observation_results", weft.MakeHandlerAPI(observationResults))
-	mux.HandleFunc("/observation/stats", weft.MakeHandlerAPI(observationStats))
-	mux.HandleFunc("/type", weft.MakeHandlerAPI(types))
-	mux.HandleFunc("/method", weft.MakeHandlerAPI(method))
-	mux.HandleFunc("/plot", weft.MakeHandlerAPI(plotHandler))
-	mux.HandleFunc("/observation", weft.MakeHandlerAPI(observationHandler))
-	mux.HandleFunc("/site", weft.MakeHandlerAPI(siteHandler))
-	mux.HandleFunc("/", weft.MakeHandlerPage(charts))
-	mux.HandleFunc("/charts", weft.MakeHandlerPage(charts))
+	mux.HandleFunc("/spark", weft.MakeHandler(spark, weft.TextError))
+	mux.HandleFunc("/map/site", weft.MakeHandler(siteMapHandler, weft.TextError))
+	mux.HandleFunc("/observation_results", weft.MakeHandler(observationResults, weft.TextError))
+	mux.HandleFunc("/observation/stats", weft.MakeHandler(observationStats, weft.TextError))
+	mux.HandleFunc("/type", weft.MakeHandler(types, weft.TextError))
+	mux.HandleFunc("/method", weft.MakeHandler(method, weft.TextError))
+	mux.HandleFunc("/plot", weft.MakeHandler(plotHandler, weft.TextError))
+	mux.HandleFunc("/observation", weft.MakeHandler(observationHandler, weft.TextError))
+	mux.HandleFunc("/site", weft.MakeHandler(siteHandler, weft.TextError))
+	mux.HandleFunc("/", weft.MakeHandler(charts, weft.HTMLError))
+	mux.HandleFunc("/charts", weft.MakeHandler(charts, weft.HTMLError))
 	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
 	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
 	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
@@ -29,26 +28,13 @@ func init() {
 	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", http.FileServer(http.Dir("assets/api-docs"))))
 
 	// routes for balancers and probes.
-	mux.HandleFunc("/soh/up", http.HandlerFunc(up))
-	mux.HandleFunc("/soh", http.HandlerFunc(soh))
-}
-
-func inbound(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			h.ServeHTTP(w, r)
-		default:
-			weft.Write(w, r, &weft.MethodNotAllowed)
-			weft.MethodNotAllowed.Count()
-			return
-		}
-	})
+	mux.HandleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
+	mux.HandleFunc("/soh", weft.MakeHandler(soh, weft.TextError))
 }
 
 // these handlers take care of the extra routing based on optional query parameters
 
-func observationHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+func observationHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	if r.URL.Query().Get("siteID") != "" {
 		return observation(r, h, b)
 	} else {
@@ -56,7 +42,7 @@ func observationHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 	}
 }
 
-func siteMapHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+func siteMapHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	v := r.URL.Query()
 
 	switch {
@@ -69,7 +55,7 @@ func siteMapHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Resul
 	}
 }
 
-func plotHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+func plotHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	if r.URL.Query().Get("siteID") != "" {
 		return plotSite(r, h, b)
 	} else {
@@ -77,7 +63,7 @@ func plotHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	}
 }
 
-func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
+func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	if r.URL.Query().Get("siteID") != "" {
 		return site(r, h, b)
 	} else {
@@ -85,41 +71,23 @@ func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	}
 }
 
-// up is for testing that the app has started e.g., for with load balancers.
-// It indicates the app is started.  It may still be serving errors.
-// Not useful for inclusion in app metrics so weft not used.
-func up(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
-		w.Header().Set("Surrogate-Control", "max-age=86400")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	w.Write([]byte("<html><head></head><body>up</body></html>"))
-}
-
 // soh is for external service probes.
 // writes a service unavailable error to w if the service is not working.
-// Not useful for inclusion in app metrics so weft not used.
-func soh(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if res := weft.CheckQuery(r, []string{}, []string{}); !res.Ok {
-		w.Header().Set("Surrogate-Control", "max-age=86400")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+//func soh(w http.ResponseWriter, r *http.Request) {
+func soh(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{})
+	if err != nil {
+		return err
 	}
 
 	var c int
 
-	if err := db.QueryRow("SELECT 1").Scan(&c); err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte("<html><head></head><body>service error</body></html>"))
-		log.Printf("ERROR: soh service error %s", err)
-		return
+	err = db.QueryRow("SELECT 1").Scan(&c)
+	if err != nil {
+		return weft.StatusError{Code: http.StatusServiceUnavailable, Err: err}
 	}
 
-	w.Write([]byte("<html><head></head><body>ok</body></html>"))
+	b.WriteString("<html><head></head><body>ok</body></html>")
+
+	return nil
 }

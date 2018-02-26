@@ -3,7 +3,8 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	"github.com/GeoNet/fits/internal/weft"
+	"errors"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strings"
 )
@@ -25,9 +26,10 @@ const (
 	fc = ` ) As f )  as fc`
 )
 
-func site(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID"}, []string{"networkID"}); !res.Ok {
-		return res
+func site(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID"}, []string{"networkID"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "application/vnd.geo+json;version=1")
@@ -40,24 +42,25 @@ func site(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	if err := db.QueryRow("select siteID FROM fits.site where siteid = $1", siteID).Scan(&d); err != nil {
 		if err == sql.ErrNoRows {
-			return &weft.NotFound
+			return weft.StatusError{Code: http.StatusNotFound}
 		}
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	by, err := geoJSONSite(siteID)
 	if err != nil {
-		weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	b.Write(by)
 
-	return &weft.StatusOK
+	return nil
 }
 
-func siteType(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{}, []string{"typeID", "methodID", "within"}); !res.Ok {
-		return res
+func siteType(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{"typeID", "methodID", "within"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "application/vnd.geo+json;version=1")
@@ -65,57 +68,59 @@ func siteType(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	v := r.URL.Query()
 
 	if v.Get("methodID") != "" && v.Get("typeID") == "" {
-		return weft.BadRequest("typeID must be specified when methodID is specified.")
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("typeID must be specified when methodID is specified")}
 	}
 
 	var typeID, methodID, within string
-	var res *weft.Result
 
 	if v.Get("typeID") != "" {
 		typeID = v.Get("typeID")
 
-		if res = validType(typeID); !res.Ok {
-			return res
+		err = validType(typeID)
+		if err != nil {
+			return err
 		}
 
 		if v.Get("methodID") != "" {
 			methodID = v.Get("methodID")
-			if res = validTypeMethod(typeID, methodID); !res.Ok {
-				return res
+			err = validTypeMethod(typeID, methodID)
+			if err != nil {
+				return err
 			}
 		}
 	}
 
 	if v.Get("within") != "" {
 		within = strings.Replace(v.Get("within"), "+", "", -1)
-		if res = validPoly(within); !res.Ok {
-			return res
+		err = validPoly(within)
+		if err != nil {
+			return err
 		}
 	}
 
 	by, err := geoJSONSites(typeID, methodID, within)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	b.Write(by)
 
-	return &weft.StatusOK
+	return nil
 }
 
 // validSite checks that the siteID exists in the DB.
-func validSite(siteID string) *weft.Result {
+func validSite(siteID string) error {
 	var d string
 
 	if err := db.QueryRow("select siteID FROM fits.site WHERE siteid = $1",
 		siteID).Scan(&d); err != nil {
 		if err == sql.ErrNoRows {
-			return &weft.NotFound
+			return weft.StatusError{Code: http.StatusNotFound}
 		}
-		return weft.InternalServerError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }
 
 func geoJSONSite(siteID string) ([]byte, error) {

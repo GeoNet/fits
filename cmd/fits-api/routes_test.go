@@ -1,13 +1,15 @@
 package main
 
 import (
-	wt "github.com/GeoNet/fits/internal/weft/wefttest"
+	wt "github.com/GeoNet/kit/weft/wefttest"
 	"net/http"
 	"testing"
 )
 
 // networkID is now optional and ignored.  Test existing routes with and without networkID
 // to make sure there are no errors.
+
+const textError = "text/plain; charset=utf-8"
 
 var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, URL: "/site?typeID=t1"},
@@ -54,27 +56,27 @@ var routes = wt.Requests{
 	{ID: wt.L(), Status: http.StatusBadRequest, URL: "/plot?typeID=t1&siteID=TEST1&yrange=0"},
 
 	// CSV routes that should bad request
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))"},             // not enough points
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))"},             // not enough points
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
 
 	// GeoJSON routes that should bad request
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?methodID=m1"},
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52))"},                             // not enough points
-	{ID: wt.L(), Accept: v1GeoJSON, Content: v1GeoJSON, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,178.18+-37.52))"}, // doesn't close
+	{ID: wt.L(), Accept: v1GeoJSON, Content: textError, Status: http.StatusBadRequest, URL: "/site?methodID=m1"},
+	{ID: wt.L(), Accept: v1GeoJSON, Content: textError, Status: http.StatusBadRequest, URL: "/site?methodID=m1&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
+	{ID: wt.L(), Accept: v1GeoJSON, Content: textError, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52))"},                             // not enough points
+	{ID: wt.L(), Accept: v1GeoJSON, Content: textError, Status: http.StatusBadRequest, URL: "/site?within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,178.18+-37.52))"}, // doesn't close
 
 	// Routes that should 404
 	{ID: wt.L(), Status: http.StatusNotFound, URL: "/bob"},
 
 	// CSV routes that should bad request
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))"},             // not enough points
-	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=0"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=8"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&srsName=EPSG:999999"},
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53))"},             // not enough points
+	{ID: wt.L(), Accept: v1CSV, Content: textError, Status: http.StatusBadRequest, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,178.0+-34.5))"}, // doesn't close
 
 	// soh routes
 	{ID: wt.L(), URL: "/soh"},
@@ -94,7 +96,7 @@ func TestRoutes(t *testing.T) {
 		}
 	}
 
-	if err := routes.DoCheckQuery(testServer.URL); err != nil {
+	if err := routes.DoAll(testServer.URL); err != nil {
 		t.Error(err)
 	}
 }

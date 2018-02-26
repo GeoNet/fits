@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/GeoNet/fits/internal/weft"
+	"fmt"
+	"github.com/GeoNet/kit/weft"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,9 +19,10 @@ func init() {
 	eol = []byte("\n")
 }
 
-func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}); !res.Ok {
-		return res
+func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "text/csv;version=1")
@@ -28,10 +30,10 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	v := r.URL.Query()
 
 	typeID := v.Get("typeID")
-	var res *weft.Result
 
-	if res = validType(typeID); !res.Ok {
-		return res
+	err = validType(typeID)
+	if err != nil {
+		return err
 	}
 
 	siteID := v.Get("siteID")
@@ -42,7 +44,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		var err error
 		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
-			return weft.BadRequest("Invalid days query param.")
+			return weft.StatusError{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid days query parameter %s", v.Get("days"))}
 		}
 	}
 
@@ -50,21 +52,20 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	if v.Get("methodID") != "" {
 		methodID = v.Get("methodID")
-		if res = validTypeMethod(typeID, methodID); !res.Ok {
-			return res
+		err = validTypeMethod(typeID, methodID)
+		if err != nil {
+			return err
 		}
 	}
-
-	var err error
 
 	// Find the unit for the CSV header
 	var unit string
 	if err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1",
 		typeID).Scan(&unit); err != nil {
 		if err == sql.ErrNoRows {
-			return &weft.NotFound
+			return weft.StatusError{Code: http.StatusNotFound}
 		}
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	var d string
@@ -125,7 +126,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
                   		ORDER BY time ASC;`, siteID, typeID, methodID)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 	defer rows.Close()
 
@@ -134,7 +135,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	for rows.Next() {
 		err := rows.Scan(&d)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		b.Write([]byte(d))
 		b.Write(eol)
@@ -147,12 +148,13 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		h.Set("Content-Disposition", `attachment; filename="FITS-`+siteID+`-`+typeID+`.csv"`)
 	}
 
-	return &weft.StatusOK
+	return nil
 }
 
-func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}); !res.Ok {
-		return res
+func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
@@ -160,20 +162,19 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 	v := r.URL.Query()
 
 	typeID := v.Get("typeID")
-	var res *weft.Result
 
-	if res = validType(typeID); !res.Ok {
-		return res
+	err = validType(typeID)
+	if err != nil {
+		return err
 	}
 
 	var days int
-	var err error
 	var tmin, tmax time.Time
 
 	if v.Get("days") != "" {
 		days, err = strconv.Atoi(v.Get("days"))
 		if err != nil || days > 365000 {
-			weft.BadRequest("Invalid days query param.")
+			return weft.StatusError{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid days query parameter %s", v.Get("days"))}
 		}
 		tmax = time.Now().UTC()
 		tmin = tmax.Add(time.Duration(days*-1) * time.Hour * 24)
@@ -183,8 +184,9 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 
 	if v.Get("methodID") != "" {
 		methodID = v.Get("methodID")
-		if res = validTypeMethod(typeID, methodID); !res.Ok {
-			return res
+		err = validTypeMethod(typeID, methodID)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -192,21 +194,21 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 	if err := db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1",
 		typeID).Scan(&unit); err != nil {
 		if err == sql.ErrNoRows {
-			return &weft.NotFound
+			return weft.StatusError{Code: http.StatusNotFound}
 		}
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	siteID := v.Get("siteID")
 
 	values, err := loadObs(siteID, typeID, methodID, tmin)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	mean, stdDev, err := stddevPop(siteID, typeID, methodID, tmin)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 	stats := obstats{Unit: unit,
 		Mean:             mean,
@@ -221,12 +223,12 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
 
 	by, err := json.Marshal(stats)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	b.Write(by)
 
-	return &weft.StatusOK
+	return nil
 }
 
 /**
@@ -234,9 +236,10 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Res
  * for single site, return the actual observation results
  * for multiple sites, return the daily average values
  */
-func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{}); !res.Ok {
-		return res
+func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{})
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
@@ -277,7 +280,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
        left outer join fits.type type on obs.typepk = type.typepk
        left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` order by date;`)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		defer rows.Close()
 		index1 := 0
@@ -292,7 +295,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
 			if err != nil {
-				return weft.ServiceUnavailableError(err)
+				return err
 			}
 			if index1 > 0 {
 				b.WriteString(",")
@@ -318,7 +321,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
      left outer join fits.site site on obs.sitepk = site.sitepk ` + queryWhereClause + ` order by date;`)
 
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		defer rows.Close()
 
@@ -330,7 +333,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 		for rows.Next() {
 			err := rows.Scan(&d)
 			if err != nil {
-				return weft.ServiceUnavailableError(err)
+				return err
 			}
 			dates = append(dates, d)
 		}
@@ -346,7 +349,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
        order by agt.date, agt.siteid;`)
 
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		defer rows.Close()
 		//the result map key as siteid + date string
@@ -362,7 +365,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 
 			err := rows.Scan(&dateStr, &siteId, &val, &stdErr, &siteName)
 			if err != nil {
-				return weft.ServiceUnavailableError(err)
+				return err
 			}
 			t1, e := time.Parse(
 				time.RFC3339,
@@ -409,7 +412,7 @@ func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) *weft.R
 	b.WriteString("]")
 	b.WriteString("}")
 
-	return &weft.StatusOK
+	return nil
 }
 
 type obstats struct {
