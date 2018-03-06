@@ -2,19 +2,20 @@ package main
 
 import (
 	"bytes"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 )
 
 func method(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{"typeID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"typeID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
 
-	typeID := r.URL.Query().Get("typeID")
+	typeID := q.Get("typeID")
 
 	if typeID != "" {
 		err = validType(typeID)

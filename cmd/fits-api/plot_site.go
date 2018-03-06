@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/GeoNet/fits/internal/ts"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
@@ -15,51 +16,39 @@ type plt struct {
 }
 
 func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme", "networkID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "start", "stddev", "showMethod", "scheme", "networkID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	plotType, err := getPlotType(v)
+	showMethod, err := valid.ParseShowMethod(q.Get("showMethod"))
 	if err != nil {
 		return err
 	}
 
-	showMethod, err := getShowMethod(v)
+	start, err := valid.ParseStart(q.Get("start"))
 	if err != nil {
 		return err
 	}
 
-	stddev, err := getStddev(v)
+	days, err := valid.ParseDays(q.Get("days"))
 	if err != nil {
 		return err
 	}
 
-	start, err := getStart(v)
+	ymin, ymax, err := valid.ParseYrange(q.Get("yrange"))
 	if err != nil {
 		return err
 	}
 
-	days, err := getDays(v)
+	t, err := getType(q.Get("typeID"))
 	if err != nil {
 		return err
 	}
 
-	ymin, ymax, err := getYRange(v)
-	if err != nil {
-		return err
-	}
-
-	t, err := getType(v)
-	if err != nil {
-		return err
-	}
-
-	s, err := getSite(v)
+	s, err := getSite(q.Get("siteID"))
 	if err != nil {
 		return err
 	}
@@ -100,18 +89,18 @@ func plotSite(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		return err
 	}
 
-	if stddev == `pop` {
+	if q.Get("stddev") == `pop` {
 		err = p.setStddevPop(s, t, start, days)
 	}
 	if err != nil {
 		return err
 	}
 
-	if v.Get("scheme") != "" {
-		p.SetScheme(v.Get("scheme"))
+	if q.Get("scheme") != "" {
+		p.SetScheme(q.Get("scheme"))
 	}
 
-	switch plotType {
+	switch q.Get("type") {
 	case ``, `line`:
 		err = ts.Line.Draw(p.Plot, b)
 	case `scatter`:

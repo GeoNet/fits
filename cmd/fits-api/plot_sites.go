@@ -4,47 +4,41 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/GeoNet/fits/internal/ts"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
 
 func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start", "scheme"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start", "scheme"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	plotType, err := getPlotType(v)
+	start, err := valid.ParseStart(q.Get("start"))
 	if err != nil {
 		return err
 	}
 
-	start, err := getStart(v)
+	days, err := valid.ParseDays(q.Get("days"))
 	if err != nil {
 		return err
 	}
 
-	days, err := getDays(v)
+	ymin, ymax, err := valid.ParseYrange(q.Get("yrange"))
 	if err != nil {
 		return err
 	}
 
-	ymin, ymax, err := getYRange(v)
+	t, err := getType(q.Get("typeID"))
 	if err != nil {
 		return err
 	}
 
-	t, err := getType(v)
-	if err != nil {
-		return err
-	}
-
-	s, err := getSites(v)
+	s, err := getSites(q.Get("sites"))
 	if err != nil {
 		return err
 	}
@@ -80,11 +74,11 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		return err
 	}
 
-	if v.Get("scheme") != "" {
-		p.SetScheme(v.Get("scheme"))
+	if q.Get("scheme") != "" {
+		p.SetScheme(q.Get("scheme"))
 	}
 
-	switch plotType {
+	switch q.Get("type") {
 	case ``, `line`:
 		err = ts.Line.Draw(p.Plot, b)
 	case `scatter`:

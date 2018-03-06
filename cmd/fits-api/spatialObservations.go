@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strconv"
@@ -12,23 +13,21 @@ import (
 )
 
 func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"typeID", "days", "start"}, []string{"srsName", "within", "methodID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"typeID", "days", "start"}, []string{"srsName", "within", "methodID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "text/csv;version=1")
 
-	v := r.URL.Query()
-
 	var days int
 
-	days, err = strconv.Atoi(v.Get("days"))
+	days, err = strconv.Atoi(q.Get("days"))
 	if err != nil || days > 7 || days <= 0 {
 		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid days query param")}
 	}
 
-	start, err := time.Parse(time.RFC3339, v.Get("start"))
+	start, err := time.Parse(time.RFC3339, q.Get("start"))
 	if err != nil {
 		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid start query param")}
 	}
@@ -37,8 +36,8 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	var srsName, authName string
 	var srid int
-	if v.Get("srsName") != "" {
-		srsName = v.Get("srsName")
+	if q.Get("srsName") != "" {
+		srsName = q.Get("srsName")
 		srs := strings.Split(srsName, ":")
 		if len(srs) != 2 {
 			return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid srsName")}
@@ -59,11 +58,11 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		srsName = "EPSG:4326"
 	}
 
-	typeID := v.Get("typeID")
+	typeID := q.Get("typeID")
 
 	var methodID string
-	if v.Get("methodID") != "" {
-		methodID = v.Get("methodID")
+	if q.Get("methodID") != "" {
+		methodID = q.Get("methodID")
 		err = validTypeMethod(typeID, methodID)
 		if err != nil {
 			return err
@@ -71,8 +70,8 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	}
 
 	var within string
-	if v.Get("within") != "" {
-		within = strings.Replace(v.Get("within"), "+", "", -1)
+	if q.Get("within") != "" {
+		within = strings.Replace(q.Get("within"), "+", "", -1)
 		err = validPoly(within)
 		if err != nil {
 			return err

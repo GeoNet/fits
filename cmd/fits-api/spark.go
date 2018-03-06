@@ -3,52 +3,36 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/fits/internal/ts"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
 
 func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	plotType, err := getPlotType(v)
+	days, err := valid.ParseDays(q.Get("days"))
 	if err != nil {
 		return err
 	}
 
-	stddev, err := getStddev(v)
+	ymin, ymax, err := valid.ParseYrange(q.Get("yrange"))
 	if err != nil {
 		return err
 	}
 
-	label, err := getSparkLabel(v)
+	t, err := getType(q.Get("typeID"))
 	if err != nil {
 		return err
 	}
 
-	days, err := getDays(v)
-	if err != nil {
-		return err
-	}
-
-	ymin, ymax, err := getYRange(v)
-	if err != nil {
-		return err
-	}
-
-	t, err := getType(v)
-	if err != nil {
-		return err
-	}
-
-	s, err := getSite(v)
+	s, err := getSite(q.Get("siteID"))
 	if err != nil {
 		return err
 	}
@@ -73,7 +57,7 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	p.SetUnit(t.unit)
 
-	if stddev == `pop` {
+	if q.Get("stddev") == `pop` {
 		err = p.setStddevPop(s, t, tmin, days)
 	}
 	if err != nil {
@@ -85,9 +69,9 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		return err
 	}
 
-	switch plotType {
+	switch q.Get("type") {
 	case ``, `line`:
-		switch label {
+		switch q.Get("label") {
 		case ``, `all`:
 			err = ts.SparkLineAll.Draw(p.Plot, b)
 		case `latest`:
@@ -96,7 +80,7 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
 			err = ts.SparkLineNone.Draw(p.Plot, b)
 		}
 	case `scatter`:
-		switch label {
+		switch q.Get("label") {
 		case ``, `all`:
 			err = ts.SparkScatterAll.Draw(p.Plot, b)
 		case `latest`:

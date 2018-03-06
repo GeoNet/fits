@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"log"
 	"net/http"
@@ -20,38 +20,31 @@ func init() {
 }
 
 func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "text/csv;version=1")
 
-	v := r.URL.Query()
-
-	typeID := v.Get("typeID")
+	typeID := q.Get("typeID")
 
 	err = validType(typeID)
 	if err != nil {
 		return err
 	}
 
-	siteID := v.Get("siteID")
+	siteID := q.Get("siteID")
 
-	var days int
-
-	if v.Get("days") != "" {
-		var err error
-		days, err = strconv.Atoi(v.Get("days"))
-		if err != nil || days > 365000 {
-			return weft.StatusError{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid days query parameter %s", v.Get("days"))}
-		}
+	days, err := valid.ParseDays(q.Get("days"))
+	if err != nil {
+		return err
 	}
 
 	var methodID string
 
-	if v.Get("methodID") != "" {
-		methodID = v.Get("methodID")
+	if q.Get("methodID") != "" {
+		methodID = q.Get("methodID")
 		err = validTypeMethod(typeID, methodID)
 		if err != nil {
 			return err
@@ -152,16 +145,14 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
 }
 
 func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
 
-	v := r.URL.Query()
-
-	typeID := v.Get("typeID")
+	typeID := q.Get("typeID")
 
 	err = validType(typeID)
 	if err != nil {
@@ -171,10 +162,10 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	var days int
 	var tmin, tmax time.Time
 
-	if v.Get("days") != "" {
-		days, err = strconv.Atoi(v.Get("days"))
-		if err != nil || days > 365000 {
-			return weft.StatusError{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid days query parameter %s", v.Get("days"))}
+	if q.Get("days") != "" {
+		days, err = valid.ParseDays(q.Get("days"))
+		if err != nil {
+			return err
 		}
 		tmax = time.Now().UTC()
 		tmin = tmax.Add(time.Duration(days*-1) * time.Hour * 24)
@@ -182,8 +173,8 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	var methodID string
 
-	if v.Get("methodID") != "" {
-		methodID = v.Get("methodID")
+	if q.Get("methodID") != "" {
+		methodID = q.Get("methodID")
 		err = validTypeMethod(typeID, methodID)
 		if err != nil {
 			return err
@@ -199,7 +190,7 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		return err
 	}
 
-	siteID := v.Get("siteID")
+	siteID := q.Get("siteID")
 
 	values, err := loadObs(siteID, typeID, methodID, tmin)
 	if err != nil {
@@ -237,17 +228,15 @@ func observationStats(r *http.Request, h http.Header, b *bytes.Buffer) error {
  * for multiple sites, return the daily average values
  */
 func observationResults(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
 
-	v := r.URL.Query()
-
-	typeID := v.Get("typeID")
-	siteID := v.Get("siteID")
+	typeID := q.Get("typeID")
+	siteID := q.Get("siteID")
 	siteIDs := strings.Split(siteID, ",")
 
 	queryWhereClause := " where type.typeid='" + typeID + "' and site.siteid in ("

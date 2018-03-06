@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"html/template"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 var templates = template.Must(template.ParseFiles("assets/charts.html"))
 
 func charts(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{})
+	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
 		return err
 	}

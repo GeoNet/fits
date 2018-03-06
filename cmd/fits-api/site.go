@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strings"
@@ -27,16 +28,14 @@ const (
 )
 
 func site(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{"siteID"}, []string{"networkID"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID"}, []string{"networkID"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "application/vnd.geo+json;version=1")
 
-	v := r.URL.Query()
-
-	siteID := v.Get("siteID")
+	siteID := q.Get("siteID")
 
 	var d string
 
@@ -58,31 +57,29 @@ func site(r *http.Request, h http.Header, b *bytes.Buffer) error {
 }
 
 func siteType(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{"typeID", "methodID", "within"})
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"typeID", "methodID", "within"}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	h.Set("Content-Type", "application/vnd.geo+json;version=1")
 
-	v := r.URL.Query()
-
-	if v.Get("methodID") != "" && v.Get("typeID") == "" {
+	if q.Get("methodID") != "" && q.Get("typeID") == "" {
 		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("typeID must be specified when methodID is specified")}
 	}
 
 	var typeID, methodID, within string
 
-	if v.Get("typeID") != "" {
-		typeID = v.Get("typeID")
+	if q.Get("typeID") != "" {
+		typeID = q.Get("typeID")
 
 		err = validType(typeID)
 		if err != nil {
 			return err
 		}
 
-		if v.Get("methodID") != "" {
-			methodID = v.Get("methodID")
+		if q.Get("methodID") != "" {
+			methodID = q.Get("methodID")
 			err = validTypeMethod(typeID, methodID)
 			if err != nil {
 				return err
@@ -90,8 +87,8 @@ func siteType(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		}
 	}
 
-	if v.Get("within") != "" {
-		within = strings.Replace(v.Get("within"), "+", "", -1)
+	if q.Get("within") != "" {
+		within = strings.Replace(q.Get("within"), "+", "", -1)
 		err = validPoly(within)
 		if err != nil {
 			return err

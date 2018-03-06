@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
 )
 
 func types(r *http.Request, h http.Header, b *bytes.Buffer) error {
-	err := weft.CheckQuery(r, []string{"GET"}, []string{}, []string{})
+	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
 		return err
 	}
