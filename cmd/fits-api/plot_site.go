@@ -274,7 +274,7 @@ func (plt *plt) setStddevPop(s siteQ, t typeQ, start time.Time, days int) (err e
 		err = db.QueryRow(
 			`SELECT avg(value), stddev_pop(value) FROM fits.observation
          WHERE
-         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site join where siteid = $1)
+         sitepk = (SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1)
          AND typepk = ( SELECT typepk FROM fits.type WHERE typeid = $2 )`,
 			s.siteID, t.typeID).Scan(&m, &d)
 	case !start.IsZero() && days == 0:
