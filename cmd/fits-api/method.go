@@ -2,27 +2,29 @@ package main
 
 import (
 	"bytes"
-	"github.com/GeoNet/fits/internal/weft"
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 )
 
-func method(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{}, []string{"typeID"}); !res.Ok {
-		return res
+func method(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"typeID"}, valid.Query)
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "application/json;version=1")
 
-	typeID := r.URL.Query().Get("typeID")
+	typeID := q.Get("typeID")
 
 	if typeID != "" {
-		if res := validType(typeID); !res.Ok {
-			return res
+		err = validType(typeID)
+		if err != nil {
+			return err
 		}
 	}
 
 	var d string
-	var err error
 
 	switch typeID {
 	case "":
@@ -42,11 +44,11 @@ func method(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 			where type.typeID = $1) as m) as fc`, typeID).Scan(&d)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 
 	}
 
 	b.WriteString(d)
 
-	return &weft.StatusOK
+	return nil
 }

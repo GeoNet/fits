@@ -3,53 +3,54 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	"github.com/GeoNet/fits/internal/weft"
+	"errors"
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"typeID", "days", "start"}, []string{"srsName", "within", "methodID"}); !res.Ok {
-		return res
+func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"typeID", "days", "start"}, []string{"srsName", "within", "methodID"}, valid.Query)
+	if err != nil {
+		return err
 	}
+
 	h.Set("Content-Type", "text/csv;version=1")
 
-	v := r.URL.Query()
-
-	var res *weft.Result
-	var err error
 	var days int
 
-	days, err = strconv.Atoi(v.Get("days"))
+	days, err = strconv.Atoi(q.Get("days"))
 	if err != nil || days > 7 || days <= 0 {
-		return weft.BadRequest("Invalid days query param.")
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid days query param")}
 	}
 
-	start, err := time.Parse(time.RFC3339, v.Get("start"))
+	start, err := time.Parse(time.RFC3339, q.Get("start"))
 	if err != nil {
-		return weft.BadRequest("Invalid start query param.")
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid start query param")}
 	}
 
 	end := start.Add(time.Duration(days) * time.Hour * 24)
 
 	var srsName, authName string
 	var srid int
-	if v.Get("srsName") != "" {
-		srsName = v.Get("srsName")
+	if q.Get("srsName") != "" {
+		srsName = q.Get("srsName")
 		srs := strings.Split(srsName, ":")
 		if len(srs) != 2 {
-			return weft.BadRequest("Invalid srsName.")
+			return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid srsName")}
 		}
 		authName = srs[0]
 		var err error
 		srid, err = strconv.Atoi(srs[1])
 		if err != nil {
-			return weft.BadRequest("Invalid srsName.")
+			return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid srsName")}
 		}
-		if res = validSrs(authName, srid); !res.Ok {
-			return res
+		err = validSrs(authName, srid)
+		if err != nil {
+			return err
 		}
 	} else {
 		srid = 4326
@@ -57,30 +58,32 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		srsName = "EPSG:4326"
 	}
 
-	typeID := v.Get("typeID")
+	typeID := q.Get("typeID")
 
 	var methodID string
-	if v.Get("methodID") != "" {
-		methodID = v.Get("methodID")
-		if res = validTypeMethod(typeID, methodID); !res.Ok {
-			return res
+	if q.Get("methodID") != "" {
+		methodID = q.Get("methodID")
+		err = validTypeMethod(typeID, methodID)
+		if err != nil {
+			return err
 		}
 	}
 
 	var within string
-	if v.Get("within") != "" {
-		within = strings.Replace(v.Get("within"), "+", "", -1)
-		if res = validPoly(within); !res.Ok {
-			return res
+	if q.Get("within") != "" {
+		within = strings.Replace(q.Get("within"), "+", "", -1)
+		err = validPoly(within)
+		if err != nil {
+			return err
 		}
 	}
 
 	var unit string
 	if err = db.QueryRow("select symbol FROM fits.type join fits.unit using (unitPK) where typeID = $1", typeID).Scan(&unit); err != nil {
 		if err == sql.ErrNoRows {
-			return &weft.NotFound
+			return weft.StatusError{Code: http.StatusNotFound}
 		}
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	var d string
@@ -128,7 +131,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		// not sure what a transformation error would look like.
 		// Return any errors as a 404.  Could improve this by inspecting
 		// the error type to check for net dial errors that should 503.
-		return &weft.NotFound
+		return weft.StatusError{Code: http.StatusNotFound}
 	}
 	defer rows.Close()
 
@@ -137,7 +140,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	for rows.Next() {
 		err := rows.Scan(&d)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		b.Write([]byte(d))
 		b.Write(eol)
@@ -150,25 +153,25 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		h.Set("Content-Disposition", `attachment; filename="FITS-`+typeID+`.csv"`)
 	}
 
-	return &weft.StatusOK
+	return nil
 }
 
 // validSrs checks that the srs represented by auth and srid exists in the DB.
-func validSrs(auth string, srid int) *weft.Result {
+func validSrs(auth string, srid int) error {
 	var d string
 
 	if err := db.QueryRow(`select auth_name FROM public.spatial_ref_sys where auth_name = $1
 		 AND srid = $2`, auth, srid).Scan(&d); err != nil {
 		if err == sql.ErrNoRows {
-			return weft.BadRequest("invalid srsName")
+			return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("invalid srsName")}
 		}
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }
 
-func validPoly(poly string) *weft.Result {
+func validPoly(poly string) error {
 	var b bool
 
 	// There is a chance we will return an
@@ -176,8 +179,8 @@ func validPoly(poly string) *weft.Result {
 	// else is about to fail.  Postgis errors are hard to handle via an sql error.
 	err := db.QueryRow(`select ST_PolygonFromText($1, 4326) IS NOT NULL AS poly`, poly).Scan(&b)
 	if b {
-		return &weft.StatusOK
+		return nil
 	}
 
-	return weft.BadRequest("invalid polygon: " + err.Error())
+	return weft.StatusError{Code: http.StatusBadRequest, Err: err}
 }

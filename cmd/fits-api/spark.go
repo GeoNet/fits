@@ -3,55 +3,38 @@ package main
 import (
 	"bytes"
 	"github.com/GeoNet/fits/internal/ts"
-	"github.com/GeoNet/fits/internal/weft"
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
 
-func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"}); !res.Ok {
-		return res
+func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"days", "yrange", "type", "stddev", "label", "networkID"}, valid.Query)
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	var plotType string
-	var s siteQ
-	var t typeQ
-	var days int
-	var ymin, ymax float64
-	var stddev string
-	var label string
-	var res *weft.Result
-
-	if plotType, res = getPlotType(v); !res.Ok {
-		return res
+	days, err := valid.ParseDays(q.Get("days"))
+	if err != nil {
+		return err
 	}
 
-	if stddev, res = getStddev(v); !res.Ok {
-		return res
+	ymin, ymax, err := valid.ParseYrange(q.Get("yrange"))
+	if err != nil {
+		return err
 	}
 
-	if label, res = getSparkLabel(v); !res.Ok {
-		return res
+	t, err := getType(q.Get("typeID"))
+	if err != nil {
+		return err
 	}
 
-	if days, res = getDays(v); !res.Ok {
-		return res
-	}
-
-	if ymin, ymax, res = getYRange(v); !res.Ok {
-		return res
-	}
-
-	if t, res = getType(v); !res.Ok {
-		return res
-	}
-
-	if s, res = getSite(v); !res.Ok {
-		return res
+	s, err := getSite(q.Get("siteID"))
+	if err != nil {
+		return err
 	}
 
 	var p plt
@@ -74,23 +57,21 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 
 	p.SetUnit(t.unit)
 
-	var err error
-
-	if stddev == `pop` {
+	if q.Get("stddev") == `pop` {
 		err = p.setStddevPop(s, t, tmin, days)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	err = p.addSeries(t, tmin, days, s)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	switch plotType {
+	switch q.Get("type") {
 	case ``, `line`:
-		switch label {
+		switch q.Get("label") {
 		case ``, `all`:
 			err = ts.SparkLineAll.Draw(p.Plot, b)
 		case `latest`:
@@ -99,7 +80,7 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 			err = ts.SparkLineNone.Draw(p.Plot, b)
 		}
 	case `scatter`:
-		switch label {
+		switch q.Get("label") {
 		case ``, `all`:
 			err = ts.SparkScatterAll.Draw(p.Plot, b)
 		case `latest`:
@@ -109,8 +90,8 @@ func spark(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 		}
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }

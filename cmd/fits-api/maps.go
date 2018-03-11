@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/GeoNet/fits/internal/weft"
+	"errors"
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 	"github.com/GeoNet/map180"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -13,172 +14,162 @@ type st struct {
 	siteID string
 }
 
-func siteMap(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{}, []string{"networkID", "siteID", "sites", "width", "bbox", "insetBbox"}); !res.Ok {
-		return res
+func siteMap(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"networkID", "siteID", "sites", "width", "bbox", "insetBbox"}, valid.Query)
+	if err != nil {
+		return err
 	}
+
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	bbox := v.Get("bbox")
-
-	var insetBbox string
-
-	if v.Get("insetBbox") != "" {
-		insetBbox = v.Get("insetBbox")
-
-		err := map180.ValidBbox(insetBbox)
-		if err != nil {
-			return weft.BadRequest(err.Error())
-		}
-	}
-
-	if v.Get("sites") == "" && v.Get("siteID") == "" {
-		return weft.BadRequest("please specify sites or siteID")
-	}
-
-	if v.Get("sites") != "" && v.Get("siteID") != "" {
-		return weft.BadRequest("please specify either sites or siteID")
-	}
-
-	err := map180.ValidBbox(bbox)
+	err = map180.ValidBbox(q.Get("insetBbox"))
 	if err != nil {
-		return weft.BadRequest(err.Error())
+		return weft.StatusError{Code: http.StatusBadRequest, Err: err}
 	}
 
-	width := 130
+	if q.Get("sites") == "" && q.Get("siteID") == "" {
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("please specify sites or siteID")}
+	}
 
-	if v.Get("width") != "" {
-		width, err = strconv.Atoi(v.Get("width"))
-		if err != nil {
-			return weft.BadRequest("invalid width.")
-		}
+	if q.Get("sites") != "" && q.Get("siteID") != "" {
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("please specify sites or siteID")}
+	}
+
+	err = map180.ValidBbox(q.Get("bbox"))
+	if err != nil {
+		return weft.StatusError{Code: http.StatusBadRequest, Err: err}
+	}
+
+	width, err := valid.ParseWidth(q.Get("width"))
+	if err != nil {
+		return err
+	}
+
+	if width == 0 {
+		width = 130
 	}
 
 	var s []st
 
-	if v.Get("sites") != "" {
-		for _, si := range strings.Split(v.Get("sites"), ",") {
+	if q.Get("sites") != "" {
+		for _, si := range strings.Split(q.Get("sites"), ",") {
 			s = append(s, st{siteID: si})
 		}
 	} else {
-		s = append(s, st{siteID: v.Get("siteID")})
+		s = append(s, st{siteID: q.Get("siteID")})
 	}
 
 	markers := make([]map180.Marker, 0)
 
 	for _, site := range s {
 
-		if res := validSite(site.siteID); !res.Ok {
-			return res
+		err = validSite(site.siteID)
+		if err != nil {
+			return err
 		}
 
 		g, err := geoJSONSite(site.siteID)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 
 		m, err := geoJSONToMarkers(g)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
 		}
 		markers = append(markers, m...)
 
 	}
 
-	by, err := wm.SVG(bbox, width, markers, insetBbox)
+	by, err := wm.SVG(q.Get("bbox"), width, markers, q.Get("insetBbox"))
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	byt := by.Bytes()
 	b.Write(byt)
 
-	return &weft.StatusOK
+	return nil
 }
 
-func siteTypeMap(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{}, []string{"typeID", "methodID", "within", "width", "bbox", "insetBbox"}); !res.Ok {
-		return res
+func siteTypeMap(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"typeID", "methodID", "within", "width", "bbox", "insetBbox"}, valid.Query)
+	if err != nil {
+		return err
 	}
+
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	bbox := v.Get("bbox")
-
-	err := map180.ValidBbox(bbox)
+	err = map180.ValidBbox(q.Get("bbox"))
 	if err != nil {
-		return weft.BadRequest(err.Error())
+		return weft.StatusError{Code: http.StatusBadRequest, Err: err}
 	}
 
-	var insetBbox, typeID, methodID, within string
-	width := 130
+	width, err := valid.ParseWidth(q.Get("width"))
+	if err != nil {
+		return err
+	}
 
-	if v.Get("insetBbox") != "" {
-		insetBbox = v.Get("insetBbox")
+	if width == 0 {
+		width = 130
+	}
 
-		err := map180.ValidBbox(insetBbox)
+	var typeID, methodID, within string
+
+	err = map180.ValidBbox(q.Get("insetBbox"))
+	if err != nil {
+		return weft.StatusError{Code: http.StatusBadRequest, Err: err}
+	}
+
+	if q.Get("methodID") != "" && q.Get("typeID") == "" {
+		return weft.StatusError{Code: http.StatusBadRequest, Err: errors.New("typeID must be specified when methodID is specified")}
+	}
+
+	if q.Get("typeID") != "" {
+		err = validType(q.Get("typeID"))
 		if err != nil {
-			return weft.BadRequest(err.Error())
-		}
-	}
-
-	if v.Get("width") != "" {
-		width, err = strconv.Atoi(v.Get("width"))
-		if err != nil {
-			return weft.BadRequest("invalid width.")
-		}
-	}
-	if v.Get("methodID") != "" && v.Get("typeID") == "" {
-		return weft.BadRequest("typeID must be specified when methodID is specified.")
-	}
-
-	if v.Get("typeID") != "" {
-		typeID = v.Get("typeID")
-
-		if res := validType(typeID); !res.Ok {
-			return res
+			return err
 		}
 
-		if v.Get("methodID") != "" {
-			methodID = v.Get("methodID")
-			if res := validTypeMethod(typeID, methodID); !res.Ok {
-				return res
+		if q.Get("methodID") != "" {
+			methodID = q.Get("methodID")
+			err = validTypeMethod(typeID, methodID)
+			if err != nil {
+				return err
 			}
 		}
 	}
 
-	if v.Get("within") != "" {
-		within = strings.Replace(v.Get("within"), "+", "", -1)
-		if res := validPoly(within); !res.Ok {
-			return res
-		}
-	} else if bbox != "" {
-		within, err = map180.BboxToWKTPolygon(bbox)
+	if q.Get("within") != "" {
+		within = strings.Replace(q.Get("within"), "+", "", -1)
+		err = validPoly(within)
 		if err != nil {
-			return weft.ServiceUnavailableError(err)
+			return err
+		}
+	} else if q.Get("bbox") != "" {
+		within, err = map180.BboxToWKTPolygon(q.Get("bbox"))
+		if err != nil {
+			return err
 		}
 	}
 
 	g, err := geoJSONSites(typeID, methodID, within)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	m, err := geoJSONToMarkers(g)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	by, err := wm.SVG(bbox, width, m, insetBbox)
+	by, err := wm.SVG(q.Get("bbox"), width, m, q.Get("insetBbox"))
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
 	byt := by.Bytes()
 	b.Write(byt)
 
-	return &weft.StatusOK
+	return nil
 }

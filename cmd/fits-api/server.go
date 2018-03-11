@@ -54,5 +54,5 @@ func main() {
 	}
 
 	log.Print("starting server")
-	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

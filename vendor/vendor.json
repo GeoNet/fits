@@ -3,20 +3,26 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "CHY/L104ksVKNLjM6S/DPAWb4Gg=",
+			"checksumSHA1": "K/H2p4AwyMec+bAMBqTNGCWfv28=",
 			"path": "github.com/GeoNet/kit/metrics",
-			"revision": "b70b65c158ef416836de9c2f5ec482c55fe69d2c",
-			"revisionTime": "2017-10-12T00:34:39Z"
+			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
+			"revisionTime": "2018-03-06T01:32:31Z"
+		},
+		{
+			"checksumSHA1": "o7qPajW15zvMSuv5tLOYQ8iGMLM=",
+			"path": "github.com/GeoNet/kit/weft",
+			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
+			"revisionTime": "2018-03-06T01:32:31Z"
+		},
+		{
+			"checksumSHA1": "GfTCfY08kRVj7MxWiJY8jvjRysg=",
+			"path": "github.com/GeoNet/kit/weft/wefttest",
+			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
+			"revisionTime": "2018-03-06T01:32:31Z"
 		},
 		{
 			"path": "github.com/GeoNet/map180",
 			"revision": "9382916fcb62438a7fc8406f6e2d931e33a316cf"
-		},
-		{
-			"checksumSHA1": "qxcW1hstrjlHw/t4qGzigqDudcc=",
-			"path": "github.com/GeoNet/weft/wefttest",
-			"revision": "7731fd024874fdbc587769031d19161c35bc9df4",
-			"revisionTime": "2016-08-12T00:01:52Z"
 		},
 		{
 			"path": "github.com/golang/groupcache",

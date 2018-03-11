@@ -4,50 +4,43 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/GeoNet/fits/internal/ts"
-	"github.com/GeoNet/fits/internal/weft"
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"time"
 )
 
-func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
-	if res := weft.CheckQuery(r, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start", "scheme"}); !res.Ok {
-		return res
+func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) error {
+	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"sites", "typeID"}, []string{"days", "yrange", "type", "start", "scheme"}, valid.Query)
+	if err != nil {
+		return err
 	}
 
 	h.Set("Content-Type", "image/svg+xml")
 
-	v := r.URL.Query()
-
-	var plotType string
-	var s []siteQ
-	var t typeQ
-	var start time.Time
-	var days int
-	var ymin, ymax float64
-	var res *weft.Result
-
-	if plotType, res = getPlotType(v); !res.Ok {
-		return res
+	start, err := valid.ParseStart(q.Get("start"))
+	if err != nil {
+		return err
 	}
 
-	if start, res = getStart(v); !res.Ok {
-		return res
+	days, err := valid.ParseDays(q.Get("days"))
+	if err != nil {
+		return err
 	}
 
-	if days, res = getDays(v); !res.Ok {
-		return res
+	ymin, ymax, err := valid.ParseYrange(q.Get("yrange"))
+	if err != nil {
+		return err
 	}
 
-	if ymin, ymax, res = getYRange(v); !res.Ok {
-		return res
+	t, err := getType(q.Get("typeID"))
+	if err != nil {
+		return err
 	}
 
-	if t, res = getType(v); !res.Ok {
-		return res
-	}
-
-	if s, res = getSites(v); !res.Ok {
-		return res
+	s, err := getSites(q.Get("sites"))
+	if err != nil {
+		return err
 	}
 
 	var p plt
@@ -76,26 +69,24 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) *weft.Result {
 	p.SetUnit(t.unit)
 	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
 
-	var err error
-
 	err = p.addSeries(t, start, days, s...)
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	if v.Get("scheme") != "" {
-		p.SetScheme(v.Get("scheme"))
+	if q.Get("scheme") != "" {
+		p.SetScheme(q.Get("scheme"))
 	}
 
-	switch plotType {
+	switch q.Get("type") {
 	case ``, `line`:
 		err = ts.Line.Draw(p.Plot, b)
 	case `scatter`:
 		err = ts.Scatter.Draw(p.Plot, b)
 	}
 	if err != nil {
-		return weft.ServiceUnavailableError(err)
+		return err
 	}
 
-	return &weft.StatusOK
+	return nil
 }
