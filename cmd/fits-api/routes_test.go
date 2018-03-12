@@ -70,6 +70,7 @@ var routes = wt.Requests{
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&sites=TEST1,TEST2&days=4000"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&sites=TEST1,TEST2&days=4000&start=2010-11-24T00:00:00Z"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&sites=TEST1,TEST2&start=2010-11-24T00:00:00Z"},
+	{ID: wt.L(), Accept: svg, Content: svg, URL: "/plot?typeID=t1&sites=T1.TEST1,T1.TEST2&start=2010-11-24T00:00:00Z"},
 
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/spark?typeID=t1&siteID=TEST1"},
 	{ID: wt.L(), Accept: svg, Content: svg, URL: "/spark?typeID=t1&siteID=TEST1&days=12"},

@@ -15,7 +15,7 @@ import (
 //within e.g., POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))
 
 var (
-	textRE, textErr     = regexp.Compile(`^[0-9a-zA-Z\-\,]+$`)
+	textRE, textErr     = regexp.Compile(`^[0-9a-zA-Z\-\,\.]+$`)
 	srsRE, srsErr       = regexp.Compile(`^EPSG:[0-9]+$`)
 	withinRE, withinErr = regexp.Compile(`^POLYGON\(\([0-9\-\, \.\+]+\)\)$`)
 	widthRE, widthErr   = regexp.Compile(`^[0-9]+$`)
