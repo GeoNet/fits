@@ -39,6 +39,7 @@ func TestQuery(t *testing.T) {
 		{k: "within", v: "POLYGON((177.18 -37.52,177.19 -37.52,177.20 -37.53,177.18 -37.52))"},
 
 		{k: "sites", v: "GISB,CHTI,RAUL"},
+		{k: "sites", v: "VO.GISB,VO.CHTI,RAUL"},
 
 		{k: "width", v: "500"},
 
