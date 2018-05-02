@@ -45,5 +45,4 @@ Notebook 4 is an example of making a simple plot of site positions in FITS and d
 Notebook 5 is for advanced users, as the code is much more complex and the purpose very focused. This notebook concentrates on discovering which sites have data for one or more data types or data collection methods. It covers:
 
 - Discovery of which sites have data for one or more data types or data collection methods
-
--         Plotting all data (or a window thereof) of the data types / collection methods specified for many sites
+- Plotting all data (or a window thereof) of the data types / collection methods specified for many sites
