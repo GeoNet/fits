@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/GeoNet/map180"
+	"github.com/GeoNet/kit/map180"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"

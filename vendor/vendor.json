@@ -3,106 +3,130 @@
 	"ignore": "",
 	"package": [
 		{
+			"checksumSHA1": "6zqNsZ2wRD716NBPoLIYM+2Xt8c=",
+			"path": "github.com/GeoNet/kit/map180",
+			"revision": "d3a026ac3cd54281a76b17a88367ca3839425270",
+			"revisionTime": "2019-02-07T03:09:04Z"
+		},
+		{
+			"checksumSHA1": "E120oB14eZzKBCWbcIURgLvcG/8=",
+			"path": "github.com/GeoNet/kit/map180/nzmap",
+			"revision": "c7006fa3bcdfcb65afd93a2b0443e6a7aaddfd38",
+			"revisionTime": "2019-02-07T03:09:04Z"
+		},
+		{
 			"checksumSHA1": "K/H2p4AwyMec+bAMBqTNGCWfv28=",
 			"path": "github.com/GeoNet/kit/metrics",
-			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
-			"revisionTime": "2018-03-06T01:32:31Z"
+			"revision": "3025afbe89be234e95f967b0ab29b803d8bea102",
+			"revisionTime": "2019-01-31T21:14:11Z"
 		},
 		{
 			"checksumSHA1": "o7qPajW15zvMSuv5tLOYQ8iGMLM=",
 			"path": "github.com/GeoNet/kit/weft",
-			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
-			"revisionTime": "2018-03-06T01:32:31Z"
+			"revision": "3025afbe89be234e95f967b0ab29b803d8bea102",
+			"revisionTime": "2019-01-31T21:14:11Z"
 		},
 		{
-			"checksumSHA1": "GfTCfY08kRVj7MxWiJY8jvjRysg=",
+			"checksumSHA1": "4LwkVlg4O0OtflAkkEykeYXh+Xc=",
 			"path": "github.com/GeoNet/kit/weft/wefttest",
-			"revision": "048bfcd69d6c77262c691b9e3a983e1be2b7a74b",
-			"revisionTime": "2018-03-06T01:32:31Z"
+			"revision": "3025afbe89be234e95f967b0ab29b803d8bea102",
+			"revisionTime": "2019-01-31T21:14:11Z"
 		},
 		{
-			"path": "github.com/GeoNet/map180",
-			"revision": "9382916fcb62438a7fc8406f6e2d931e33a316cf"
-		},
-		{
+			"checksumSHA1": "ODbGU6QAsdOXC8L9PPZ7rhdqhYw=",
 			"path": "github.com/golang/groupcache",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "mA8rR0QenHIH7sHjFjsoE1AjaNk=",
 			"path": "github.com/golang/groupcache/consistenthash",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "84cSsQkE213Kh38UO/CBlIRaTgM=",
 			"path": "github.com/golang/groupcache/groupcachepb",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "O+2eSYjhjN+v09Vq1fpTxsZ6u78=",
 			"path": "github.com/golang/groupcache/lru",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "Brgk+uGBoxsLx/xR2WRobfHfrUA=",
 			"path": "github.com/golang/groupcache/singleflight",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "hmdkrPUAfjAp/04wHLr0d2+bvUw=",
 			"path": "github.com/golang/groupcache/testpb",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987"
+			"revision": "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b",
+			"revisionTime": "2019-01-29T15:46:38Z"
 		},
 		{
+			"checksumSHA1": "7x1a8CvEGgF8O3jsekeyRpNBKrg=",
 			"path": "github.com/golang/protobuf/proto",
-			"revision": "655cdfa588ea190e901bc5590e65d5621688847c"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "qyalT+838zrkZMjOA62VGus0VcI=",
+			"checksumSHA1": "cQvjaQ6YsQ2s/QOmJeSGMjbyLhU=",
 			"path": "github.com/golang/protobuf/proto/proto3_proto",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "AjyXQ5eohrCPS/jSWZFPn5E8wnQ=",
+			"checksumSHA1": "Ap3fxoENMwxwOM77e56TlCVt+7o=",
+			"path": "github.com/golang/protobuf/proto/test_proto",
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
+		},
+		{
+			"path": "github.com/golang/protobuf/proto/testdata",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "WOkXetG3AqJnfVVuqTJvdukcHps=",
 			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "Y89zrH1jPTV2yIjp2JtYJ/v3e1s=",
+			"checksumSHA1": "qspo5Xz9Snq5nzKzuQGnDL5LTSU=",
 			"path": "github.com/golang/protobuf/ptypes",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "lZFWy27Qo6+m/keDjNFYTxSmvZw=",
+			"checksumSHA1": "2/Xg4L9IVGQRJB8zCELZx7/Z4HU=",
 			"path": "github.com/golang/protobuf/ptypes/any",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "8gDNKfvEupesDdOCXio3AK/XVaA=",
+			"checksumSHA1": "RE9rLveNHapyMKQC8p10tbkUE9w=",
 			"path": "github.com/golang/protobuf/ptypes/duration",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"checksumSHA1": "sfoot+dHmmOgWZS6GJ5X79ClZM0=",
+			"checksumSHA1": "seEwY2xETpK9yHJ9+bHqkLZ0VMU=",
 			"path": "github.com/golang/protobuf/ptypes/timestamp",
-			"revision": "18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8",
-			"revisionTime": "2017-04-27T21:32:20Z"
+			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
+			"revisionTime": "2019-02-05T22:20:52Z"
+		},
+		{
+			"path": "github.com/kit/cfg",
+			"revision": ""
 		},
 		{
 			"checksumSHA1": "p5H6CMOaQMFpmEGaiLPvhIq+0pM=",
 			"path": "github.com/lib/pq",
-			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
-			"revisionTime": "2016-08-31T22:25:20Z"
-		},
-		{
-			"checksumSHA1": "fq3BmrkVu85eCtHFnngL8NIvjTo=",
-			"path": "github.com/lib/pq/hstore",
-			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
-			"revisionTime": "2016-08-31T22:25:20Z"
-		},
-		{
-			"checksumSHA1": "X6qUZLq/pJkMn4G8DbBZnJ6fV6A=",
-			"path": "github.com/lib/pq/listen_example",
 			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
 			"revisionTime": "2016-08-31T22:25:20Z"
 		},
@@ -113,10 +137,16 @@
 			"revisionTime": "2016-08-31T22:25:20Z"
 		},
 		{
-			"checksumSHA1": "btuIVd4+XdXRmK3OiIdmKpzEl+s=",
+			"checksumSHA1": "PBn/ROhHjY/a+P4+DqIFeTnUdkI=",
 			"path": "github.com/pkg/errors",
-			"revision": "248dadf4e9068a0b3e79f02ed0a610d935de5302",
-			"revisionTime": "2016-10-29T09:36:37Z"
+			"revision": "ffb6e22f01932bf7ac35e0bad9be11f01d1c8685",
+			"revisionTime": "2019-01-09T06:16:28Z"
+		},
+		{
+			"checksumSHA1": "ThFld47fsBZklOb0BK7HzSJGbJs=",
+			"path": "golang.org/x/sync/errgroup",
+			"revision": "37e7f081c4d4c64e13b10787722085407fe5d15f",
+			"revisionTime": "2018-09-24T18:15:43Z"
 		}
 	],
 	"rootPath": "github.com/GeoNet/fits"
