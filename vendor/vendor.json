@@ -3,6 +3,12 @@
 	"ignore": "",
 	"package": [
 		{
+			"checksumSHA1": "oFZgPIdIxnIFiNYW/T13VkrR7ZQ=",
+			"path": "github.com/GeoNet/kit/cfg",
+			"revision": "3025afbe89be234e95f967b0ab29b803d8bea102",
+			"revisionTime": "2019-01-31T21:14:11Z"
+		},
+		{
 			"checksumSHA1": "6zqNsZ2wRD716NBPoLIYM+2Xt8c=",
 			"path": "github.com/GeoNet/kit/map180",
 			"revision": "d3a026ac3cd54281a76b17a88367ca3839425270",
@@ -121,20 +127,16 @@
 			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
-			"path": "github.com/kit/cfg",
-			"revision": ""
-		},
-		{
-			"checksumSHA1": "p5H6CMOaQMFpmEGaiLPvhIq+0pM=",
+			"checksumSHA1": "FODejiu3SiMQV2ounv2jBCIHU7g=",
 			"path": "github.com/lib/pq",
-			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
-			"revisionTime": "2016-08-31T22:25:20Z"
+			"revision": "9eb73efc1fcc404148b56765b0d3f61d9a5ef8ee",
+			"revisionTime": "2018-10-16T16:26:27Z"
 		},
 		{
-			"checksumSHA1": "xppHi82MLqVx1eyQmbhTesAEjx8=",
+			"checksumSHA1": "AU3fA8Sm33Vj9PBoRPSeYfxLRuE=",
 			"path": "github.com/lib/pq/oid",
-			"revision": "50761b0867bd1d9d069276790bcd4a3bccf2324a",
-			"revisionTime": "2016-08-31T22:25:20Z"
+			"revision": "9eb73efc1fcc404148b56765b0d3f61d9a5ef8ee",
+			"revisionTime": "2018-10-16T16:26:27Z"
 		},
 		{
 			"checksumSHA1": "PBn/ROhHjY/a+P4+DqIFeTnUdkI=",
