@@ -15,7 +15,7 @@ const (
 )
 
 var allZoomRegions = map[Region]bbox{
-	NewZealand: bbox{
+	NewZealand: {
 		llx: 165.0, lly: -48.0, urx: -175.0, ury: -28.0, // New Zealand
 		region: 1,
 	},
@@ -26,26 +26,26 @@ var allZoomRegions = map[Region]bbox{
 // For New Zealand they keep the mainland in the map for the off shore islands (for context).
 
 var allMapBounds = map[Region][]bbox{
-	NewZealand: []bbox{
-		bbox{
+	NewZealand: {
+		{
 			llx: 165.0, lly: -48.0, urx: 179.0, ury: -34.0, region: 1, crosses180: false, title: `New Zealand`,
 		},
-		bbox{
+		{
 			llx: 165.0, lly: -48.0, urx: -175.0, ury: -34.0, region: 1, crosses180: true, title: `New Zealand, Chathams`,
 		},
-		bbox{
+		{
 			llx: 165.0, lly: -48.0, urx: -177.0, ury: -27.0, region: 1, crosses180: true, title: `New Zealand, Raoul`,
 		},
-		bbox{
+		{
 			llx: 165.0, lly: -48.0, urx: -175.0, ury: -27.0, region: 1, crosses180: true, title: `New Zealand, Raoul, Chathams`,
 		},
-		bbox{
+		{
 			llx: 165.0, lly: -48.0, urx: -168.0, ury: -10.0, region: 0, crosses180: true, title: `New Zealand Pacific region`,
 		},
-		bbox{
+		{
 			llx: 155.0, lly: -85.0, urx: -95.0, ury: -30.0, region: 0, crosses180: true, title: `New Zealand, Antartica`,
 		},
-		bbox{
+		{
 			llx: 155.0, lly: -85.0, urx: -95.0, ury: -5.0, region: 0, crosses180: true, title: `New Zealand, Pacific, Antartica`,
 		},
 	},
@@ -54,14 +54,14 @@ var allMapBounds = map[Region][]bbox{
 // named bboxes to save tedious URL typing.  String name cannot contain ','.
 // every Region must have an entry but it could be "    " and bbox{}.
 var allNamedMapBounds = map[Region]map[string]bbox{
-	NewZealand: map[string]bbox{
-		"LakeTaupo":               bbox{llx: 175.64, lly: -39.00, urx: 176.15, ury: -38.61, region: 1, crosses180: false},
-		"WhiteIsland":             bbox{llx: 177.164, lly: -37.54, urx: 177.20, ury: -37.505, region: 1, crosses180: false},
-		"RaoulIsland":             bbox{llx: -178.02, lly: -29.32, urx: -177.86, ury: -29.22, region: 1, crosses180: false},
-		"ChathamIsland":           bbox{llx: -177.2, lly: -44.22, urx: -176.1, ury: -43.65, region: 1, crosses180: false},
-		"NewZealand":              bbox{llx: 165.0, lly: -48.0, urx: 179.0, ury: -34.0, region: 1, crosses180: false},
-		"NewZealandChathamIsland": bbox{llx: 165.0, lly: -48.0, urx: -175.0, ury: -34.0, region: 1, crosses180: true},
-		"NewZealandRegion":        bbox{llx: 165.0, lly: -48.0, urx: -175.0, ury: -28.0, region: 1, crosses180: true},
+	NewZealand: {
+		"LakeTaupo":               {llx: 175.64, lly: -39.00, urx: 176.15, ury: -38.61, region: 1, crosses180: false},
+		"WhiteIsland":             {llx: 177.164, lly: -37.54, urx: 177.20, ury: -37.505, region: 1, crosses180: false},
+		"RaoulIsland":             {llx: -178.02, lly: -29.32, urx: -177.86, ury: -29.22, region: 1, crosses180: false},
+		"ChathamIsland":           {llx: -177.2, lly: -44.22, urx: -176.1, ury: -43.65, region: 1, crosses180: false},
+		"NewZealand":              {llx: 165.0, lly: -48.0, urx: 179.0, ury: -34.0, region: 1, crosses180: false},
+		"NewZealandChathamIsland": {llx: 165.0, lly: -48.0, urx: -175.0, ury: -34.0, region: 1, crosses180: true},
+		"NewZealandRegion":        {llx: 165.0, lly: -48.0, urx: -175.0, ury: -28.0, region: 1, crosses180: true},
 	},
 }
 

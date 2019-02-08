@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/GeoNet/map180"
+	"github.com/GeoNet/kit/map180"
 )
 
 type features struct {

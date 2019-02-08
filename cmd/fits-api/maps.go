@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/map180"
 	"github.com/GeoNet/kit/weft"
-	"github.com/GeoNet/map180"
 	"net/http"
 	"strings"
 )

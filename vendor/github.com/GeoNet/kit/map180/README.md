@@ -19,17 +19,14 @@ See the Go docs for further details.
 
 Postgres 9.* with Postgis 2.*
 
-### Load Map Layers and Labels Tables
+##  Using the Assembled Data
 
-Load data for the New Zealand region (assumes a database called `fits`).  See data assembly if you want to use a different region.
-
-```
-psql -h 127.0.0.1 fits postgres -f data/new_zealand_map_layers.ddl
-```
+* Create the tables (and associated indexed) `public.map180_layers` and `public.map180_labels`.  See `etc/nz_map180_layer.ddl`
+* Load the data e.g., for the fits db: `psql -h 127.0.0.1 fits postgres -f data/new_zealand_map_layers.ddl`
 
 If necessary change the schema, table, and user access as required.  They can be specificed in map180.Init()
 
-## Data Assembly
+## Assembing Data
 
 The goal is to end up with land and lakes multi polygon on EPSG:3857 entered into `public.map180_layers` and labels in 
 `public.map180_labels`.  The zoom region should include data for your region of interest at higher zoom levels.  
@@ -47,6 +44,3 @@ The assembled New Zealand data set uses data sourced from:
 
 * Natural Earth - http://www.naturalearthdata.com/
 * the LINZ Data Service http://data.linz.govt.nz which is licensed by LINZ for re-use under the Creative Commons Attribution 3.0 New Zealand licence.
-
-
-
