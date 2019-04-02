@@ -54,7 +54,6 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		}
 	} else {
 		srid = 4326
-		authName = "EPSG"
 		srsName = "EPSG:4326"
 	}
 

@@ -65,7 +65,7 @@ func plotSites(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		p.SetYAxis(ymin, ymax)
 	}
 
-	p.SetTitle(fmt.Sprintf("%s", t.description))
+	p.SetTitle(t.description)
 	p.SetUnit(t.unit)
 	p.SetYLabel(fmt.Sprintf("%s (%s)", t.name, t.unit))
 

@@ -67,7 +67,7 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	switch {
 	case days == 0 && methodID == "":
 		rows, err = db.Query(
-			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
+			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation
                            WHERE 
                                sitepk = (
                                               SELECT DISTINCT ON (sitepk) sitepk from fits.site where siteid = $1
@@ -86,8 +86,8 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
                                AND typepk = (
                                                         SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
-                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
-                  		ORDER BY time ASC;`, siteID, typeID)
+                                AND time > (now() - $3::interval)
+                  		ORDER BY time ASC;`, siteID, typeID, strconv.Itoa(days))
 	case days == 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
@@ -115,8 +115,8 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		AND methodpk = (
 					SELECT methodpk FROM fits.method WHERE methodid = $3
 				)
-                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
-                  		ORDER BY time ASC;`, siteID, typeID, methodID)
+                                AND time > (now() - $4::interval)
+                  		ORDER BY time ASC;`, siteID, typeID, methodID, strconv.Itoa(days))
 	}
 	if err != nil {
 		return err
