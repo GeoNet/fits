@@ -164,7 +164,7 @@ func (plt *plt) addSeries(t typeQ, start time.Time, days int, sites ...siteQ) (e
 		defer rows.Close()
 
 		var ser ts.Series
-		ser.Label = fmt.Sprintf("%s", s.siteID)
+		ser.Label = s.siteID
 
 		for rows.Next() {
 			p := ts.Point{}

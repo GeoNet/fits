@@ -322,8 +322,6 @@ func (p *Plot) scaleData() {
 		p.plt.Stddev.H = int((p.plt.Stddev.Stddev * 2 * p.plt.dy) + 0.5)
 		p.plt.Stddev.Y = p.plt.height - int(((p.plt.Stddev.Mean+p.plt.Stddev.Stddev-p.plt.YMin)*p.plt.dy)+0.5)
 	}
-
-	return
 }
 
 /*

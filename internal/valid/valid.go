@@ -18,7 +18,6 @@ var (
 	textRE, textErr     = regexp.Compile(`^[0-9a-zA-Z\-\,\.]+$`)
 	srsRE, srsErr       = regexp.Compile(`^EPSG:[0-9]+$`)
 	withinRE, withinErr = regexp.Compile(`^POLYGON\(\([0-9\-\, \.\+]+\)\)$`)
-	widthRE, widthErr   = regexp.Compile(`^[0-9]+$`)
 	bboxRE, bboxErr     = regexp.Compile(`^[0-9\-\, \.\+]+$`)
 )
 
