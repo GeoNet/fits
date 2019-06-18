@@ -1,168 +1,102 @@
+{{define "base"}}<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>FITS API</title>
+    {{subResource "/assets/css/bootstrap.min.css"}}
+    {{subResource "/assets/css/apidocs.css"}}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+    </div>
+</div>
 
-	
-	<html>
-	<head>
-	<meta charset="utf-8"/>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1"/>
-	<title>FITS API</title>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-	<style>
-	body { padding-top: 60px; }
-	a.anchor { 
-		display: block; position: relative; top: -60px; visibility: hidden; 
-	}
-
-	.panel-height {
-		height: 150px; 
-		overflow-y: scroll;
-	}
-
-	.footer {
-		margin-top: 20px;
-		padding: 20px 0 20px;
-		border-top: 1px solid #e5e5e5;
-	}
-
-	.footer p {
-		text-align: center;
-	}
-
-	#logo{position:relative;}
-	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
-	#logo li a span
-	{
-		position: absolute;
-		left: -10000px;
-	}
-
-	#gns li, #gns a
-	{
-		float: left;
-		display:block;
-		height: 90px;
-		width: 54px;
-	}
-
-	#gns{left:-20px;height:90px;width:54px;}
-	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
-
-	#eqc li, #eqc a
-	{
-		display:block;
-		height: 61px;
-		width: 132px;
-	}
-
-	#eqc{right:0px;height:79px;width:132px;}
-	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
-
-	#ccby li, #ccby a
-	{
-		display:block;
-		height: 15px;
-		width: 80px;
-	}
-	#ccby{left:15px;height:15px;width:80px; }
-	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
-
-	#geonet{
-		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
-		width:137px; 
-		height:53px;
-		display:block;
-	}
+<div class="container-fluid">
 
 
-	</style>
-	</head>
-	<body>
-	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-	<div class="container">
-	<div class="navbar-header">
-	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-	</div>
-	</div>
-	</div>
+    <ol class="breadcrumb">
+        <li><a href="/api-docs">Index</a></li>
+        <li>Endpoint</li>
+        <li class="active">Site</li>
+    </ol>
+    <h2 class="page-header">Site</h2>
+    <p class="lead">Look up site information.</p>
+    <h4>Query Index:</h4>
 
-	<div class="container-fluid">
-	
-	
-	<ol class="breadcrumb">
-	<li><a href="/api-docs">Index</a></li>
-	<li>Endpoint</li>
-	<li class="active">Site</li>
-	</ol>
-	<h2 class="page-header">Site</h2>
-	<p class="lead">Look up site information.</p>
-	<h4>Query Index:</h4>
-	 
-	<ul>
-	<li><a href="#sites">Sites</a> - Filter sites by observation type, method, and location.</li>
-	</ul>
-	 
-	<ul>
-	<li><a href="#site">Site</a> - Find information for individual sites.</li>
-	</ul>
-	
+    <ul>
+        <li><a href="#sites">Sites</a> - Filter sites by observation type, method, and location.</li>
+    </ul>
 
-	 
-	<a id="sites" class="anchor"></a>
-	<h3 class="page-header">Sites</h3>
-	<p class="lead">Filter sites by observation type, method, and location.</p>
-	
-	<div class="panel panel-primary">
-	<div class="panel-heading">Method: GET</div>
-	<div class="panel-body">
-	<dl class="dl-horizontal">
-	<dt>URI</dt>
-	<dd>/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))]</dd>
-	<dt>Accept</dt>
-	<dd>application/vnd.geo&#43;json;version=1</dd>
-	</dl>
-	</div>
-	</div>
-	<h4>Query Parameters</h4>
-	
-	
-	<h5>Optional:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>methodID</dt>
-	<dd>A valid method identifier for observation type e.g., <code>doas-s</code>.  typeID must be specified as well.</dd>
-	
-	<dt>typeID</dt>
-	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
-	
-	<dt>within</dt>
-	<dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
-	defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
-	(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
-	<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.</dd>
-	
-	</dl>
-	
-	<h4>Response Properties</h4>
-	<dl class="dl-horizontal">
-	
-	<dt>groundRelationship</dt>
-	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
-	
-	<dt>height</dt>
-	<dd>Site height (m).</dd>
-	
-	<dt>name</dt>
-	<dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+    <ul>
+        <li><a href="#site">Site</a> - Find information for individual sites.</li>
+    </ul>
 
-	<dt>siteID</dt>
-	<dd>Site identifier e.g., <code>WI000</code>.</dd>
-	
-	
-	</dl>
-	<h4>Example Query and Response</h4>
-	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/site?typeID=e</div>
-	<div class="panel-body panel-height"><pre>{
+
+    <a id="sites" class="anchor"></a>
+    <h3 class="page-header">Sites</h3>
+    <p class="lead">Filter sites by observation type, method, and location.</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))]</dd>
+                <dt>Accept</dt>
+                <dd>application/vnd.geo&#43;json;version=1</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>methodID</dt>
+        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        </dd>
+
+        <dt>typeID</dt>
+        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+
+        <dt>within</dt>
+        <dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
+            The polygon is
+            defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
+            (WGS84). The polygon must be topologically closed. Spaces can be replaced with <code>+</code> or <a
+                    href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g.,
+            <code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.
+        </dd>
+
+    </dl>
+
+    <h4>Response Properties</h4>
+    <dl class="dl-horizontal">
+
+        <dt>groundRelationship</dt>
+        <dd>Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
+
+        <dt>height</dt>
+        <dd>Site height (m).</dd>
+
+        <dt>name</dt>
+        <dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+
+        <dt>siteID</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+
+    </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">http://fits.geonet.org.nz/site?typeID=e</div>
+        <div class="panel-body panel-height"><pre>{
      &#34;features&#34;: [
        {
          &#34;geometry&#34;: {
@@ -3519,58 +3453,58 @@
        }
      ],
      &#34;type&#34;: &#34;FeatureCollection&#34;
-   }</pre></div>
-	</div>
-	
+   }</pre>
+        </div>
+    </div>
 
-	 
-	<a id="site" class="anchor"></a>
-	<h3 class="page-header">Site</h3>
-	<p class="lead">Find information for individual sites.</p>
-	
-	<div class="panel panel-primary">
-	<div class="panel-heading">Method: GET</div>
-	<div class="panel-body">
-	<dl class="dl-horizontal">
-	<dt>URI</dt>
-	<dd>/site?siteID=(siteID)</dd>
-	<dt>Accept</dt>
-	<dd>application/vnd.geo&#43;json;version=1</dd>
-	</dl>
-	</div>
-	</div>
-	<h4>Query Parameters</h4>
-	
-	<h5>Required:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>siteID</dt>
-	<dd>Site identifier e.g., <code>WI000</code>.</dd>
-	
-	</dl>
-	
-	
-	<h4>Response Properties</h4>
-	<dl class="dl-horizontal">
-	
-	<dt>groundRelationship</dt>
-	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
-	
-	<dt>height</dt>
-	<dd>Site height (m).</dd>
-	
-	<dt>name</dt>
-	<dd>Site name e.g, <code>White Island Volcano</code>.</dd>
-	
-	<dt>siteID</dt>
-	<dd>Site identifier e.g., <code>WI000</code>.</dd>
-	
-	
-	</dl>
-	<h4>Example Query and Response</h4>
-	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD</div>
-	<div class="panel-body panel-height"><pre>{
+
+    <a id="site" class="anchor"></a>
+    <h3 class="page-header">Site</h3>
+    <p class="lead">Find information for individual sites.</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/site?siteID=(siteID)</dd>
+                <dt>Accept</dt>
+                <dd>application/vnd.geo&#43;json;version=1</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Required:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>siteID</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+    </dl>
+
+
+    <h4>Response Properties</h4>
+    <dl class="dl-horizontal">
+
+        <dt>groundRelationship</dt>
+        <dd>Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
+
+        <dt>height</dt>
+        <dd>Site height (m).</dd>
+
+        <dt>name</dt>
+        <dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+
+        <dt>siteID</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+
+    </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD</div>
+        <div class="panel-body panel-height"><pre>{
      &#34;features&#34;: [
        {
          &#34;geometry&#34;: {
@@ -3590,49 +3524,56 @@
        }
      ],
      &#34;type&#34;: &#34;FeatureCollection&#34;
-   }</pre></div>
-	</div>
-	
+   }</pre>
+        </div>
+    </div>
 
-	
-	
-	<div id="footer" class="footer">
-	<div class="row">
-	<div class="col-sm-3 hidden-xs">
-	<ul id="logo">
-	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
-	</ul>
-	</div>
 
-	<div class="col-sm-6">
-	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
-	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
-	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
-	</div>
+    <div id="footer" class="footer">
+        <div class="row">
+            <div class="col-sm-3 hidden-xs">
+                <ul id="logo">
+                    <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+                </ul>
+            </div>
 
-	<div  class="col-sm-2 hidden-xs">
-	<ul id="logo">
-	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
-	</ul>
-	</div>
-	<div  class="col-sm-1 hidden-xs">
-	<ul id="logo">
-	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
-	</ul>  
-	</div>
-	</div>
+            <div class="col-sm-6">
+                <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake
+                        Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                <p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank"
+                                                                                             href="http://info.geonet.org.nz/x/JYAO">contact</a>
+                    | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank"
+                                                                                                  href="http://info.geonet.org.nz/x/EIIW">disclaimer</a>
+                </p>
+                <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is
+                    licensed under a <a rel="license" target="_blank"
+                                        href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons
+                        Attribution 3.0 New Zealand License</a></p>
+            </div>
 
-	<div class="row">
-	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
-	<ul id="logo">
-	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
-	</ul>
-	</div>
-	</div>
+            <div class="col-sm-2 hidden-xs">
+                <ul id="logo">
+                    <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz"><span>EQC</span></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-1 hidden-xs">
+                <ul id="logo">
+                    <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+                </ul>
+            </div>
+        </div>
 
-	</div>
-	</div>
-	</body>
-	</html>
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-5 hidden-xs">
+                <ul id="logo">
+                    <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>{{end}}
 
 	

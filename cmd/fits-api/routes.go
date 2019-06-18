@@ -21,12 +21,11 @@ func init() {
 	mux.HandleFunc("/site", weft.MakeHandler(siteHandler, weft.TextError))
 	mux.HandleFunc("/", weft.MakeHandler(charts, weft.HTMLError))
 	mux.HandleFunc("/charts", weft.MakeHandler(charts, weft.HTMLError))
-	mux.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("assets/js"))))
-	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("assets/css"))))
-	mux.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("assets/images"))))
 
-	// TODO (geoff) the api docs are served as static html pages. convert to markdown.
-	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", http.FileServer(http.Dir("assets/api-docs"))))
+	// TODO the api docs are served as static html pages. convert to markdown.
+	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandler(apidocsHandler, weft.HTMLError)))
+
+	mux.HandleFunc("/assets/", weft.MakeHandler(weft.AssetHandler, weft.TextError))
 
 	// routes for balancers and probes.
 	mux.HandleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
