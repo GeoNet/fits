@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/GeoNet/kit/metrics"
+	"github.com/GeoNet/kit/weft"
 	"log"
 	"os"
 )
@@ -15,6 +16,8 @@ func init() {
 		log.SetPrefix(Prefix + " ")
 		logger.SetPrefix(Prefix + " ")
 	}
+
+	weft.SetLogger(logger)
 
 	metrics.DataDogHttp(os.Getenv("DDOG_API_KEY"), metrics.HostName(), metrics.AppName(), logger)
 }
