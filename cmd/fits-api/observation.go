@@ -19,6 +19,7 @@ func init() {
 	eol = []byte("\n")
 }
 
+//nolint:gosec //There doesn't seem to be a good way to get the days in the sql queries as a parameter, days is strongly typed to an integer, should be safe.
 func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	q, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"siteID", "typeID"}, []string{"networkID", "days", "methodID"}, valid.Query)
 	if err != nil {
@@ -86,8 +87,8 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
                                AND typepk = (
                                                         SELECT typepk FROM fits.type WHERE typeid = $2
                                                        ) 
-                                AND time > (now() - $3::interval)
-                  		ORDER BY time ASC;`, siteID, typeID, strconv.Itoa(days))
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
+                  		ORDER BY time ASC;`, siteID, typeID)
 	case days == 0 && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s', to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) as csv FROM fits.observation 
@@ -115,8 +116,8 @@ func observation(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		AND methodpk = (
 					SELECT methodpk FROM fits.method WHERE methodid = $3
 				)
-                                AND time > (now() - $4::interval)
-                  		ORDER BY time ASC;`, siteID, typeID, methodID, strconv.Itoa(days))
+                                AND time > (now() - interval '`+strconv.Itoa(days)+` days')
+                  		ORDER BY time ASC;`, siteID, typeID, methodID)
 	}
 	if err != nil {
 		return err
