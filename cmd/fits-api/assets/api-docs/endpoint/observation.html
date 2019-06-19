@@ -1,170 +1,103 @@
+{{define "base"}}<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>FITS API</title>
+    {{subResource "/assets/css/bootstrap.min.css"}}
+    {{subResource "/assets/css/apidocs.css"}}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+    </div>
+</div>
 
-	
-	<html>
-	<head>
-	<meta charset="utf-8"/>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1"/>
-	<title>FITS API</title>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-	<style>
-	body { padding-top: 60px; }
-	a.anchor { 
-		display: block; position: relative; top: -60px; visibility: hidden; 
-	}
-
-	.panel-height {
-		height: 150px; 
-		overflow-y: scroll;
-	}
-
-	.footer {
-		margin-top: 20px;
-		padding: 20px 0 20px;
-		border-top: 1px solid #e5e5e5;
-	}
-
-	.footer p {
-		text-align: center;
-	}
-
-	#logo{position:relative;}
-	#logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
-	#logo li a span
-	{
-		position: absolute;
-		left: -10000px;
-	}
-
-	#gns li, #gns a
-	{
-		float: left;
-		display:block;
-		height: 90px;
-		width: 54px;
-	}
-
-	#gns{left:-20px;height:90px;width:54px;}
-	#gns{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
-
-	#eqc li, #eqc a
-	{
-		display:block;
-		height: 61px;
-		width: 132px;
-	}
-
-	#eqc{right:0px;height:79px;width:132px;}
-	#eqc{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
-
-	#ccby li, #ccby a
-	{
-		display:block;
-		height: 15px;
-		width: 80px;
-	}
-	#ccby{left:15px;height:15px;width:80px; }
-	#ccby{background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -100px;}
-
-	#geonet{
-		background:url('http://static.geonet.org.nz/geonet-2.0.2/images/logos.png') 0px -249px; 
-		width:137px; 
-		height:53px;
-		display:block;
-	}
+<div class="container-fluid">
 
 
-	</style>
-	</head>
-	<body>
-	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-	<div class="container">
-	<div class="navbar-header">
-	<a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-	</div>
-	</div>
-	</div>
+    <ol class="breadcrumb">
+        <li><a href="/api-docs">Index</a></li>
+        <li>Endpoint</li>
+        <li class="active">Observation</li>
+    </ol>
+    <h2 class="page-header">Observation</h2>
+    <p class="lead">Look up observations.</p>
+    <h4>Query Index:</h4>
 
-	<div class="container-fluid">
-	
-	
-	<ol class="breadcrumb">
-	<li><a href="/api-docs">Index</a></li>
-	<li>Endpoint</li>
-	<li class="active">Observation</li>
-	</ol>
-	<h2 class="page-header">Observation</h2>
-	<p class="lead">Look up observations.</p>
-	<h4>Query Index:</h4>
-	 
-	<ul>
-	<li><a href="#observation">Observation</a> - Observations as CSV</li>
-	</ul>
-	 
-	<ul>
-	<li><a href="#spatialobservation">Spatial Observation</a> - Spatial observations as CSV</li>
-	</ul>
-	
+    <ul>
+        <li><a href="#observation">Observation</a> - Observations as CSV</li>
+    </ul>
 
-	 
-	<a id="observation" class="anchor"></a>
-	<h3 class="page-header">Observation</h3>
-	<p class="lead">Observations as CSV</p>
-	
-	<div class="panel panel-primary">
-	<div class="panel-heading">Method: GET</div>
-	<div class="panel-body">
-	<dl class="dl-horizontal">
-	<dt>URI</dt>
-	<dd>/observation?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
-	<dt>Accept</dt>
-	<dd>text/csv;version=1</dd>
-	</dl>
-	</div>
-	</div>
-	<h4>Query Parameters</h4>
-	
-	<h5>Required:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>siteID</dt>
-	<dd>Site identifier e.g., <code>WI000</code>.</dd>
-	
-	<dt>typeID</dt>
-	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
-	
-	</dl>
-	
-	
-	<h5>Optional:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>days</dt>
-	<dd>The number of days of data to select before now e.g., <code>250</code>.  Maximum value is 365000.</dd>
-	
-	<dt>methodID</dt>
-	<dd>A valid method identifier for observation type e.g., <code>doas-s</code>.  typeID must be specified as well.</dd>
-	
-	</dl>
-	
-	<h4>Response Properties</h4>
-	<dl class="dl-horizontal">
-	
-	<dt>column 1</dt>
-	<dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.</dd>
-	
-	<dt>column 2</dt>
-	<dd>The observation value.</dd>
-	
-	<dt>column 3</dt>
-	<dd>The observation error.  0 is used for an unknown error.</dd>
-	
-	
-	</dl>
-	<h4>Example Query and Response</h4>
-	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=e&amp;siteID=HOLD</div>
-	<div class="panel-body panel-height"><pre>date-time, e (mm), error (mm)
+    <ul>
+        <li><a href="#spatialobservation">Spatial Observation</a> - Spatial observations as CSV</li>
+    </ul>
+
+
+    <a id="observation" class="anchor"></a>
+    <h3 class="page-header">Observation</h3>
+    <p class="lead">Observations as CSV</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/observation?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+                <dt>Accept</dt>
+                <dd>text/csv;version=1</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Required:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>siteID</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+        <dt>typeID</dt>
+        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+
+    </dl>
+
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>days</dt>
+        <dd>The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
+
+        <dt>methodID</dt>
+        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        </dd>
+
+    </dl>
+
+    <h4>Response Properties</h4>
+    <dl class="dl-horizontal">
+
+        <dt>column 1</dt>
+        <dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
+            time zone.
+        </dd>
+
+        <dt>column 2</dt>
+        <dd>The observation value.</dd>
+
+        <dt>column 3</dt>
+        <dd>The observation error. 0 is used for an unknown error.</dd>
+
+
+    </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=e&amp;siteID=HOLD</div>
+        <div class="panel-body panel-height"><pre>date-time, e (mm), error (mm)
 2007-03-16T11:59:00.000Z,93.850000,4.750000
 2007-03-17T11:59:00.000Z,79.190000,4.490000
 2007-03-18T11:59:00.000Z,105.490000,2.390000
@@ -3620,97 +3553,109 @@
 2016-09-02T11:59:00.000Z,-101.060000,3.040000
 2016-09-03T11:59:00.000Z,-98.910000,2.100000
 2016-09-04T11:59:00.000Z,-111.470000,3.350000
-</pre></div>
-	</div>
-	
+</pre>
+        </div>
+    </div>
 
-	 
-	<a id="spatialobservation" class="anchor"></a>
-	<h3 class="page-header">Spatial Observation</h3>
-	<p class="lead">Spatial observations as CSV</p>
-	
-	<div class="panel panel-primary">
-	<div class="panel-heading">Method: GET</div>
-	<div class="panel-body">
-	<dl class="dl-horizontal">
-	<dt>URI</dt>
-	<dd>/observation?typeID=(typeID)&amp;start=(ISO8601 date time)&amp;days=(int)&amp;[srsName=(CRS)]&amp;[within=POLYGON((...))]&amp;[methodID=(methodID)]</dd>
-	<dt>Accept</dt>
-	<dd>text/csv;version=1</dd>
-	</dl>
-	</div>
-	</div>
-	<h4>Query Parameters</h4>
-	
-	<h5>Required:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>days</dt>
-	<dd>The number of days of data to select from the start e.g., <code>1</code>.  Range is 1-7.</dd>
-	
-	<dt>start</dt>
-	<dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.</dd>
-	
-	<dt>typeID</dt>
-	<dd>A type identifier for observations e.g., <code>e</code>.</dd>
-	
-	</dl>
-	
-	
-	<h5>Optional:</h5>
-	<dl class="dl-horizontal">
-	
-	<dt>methodID</dt>
-	<dd>A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
-	
-	<dt>srsName</dt>
-	<dd>Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
-		(<a href="http://spatialreference.org/ref/epsg/nzgd49-new-zealand-map-grid/">New Zealand Map Grid</a>).  
-		Site locations are stored as a geography.  For projection they are cast to a geometry and then projected using 
-		<a href ="http://postgis.net/docs/ST_Transform.html">ST_Transform</a>.  Behaviour of projection is not defined outside the bounds of the SRS.  
-		For further details please refer to the PostGis manual: <a href="http://postgis.org/docs/using_postgis_dbmanagement.html#spatial_ref_sys">4.3.1. The SPATIAL_REF_SYS Table and Spatial Reference Systems</a>.</dd>
-	
-	<dt>within</dt>
-	<dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).  The polygon is
-	defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
-	(WGS84).  The polygon must be topologically closed.  Spaces can be replaced with <code>+</code> or <a href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g., 
-	<code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.</dd>
-	
-	</dl>
-	
-	<h4>Response Properties</h4>
-	<dl class="dl-horizontal">
-	
-	<dt>column 1</dt>
-	<dd>Site identifier e.g., <code>WI000</code>.</dd>
-	
-	<dt>column 2</dt>
-	<dd>The longitude (X) of the observation site.</dd>
-	
-	<dt>column 3</dt>
-	<dd>The latitude (Y) of the observation site.</dd>
-	
-	<dt>column 4</dt>
-	<dd>Site height (m).</dd>
-	
-	<dt>column 5</dt>
-	<dd>Site ground relationship (m).  Sites above ground level have a negative ground relationship.</dd>
-	
-	<dt>column 6</dt>
-	<dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC time zone.</dd>
-	
-	<dt>column 7</dt>
-	<dd>The observation value.</dd>
-	
-	<dt>column 8</dt>
-	<dd>The observation error.  0 is used for an unknown error.</dd>
-	
-	
-	</dl>
-	<h4>Example Query and Response</h4>
-	<div class="panel panel-success">
-	<div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=CO2-flux-e&amp;start=2010-11-24T00:00:00Z&amp;days=2&amp;srsName=EPSG:27200&amp;within=POLYGON((177.18&#43;-37.52,177.19&#43;-37.52,177.20&#43;-37.53,177.18&#43;-37.52))</div>
-	<div class="panel-body panel-height"><pre>siteID, X (EPSG:27200), Y (EPSG:27200), height, groundRelationship, date-time, CO2-flux-e (g-m^2/d), error (g-m^2/d)
+
+    <a id="spatialobservation" class="anchor"></a>
+    <h3 class="page-header">Spatial Observation</h3>
+    <p class="lead">Spatial observations as CSV</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/observation?typeID=(typeID)&amp;start=(ISO8601 date time)&amp;days=(int)&amp;[srsName=(CRS)]&amp;[within=POLYGON((...))]&amp;[methodID=(methodID)]</dd>
+                <dt>Accept</dt>
+                <dd>text/csv;version=1</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Required:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>days</dt>
+        <dd>The number of days of data to select from the start e.g., <code>1</code>. Range is 1-7.</dd>
+
+        <dt>start</dt>
+        <dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
+        </dd>
+
+        <dt>typeID</dt>
+        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+
+    </dl>
+
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>methodID</dt>
+        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
+
+        <dt>srsName</dt>
+        <dd>Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial
+                reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
+            (<a href="http://spatialreference.org/ref/epsg/nzgd49-new-zealand-map-grid/">New Zealand Map Grid</a>).
+            Site locations are stored as a geography. For projection they are cast to a geometry and then projected
+            using
+            <a href="http://postgis.net/docs/ST_Transform.html">ST_Transform</a>. Behaviour of projection is not defined
+            outside the bounds of the SRS.
+            For further details please refer to the PostGis manual: <a
+                    href="http://postgis.org/docs/using_postgis_dbmanagement.html#spatial_ref_sys">4.3.1. The
+                SPATIAL_REF_SYS Table and Spatial Reference Systems</a>.
+        </dd>
+
+        <dt>within</dt>
+        <dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
+            The polygon is
+            defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
+            (WGS84). The polygon must be topologically closed. Spaces can be replaced with <code>+</code> or <a
+                    href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g.,
+            <code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.
+        </dd>
+
+    </dl>
+
+    <h4>Response Properties</h4>
+    <dl class="dl-horizontal">
+
+        <dt>column 1</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+        <dt>column 2</dt>
+        <dd>The longitude (X) of the observation site.</dd>
+
+        <dt>column 3</dt>
+        <dd>The latitude (Y) of the observation site.</dd>
+
+        <dt>column 4</dt>
+        <dd>Site height (m).</dd>
+
+        <dt>column 5</dt>
+        <dd>Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
+
+        <dt>column 6</dt>
+        <dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
+            time zone.
+        </dd>
+
+        <dt>column 7</dt>
+        <dd>The observation value.</dd>
+
+        <dt>column 8</dt>
+        <dd>The observation error. 0 is used for an unknown error.</dd>
+
+
+    </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=CO2-flux-e&amp;start=2010-11-24T00:00:00Z&amp;days=2&amp;srsName=EPSG:27200&amp;within=POLYGON((177.18&#43;-37.52,177.19&#43;-37.52,177.20&#43;-37.53,177.18&#43;-37.52))</div>
+        <div class="panel-body panel-height"><pre>siteID, X (EPSG:27200), Y (EPSG:27200), height, groundRelationship, date-time, CO2-flux-e (g-m^2/d), error (g-m^2/d)
 WI002,2880696.2067666408,6399922.4737455994,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,17.89999999999999858,0.00000000000000000
 WI003,2880559.2049611052,6399937.472421702,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,128.49000000000000909,0.00000000000000000
 WI005,2880594.2052533114,6399959.4728093203,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,864.89999999999997726,0.00000000000000000
@@ -3760,49 +3705,56 @@ WI053,2880351.1992301154,6400471.471275026,0.00000000000000000,-999.899999999999
 WI054,2880300.1987710325,6400443.4707283312,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,2.39999999999999991,0.00000000000000000
 WI055,2880210.1974825026,6400472.4698878592,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,15.66000000000000014,0.00000000000000000
 WI057,2880313.1990341116,6400420.4708205648,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,9.58999999999999986,0.00000000000000000
-</pre></div>
-	</div>
-	
+</pre>
+        </div>
+    </div>
 
-	
-	
-	<div id="footer" class="footer">
-	<div class="row">
-	<div class="col-sm-3 hidden-xs">
-	<ul id="logo">
-	<li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
-	</ul>            
-	</div>
 
-	<div class="col-sm-6">
-	<p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
-	<p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank" href="http://info.geonet.org.nz/x/JYAO">contact</a> | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank" href="http://info.geonet.org.nz/x/EIIW">disclaimer</a> </p>
-	<p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is licensed under a <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons Attribution 3.0 New Zealand License</a></p>
-	</div>
+    <div id="footer" class="footer">
+        <div class="row">
+            <div class="col-sm-3 hidden-xs">
+                <ul id="logo">
+                    <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+                </ul>
+            </div>
 
-	<div  class="col-sm-2 hidden-xs">
-	<ul id="logo">
-	<li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz" ><span>EQC</span></a></li>
-	</ul>
-	</div>
-	<div  class="col-sm-1 hidden-xs">
-	<ul id="logo">
-	<li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
-	</ul>  
-	</div>
-	</div>
+            <div class="col-sm-6">
+                <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake
+                        Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                <p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank"
+                                                                                             href="http://info.geonet.org.nz/x/JYAO">contact</a>
+                    | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank"
+                                                                                                  href="http://info.geonet.org.nz/x/EIIW">disclaimer</a>
+                </p>
+                <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is
+                    licensed under a <a rel="license" target="_blank"
+                                        href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons
+                        Attribution 3.0 New Zealand License</a></p>
+            </div>
 
-	<div class="row">
-	<div class="col-sm-1 col-sm-offset-5 hidden-xs">
-	<ul id="logo">
-	<li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/" ><span>CC-BY</span></a></li>
-	</ul>
-	</div>
-	</div>
+            <div class="col-sm-2 hidden-xs">
+                <ul id="logo">
+                    <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz"><span>EQC</span></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-1 hidden-xs">
+                <ul id="logo">
+                    <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+                </ul>
+            </div>
+        </div>
 
-	</div>
-	</div>
-	</body>
-	</html>
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-5 hidden-xs">
+                <ul id="logo">
+                    <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>{{end}}
 	
 	

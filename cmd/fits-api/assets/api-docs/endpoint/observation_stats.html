@@ -1,0 +1,182 @@
+{{define "base"}}<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>FITS API</title>
+    {{subResource "/assets/css/bootstrap.min.css"}}
+    {{subResource "/assets/css/apidocs.css"}}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+
+    <ol class="breadcrumb">
+        <li><a href="/api-docs">Index</a></li>
+        <li>Endpoint</li>
+        <li class="active">Observation Statistics</li>
+    </ol>
+    <h2 class="page-header">Observation Statistics</h2>
+    <p class="lead">Get observation statistics.</p>
+    <h4>Query Index:</h4>
+
+    <ul>
+        <li><a href="#observationstatistics">Observation Statistics</a> - Observations statisctics as JSON</li>
+    </ul>
+
+
+    <a id="observationstatistics" class="anchor"></a>
+    <h3 class="page-header">Observation Statistics</h3>
+    <p class="lead">Observations statisctics as JSON</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+                <dt>Accept</dt>
+                <dd>application/json;version=1</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Required:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>siteID</dt>
+        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+
+        <dt>typeID</dt>
+        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+
+    </dl>
+
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+
+        <dt>days</dt>
+        <dd>The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
+
+        <dt>methodID</dt>
+        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        </dd>
+
+    </dl>
+
+    <h4>Response Properties</h4>
+    <dl class="dl-horizontal">
+
+        <dt>First</dt>
+        <dd>The date time, value, and error for the first observation.</dd>
+
+        <dt>Last</dt>
+        <dd>The date time, value, and error for the last observation.</dd>
+
+        <dt>Mean</dt>
+        <dd>The statistical average of the observations.</dd>
+
+        <dt>Minimum</dt>
+        <dd>The date time, value, and error for the minimum observation.</dd>
+
+        <dt>StddevPopulation</dt>
+        <dd>The population standard deviation of the observations.</dd>
+
+        <dt>Unit</dt>
+        <dd>The unit of the observations.</dd>
+
+        <dt>maximum</dt>
+        <dd>The date time, value, and error for the maximum observation.</dd>
+
+
+    </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;</div>
+        <div class="panel-body panel-height"><pre>{
+     &#34;First&#34;: {
+       &#34;DateTime&#34;: &#34;2007-03-16T11:59:00Z&#34;,
+       &#34;Error&#34;: 4.75,
+       &#34;Value&#34;: 93.85
+     },
+     &#34;Last&#34;: {
+       &#34;DateTime&#34;: &#34;2016-09-04T11:59:00Z&#34;,
+       &#34;Error&#34;: 3.35,
+       &#34;Value&#34;: -111.47
+     },
+     &#34;Maximum&#34;: {
+       &#34;DateTime&#34;: &#34;2007-03-18T11:59:00Z&#34;,
+       &#34;Error&#34;: 2.39,
+       &#34;Value&#34;: 105.49
+     },
+     &#34;Mean&#34;: -0.003536903039073806,
+     &#34;Minimum&#34;: {
+       &#34;DateTime&#34;: &#34;2016-09-04T11:59:00Z&#34;,
+       &#34;Error&#34;: 3.35,
+       &#34;Value&#34;: -111.47
+     },
+     &#34;StddevPopulation&#34;: 58.37241024287652,
+     &#34;Unit&#34;: &#34;mm&#34;
+   }</pre>
+        </div>
+    </div>
+
+
+    <div id="footer" class="footer">
+        <div class="row">
+            <div class="col-sm-3 hidden-xs">
+                <ul id="logo">
+                    <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+                </ul>
+            </div>
+
+            <div class="col-sm-6">
+                <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake
+                        Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                <p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank"
+                                                                                             href="http://info.geonet.org.nz/x/JYAO">contact</a>
+                    | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank"
+                                                                                                  href="http://info.geonet.org.nz/x/EIIW">disclaimer</a>
+                </p>
+                <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is
+                    licensed under a <a rel="license" target="_blank"
+                                        href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons
+                        Attribution 3.0 New Zealand License</a></p>
+            </div>
+
+            <div class="col-sm-2 hidden-xs">
+                <ul id="logo">
+                    <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz"><span>EQC</span></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-1 hidden-xs">
+                <ul id="logo">
+                    <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-5 hidden-xs">
+                <ul id="logo">
+                    <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>{{end}}
+	
+	

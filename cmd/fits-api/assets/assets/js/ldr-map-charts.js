@@ -107,7 +107,7 @@ var ldrChartClient = {
             },
 
             pointToLayer: function (feature, latlng) {
-                var siteIconUrl = "../images/volc_mark.png";
+                var siteIconUrl = "/assets/images/volc_mark.png";
                 //console.log("siteIconUrl " + siteIconUrl);
                 var siteIcon = L.icon({
                     iconUrl: siteIconUrl,
