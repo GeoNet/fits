@@ -272,18 +272,19 @@ func setBestPracticeHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; "+
 		"img-src 'self' *.geonet.org.nz data:; "+
 		"font-src 'self' https://fonts.gstatic.com; "+
-		"style-src 'self' 'unsafe-inline'; "+
+		"style-src 'self' 'unsafe-inline' https://*.googleapis.com; "+
 		"script-src 'self' https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; "+
 		"connect-src 'self' https://*.geonet.org.nz; "+
 		"frame-src 'self' https://www.youtube.com https://www.google.com; "+
 		"form-action 'self'; "+
 		"base-uri 'none'; "+
-		"frame-ancestors 'self'; " +
+		"frame-ancestors 'self'; "+
 		"object-src 'self';")
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Strict-Transport-Security", "max-age=63072000")
+	w.Header().Set("Referrer-Policy", "no-referrer")
 }
 
 // TextError writes text errors to b for non nil error.
