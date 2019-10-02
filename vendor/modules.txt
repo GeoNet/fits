@@ -1,0 +1,16 @@
+# github.com/GeoNet/kit v0.0.0-20190918224938-2cc27e012059
+github.com/GeoNet/kit/map180
+github.com/GeoNet/kit/metrics
+github.com/GeoNet/kit/weft
+github.com/GeoNet/kit/weft/wefttest
+# github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef
+github.com/golang/groupcache
+github.com/golang/groupcache/consistenthash
+github.com/golang/groupcache/groupcachepb
+github.com/golang/groupcache/lru
+github.com/golang/groupcache/singleflight
+# github.com/golang/protobuf v1.3.2-0.20190318194812-d3c38a4eb497
+github.com/golang/protobuf/proto
+# github.com/lib/pq v1.0.1-0.20190326042056-d6156e141ac6
+github.com/lib/pq
+github.com/lib/pq/oid
