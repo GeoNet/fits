@@ -44,7 +44,7 @@ echo "nobody:x:65534:65534:Nobody:/:" > ${DOCKER_TMP}/etc/passwd
 
 for i in "$@"
 do
-	docker run -e "GOBIN=/usr/src/go/src/github.com/GeoNet/${CWD}/${DOCKER_TMP}" -e "GOPATH=/usr/src/go" -e "CGO_ENABLED=0" -e "GOOS=linux" -e "BUILD=$BUILD" --rm \
+	docker run -e "GOBIN=/usr/src/go/src/github.com/GeoNet/${CWD}/${DOCKER_TMP}" -e "GOPATH=/usr/src/go" -e "GOFLAGS=-mod=vendor" -e "CGO_ENABLED=0" -e "GOOS=linux" -e "BUILD=$BUILD" --rm \
 		-v "$PWD":/usr/src/go/src/github.com/GeoNet/${CWD} \
 		-w /usr/src/go/src/github.com/GeoNet/${CWD} ${BUILD_CONTAINER} \
 		go install -a -ldflags "-X main.Prefix=${i}/${VERSION}" -installsuffix cgo ./cmd/${i}

@@ -19,7 +19,8 @@ before_install:
    sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install postgresql-9.5-postgis-2.3
  - sudo apt-get install -y xsltproc
 
-install: true
+install:
+  - export GOFLAGS=-mod=vendor
 addons:
   postgresql: '9.5'
 before_script:
