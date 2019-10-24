@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+// protoc --go_out=dapperlib dapper.proto
+
+package dapper;
+option go_package = "dapperlib";
+
+// DATA MESSAGES
+
+message DataQueryResults {
+    repeated DataQueryResult results = 1;
+}
+
+message DataQueryResult {
+    string domain = 1;
+    string key = 2;
+    string field = 3;
+    repeated DataQueryRecord records = 4;
+}
+
+message DataQueryRecord {
+    // A unix timestamp representing when the value was recorded
+    int64 timestamp = 1;
+
+    // The value of the record (encoded as a string)
+    string value = 2;
+}
+
+// METADATA MESSAGES
+
+message KeyMetadataList {
+    repeated KeyMetadata metadata = 1;
+}
+
+message KeyMetadata {
+    // The domain the metadata is associated with
+    string domain = 1;
+
+    // The key the metadata is associated with
+    string key = 2;
+
+    // The timespan(s) for which this key exists
+    repeated Timespan span = 3;
+
+    // Name/Value pairs of metadata (e.g. 'model: MikroTik')
+    map<string, Metadata> metadata = 4;
+
+    // String tags of metadata (e.g. 'LINZ')
+    map<string, Tag> tags = 5;
+}
+
+message Metadata {
+    // The name of the metadata (e.g. 'model')
+    string name = 1;
+
+    // The value (and potentially past values)
+    repeated MetadataValue values = 2;
+}
+
+message MetadataValue {
+    // The value of the metadata (e.g. 'MikroTik')
+    string value = 1;
+
+    // The timespan this value is valid for
+    Timespan span = 2;
+}
+
+message Tag {
+    // The name of the tag (e.g. 'LINZ')
+    string name = 1;
+
+    // The timespan this value is valid for
+    repeated Timespan span = 2;
+}
+
+message KeyMetadataSnapshotList {
+    repeated KeyMetadataSnapshot metadata = 1;
+}
+
+// A simplified version of KeyMetadata without Timespan components (snapshot of metadata at one moment in time)
+message KeyMetadataSnapshot {
+    // The domain the metadata is associated with
+    string domain = 1;
+
+    // The key the metadata is associated with
+    string key = 2;
+
+    // The moment of the metadata snapshot
+    int64 moment = 3;
+
+    // Name/Value pairs of metadata (e.g. 'model: MikroTik')
+    map<string, string> metadata = 4;
+
+    // String tags of metadata (e.g. 'LINZ')
+    repeated string tags = 5;
+}
+
+message DomainMetadataList {
+    // The domain being listed
+    string domain = 1;
+
+    // All possible metadata fields & values in the domain
+    map<string, MetadataValuesList> metadata = 2;
+
+    // All possible tags in the domain
+    repeated string tags = 3;
+}
+
+message MetadataValuesList {
+    // The metadata field name
+    string name = 1;
+
+    // All potential values for that field
+    repeated string values = 2;
+}
+
+
+// Generic Types
+
+message Timespan {
+    int64 start = 1;
+    int64 end = 2;
+}
