@@ -22,7 +22,7 @@ before_install:
 install:
   - export GOFLAGS=-mod=vendor
 addons:
-  postgresql: '9.5'
+  postgresql: '9.6'
 before_script:
   - psql -U postgres -c "create extension postgis"
   - ./etc/scripts/initdb.sh
