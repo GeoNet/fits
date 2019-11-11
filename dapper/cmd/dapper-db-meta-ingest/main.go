@@ -6,7 +6,6 @@ import (
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/kit/cfg"
 	"github.com/golang/protobuf/proto"
-	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"io/ioutil"
 	"log"
@@ -49,7 +48,7 @@ func main() {
 		log.Fatalf("failed to unmarshal input protobuf: %v", err)
 	}
 
-	if len(input.List) == 0 {
+	if len(input.Metadata) == 0 {
 		log.Fatalf("0 metadata keys to input")
 	}
 
@@ -58,7 +57,7 @@ func main() {
 		log.Fatalf("unable to begin transation: %v", err)
 	}
 
-	_, err = tx.Exec("DELETE FROM dapper.metadata WHERE record_domain=$1;", input.List[0].Domain)
+	_, err = tx.Exec("DELETE FROM dapper.metadata WHERE record_domain=$1;", input.Metadata[0].Domain)
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to delete old metadata: %v", err)
@@ -77,16 +76,16 @@ func main() {
 	}
 	defer tagStmt.Close()
 
+	locStmt, err := tx.Prepare("INSERT INTO dapper.metageom (record_domain, record_key, geom, timespan) VALUES ($1, $2, ST_MakePoint($3, $4), TSRANGE($5, $6, '[)'));")
+
 	sem := make(chan interface{}, 30)
 	wg := sync.WaitGroup{}
 
-	pq.CopyIn()
-
 	var txErr error
 
-	for i, km := range input.List {
-		if (i+1) % 100 == 0 || (i+1) == len(input.List) {
-			log.Printf("Ingesting: %d/%d", (i+1), len(input.List))
+	for i, km := range input.Metadata {
+		if (i+1) % 100 == 0 || (i+1) == len(input.Metadata) {
+			log.Printf("Ingesting: %d/%d", (i+1), len(input.Metadata))
 		}
 
 		sem <- 0
@@ -121,6 +120,10 @@ func main() {
 						return
 					}
 				}
+			}
+
+			for _, p := range km.Location {
+
 			}
 		}(km)
 

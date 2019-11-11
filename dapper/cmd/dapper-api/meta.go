@@ -12,10 +12,9 @@ import (
 	"time"
 )
 
-
 /*
 	This endpoint lists all the potential metadata fields
- */
+*/
 func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	//Get the domain from the path
@@ -39,9 +38,9 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	fmt.Println(path)
 
 	switch path[2] {
-	case "values": //list all metadata values in the domain
-		out, err = metaValues(r, h, b, domain)
-	case "entries": //list all the metadata for a specific 'key'
+	case "list": //list all metadata keys and values in the domain
+		out, err = metaList(r, h, b, domain)
+	case "entries": //list the metadata for a specific 'key'
 		out, err = metaEntries(r, h, b, domain)
 	default:
 		return weft.NoMatch(r, h, b)
@@ -52,34 +51,11 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	}
 
 	return returnProto(out, r, h, b)
-
-	//v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"key", "starttime", "endtime", "moment"}, valid.Query)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//start, end := v.Get("starttime"), v.Get("endtime")
-	//moment := v.Get("moment")
-	//
-	//key := v.Get("key")
-	//
-	//if start != "" || end != "" {
-	//
-	//}
-	//
-	////If no starttime or endtime specified assume moment request
-	//momentT := time.Now()
-	//if moment != "" {
-	//	momentT, err = valid.ParseQueryTime(moment)
-	//	if err != nil {
-	//		return valid.Error{
-	//			Code: http.StatusBadRequest,
-	//			Err:  err,
-	//		}
-	//	}
-	//}
-	//return metaSnapHandler(key, domain, momentT)
 }
+
+/*
+	TODO: Be able to query metadata, need some requirements so I can design the API and the resulting SQL queries.
+ */
 
 func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (proto.Message, error) {
 	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"key"}, []string{}, valid.Query)
@@ -116,11 +92,11 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 
 		if kms == nil || kms.Key != key {
 			kms = &dapperlib.KeyMetadataSnapshot{
-				Domain:               domain,
-				Key:                  key,
-				Moment:               now.Unix(),
-				Metadata:             make(map[string]string),
-				Tags:                 make([]string, 0),
+				Domain:   domain,
+				Key:      key,
+				Moment:   now.Unix(),
+				Metadata: make(map[string]string),
+				Tags:     make([]string, 0),
 			}
 			out.Metadata = append(out.Metadata, kms)
 		}
@@ -135,7 +111,7 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 	return out, nil
 }
 
-func metaValues(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (proto.Message, error) {
+func metaList(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (proto.Message, error) {
 	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
 		return nil, err
@@ -150,9 +126,10 @@ func metaValues(r *http.Request, h http.Header, b *bytes.Buffer, domain string) 
 	}
 
 	out := &dapperlib.DomainMetadataList{
-		Domain:               domain,
-		Metadata:             make(map[string]*dapperlib.MetadataValuesList),
-		Tags:                 make([]string, 0),
+		Domain:   domain,
+		Keys:     make([]string, 0),
+		Metadata: make(map[string]*dapperlib.MetadataValuesList),
+		Tags:     make([]string, 0),
 	}
 
 	for result.Next() {
@@ -171,13 +148,33 @@ func metaValues(r *http.Request, h http.Header, b *bytes.Buffer, domain string) 
 			meta, ok := out.Metadata[field]
 			if !ok {
 				meta = &dapperlib.MetadataValuesList{
-					Name:                 field,
-					Values:               make([]string, 0),
+					Name:   field,
+					Values: make([]string, 0),
 				}
 				out.Metadata[field] = meta
 			}
 			meta.Values = append(meta.Values, value)
 		}
+	}
+
+	result, err = db.Query("SELECT DISTINCT record_key FROM dapper.metadata WHERE record_domain=$1 AND timespan @> NOW()::timestamp ORDER BY record_key;", domain) //TODO: Allow starttime/endtime queries
+	if err != nil {
+		return nil, valid.Error{
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("metadata keys query failed: %v", err),
+		}
+	}
+
+	for result.Next() {
+		var key string
+		err = result.Scan(&key)
+		if err != nil {
+			return nil, valid.Error{
+				Code: http.StatusInternalServerError,
+				Err:  fmt.Errorf("scanning metadata keys failed: %v", err),
+			}
+		}
+		out.Keys = append(out.Keys, key)
 	}
 
 	return out, nil

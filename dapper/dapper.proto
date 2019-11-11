@@ -47,6 +47,8 @@ message KeyMetadata {
 
     // String tags of metadata (e.g. 'LINZ')
     map<string, Tag> tags = 5;
+
+    repeated Point Location = 6;
 }
 
 message Metadata {
@@ -73,6 +75,15 @@ message Tag {
     repeated Timespan span = 2;
 }
 
+message Point {
+    //The Lat/Lon of the point
+    float Latitude = 1;
+    float Longitude = 2;
+
+    //The timespan the value is valid for
+    Timespan span = 3;
+}
+
 message KeyMetadataSnapshotList {
     repeated KeyMetadataSnapshot metadata = 1;
 }
@@ -93,17 +104,23 @@ message KeyMetadataSnapshot {
 
     // String tags of metadata (e.g. 'LINZ')
     repeated string tags = 5;
+
+    float Latitude = 6;
+    float Longitude = 7;
 }
 
 message DomainMetadataList {
     // The domain being listed
     string domain = 1;
 
+    // All keys in the domain
+    repeated string keys = 2;
+
     // All possible metadata fields & values in the domain
-    map<string, MetadataValuesList> metadata = 2;
+    map<string, MetadataValuesList> metadata = 3;
 
     // All possible tags in the domain
-    repeated string tags = 3;
+    repeated string tags = 4;
 }
 
 message MetadataValuesList {

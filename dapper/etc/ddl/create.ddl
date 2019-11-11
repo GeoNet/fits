@@ -1,4 +1,5 @@
 CREATE EXTENSION btree_gist;
+CREATE EXTENSION postgis;
 
 DROP ROLE if exists dapper_w;
 DROP ROLE if exists dapper_r;
@@ -42,6 +43,21 @@ CREATE TABLE dapper.metadata (
         timespan WITH &&
     )
 );
+
+CREATE TABLE dapper.metageom (
+    record_domain TEXT NOT NULL,
+    record_key TEXT NOT NULL,
+    geom GEOGRAPHY(POINT, 4326) NOT NULL,
+    timespan TSRANGE NOT NULL,
+
+    PRIMARY KEY (record_domain, record_key, timespan),
+    EXCLUDE USING GIST (
+        record_domain WITH =,
+        record_key WITH =,
+        timespan WITH &&
+    )
+);
+CREATE INDEX geom_search ON dapper.metageom USING GIST (record_domain, geom);
 
 GRANT CONNECT ON DATABASE dapper TO dapper_w;
 GRANT USAGE ON SCHEMA dapper TO dapper_w;
