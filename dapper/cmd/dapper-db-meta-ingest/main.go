@@ -77,6 +77,10 @@ func main() {
 	defer tagStmt.Close()
 
 	locStmt, err := tx.Prepare("INSERT INTO dapper.metageom (record_domain, record_key, geom, timespan) VALUES ($1, $2, ST_MakePoint($3, $4), TSRANGE($5, $6, '[)'));")
+	if err != nil {
+		_ = tx.Rollback()
+		log.Fatalf("failed to preare loc statement: %v", err)
+	}
 
 	sem := make(chan interface{}, 30)
 	wg := sync.WaitGroup{}
@@ -85,7 +89,7 @@ func main() {
 
 	for i, km := range input.Metadata {
 		if (i+1) % 100 == 0 || (i+1) == len(input.Metadata) {
-			log.Printf("Ingesting: %d/%d", (i+1), len(input.Metadata))
+			log.Printf("Ingesting: %d/%d", i+1, len(input.Metadata))
 		}
 
 		sem <- 0
@@ -98,6 +102,12 @@ func main() {
 
 			for _, m := range km.Metadata {
 				for _, v := range m.Values {
+					if v.Span == nil {
+						txErr = fmt.Errorf("metadata value %s/%s/%s/%s does not have a span", km.Domain, km.Key, m.Name, v.Value)
+						log.Println(txErr)
+						return
+					}
+
 					start, end := time.Unix(v.Span.Start, 0), time.Unix(v.Span.End, 0)
 
 					_, err = metaStmt.Exec(km.Domain, km.Key, m.Name, v.Value, start, end)
@@ -123,7 +133,18 @@ func main() {
 			}
 
 			for _, p := range km.Location {
+				if p.Span == nil || p.Location == nil {
+					txErr = fmt.Errorf("location entry for %s/%s does not contain Span AND Location", km.Domain, km.Key)
+					log.Println(txErr)
+					return
+				}
+				start, end := time.Unix(p.Span.Start, 0), time.Unix(p.Span.End, 0)
 
+				_, err = locStmt.Exec(km.Domain, km.Key, p.Location.Latitude, p.Location.Longitude, start, end)
+				if err != nil {
+					txErr = fmt.Errorf("%s/%s: failed to add location entry: %v", km.Domain, km.Key, err)
+					return
+				}
 			}
 		}(km)
 
