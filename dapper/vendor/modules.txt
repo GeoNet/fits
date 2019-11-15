@@ -1,12 +1,12 @@
 # github.com/GeoNet/haz v0.0.0-20191017013542-c1d98e02f0b4
 github.com/GeoNet/haz/internal/sensor
 github.com/GeoNet/haz/internal/valid
-# github.com/GeoNet/kit v0.0.0-20190918224938-2cc27e012059
+# github.com/GeoNet/kit v0.0.0-20191113213923-d97ebbef8351
 github.com/GeoNet/kit/cfg
 github.com/GeoNet/kit/gloria_pb
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft
-# github.com/aws/aws-sdk-go v1.25.14
+# github.com/aws/aws-sdk-go v1.25.35
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -51,7 +51,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/golang/protobuf/proto
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/lib/pq v1.2.1-0.20190813065522-78223426e7c6
+# github.com/lib/pq v1.2.0
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram

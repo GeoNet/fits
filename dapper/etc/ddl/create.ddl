@@ -18,7 +18,7 @@ CREATE TABLE dapper.records (
     record_key TEXT NOT NULL,
     field TEXT NOT NULL,
     time TIMESTAMP(6) NOT NULL,
-    value NUMERIC NOT NULL,
+    value TEXT NOT NULL,
     archived BOOLEAN NOT NULL,
     modtime TIMESTAMP(6) NOT NULL,
     PRIMARY KEY (record_domain, record_key, field, time)
