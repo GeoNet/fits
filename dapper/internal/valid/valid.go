@@ -37,6 +37,7 @@ var valid = map[string]validator{
 	"endtime": querytime,
 	"moment": querytime,
 	"key": validstring,
+	"aggregate": validstring,
 	"latest": validint,
 	"fields": validstring,
 }

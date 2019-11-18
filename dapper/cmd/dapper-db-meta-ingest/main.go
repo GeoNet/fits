@@ -63,6 +63,8 @@ func main() {
 		log.Fatalf("failed to delete old metadata: %v", err)
 	}
 
+	_, err = tx.Exec("DELETE FROM dapper.metageom WHERE record_domain=$1;", input.Metadata[0].Domain)
+
 	metaStmt, err := tx.Prepare("INSERT INTO dapper.metadata (record_domain, record_key, field, value, timespan, istag) VALUES ($1, $2, $3, $4, TSRANGE($5, $6, '[)'), FALSE);")
 	if err != nil {
 		_ = tx.Rollback()
@@ -103,8 +105,9 @@ func main() {
 			for _, m := range km.Metadata {
 				for _, v := range m.Values {
 					if v.Span == nil {
-						txErr = fmt.Errorf("metadata value %s/%s/%s/%s does not have a span", km.Domain, km.Key, m.Name, v.Value)
-						log.Println(txErr)
+						tempErr := fmt.Errorf("metadata value %s/%s/%s/%s does not have a span", km.Domain, km.Key, m.Name, v.Value)
+						log.Println(tempErr)
+						txErr = tempErr
 						return
 					}
 
@@ -112,8 +115,9 @@ func main() {
 
 					_, err = metaStmt.Exec(km.Domain, km.Key, m.Name, v.Value, start, end)
 					if err != nil {
-						txErr = fmt.Errorf("%s/%s/%s: failed to add metadata entry: %v", km.Domain, km.Key, m.Name, err)
-						log.Println(txErr)
+						tempErr := fmt.Errorf("%s/%s/%s: failed to add metadata entry: %v", km.Domain, km.Key, m.Name, err)
+						log.Println(tempErr)
+						txErr = tempErr
 						return
 					}
 				}
@@ -125,8 +129,9 @@ func main() {
 
 					_, err = tagStmt.Exec(km.Domain, km.Key, t.Name, start, end)
 					if err != nil {
-						txErr = fmt.Errorf("%s/%s/%s: failed to add tag entry: %v", km.Domain, km.Key, t.Name, err)
-						log.Println(txErr)
+						tempErr := fmt.Errorf("%s/%s/%s: failed to add tag entry: %v", km.Domain, km.Key, t.Name, err)
+						log.Println(tempErr)
+						txErr = tempErr
 						return
 					}
 				}
@@ -134,15 +139,18 @@ func main() {
 
 			for _, p := range km.Location {
 				if p.Span == nil || p.Location == nil {
-					txErr = fmt.Errorf("location entry for %s/%s does not contain Span AND Location", km.Domain, km.Key)
-					log.Println(txErr)
+					tempErr := fmt.Errorf("location entry for %s/%s does not contain Span AND Location", km.Domain, km.Key)
+					log.Println(tempErr)
+					txErr = tempErr
 					return
 				}
 				start, end := time.Unix(p.Span.Start, 0), time.Unix(p.Span.End, 0)
 
-				_, err = locStmt.Exec(km.Domain, km.Key, p.Location.Latitude, p.Location.Longitude, start, end)
+				_, err = locStmt.Exec(km.Domain, km.Key, p.Location.Longitude, p.Location.Latitude, start, end)
 				if err != nil {
-					txErr = fmt.Errorf("%s/%s: failed to add location entry: %v", km.Domain, km.Key, err)
+					tempErr := fmt.Errorf("%s/%s: failed to add location entry: %v", km.Domain, km.Key, err)
+					log.Println(tempErr)
+					txErr = tempErr
 					return
 				}
 			}

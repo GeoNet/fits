@@ -19,10 +19,17 @@ import (
 )
 
 const (
+	maxAge10    = "max-age=10"
+	maxAge300   = "max-age=300"
+	maxAge3600  = "max-age=3600"
+	maxAge86400 = "max-age=86400"
+
 	CONTENT_TYPE_PROTOBUF = "application/x-protobuf"
 	CONTENT_TYPE_JSON = "application/json"
+	CONTENT_TYPE_GEOJSON = "application/geo+json"
 	CONTENT_TYPE_CSV = "text/csv"
 )
+
 
 var (
 	mux           *http.ServeMux
@@ -70,7 +77,26 @@ func main() {
 	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
 
 	log.Println("starting server")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
+}
+
+func inbound(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			// Enable CORS
+			w.Header().Set("Access-Control-Allow-Methods", "GET")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Cache-Control", maxAge10)
+		}
+		// Routing is based on Accept query parameters
+		// e.g., version=1 in application/json;version=1
+		// so caching must Vary based on Accept.
+		w.Header().Set("Vary", "Accept")
+		w.Header().Set("Surrogate-Control", "max-age=10")
+
+		h.ServeHTTP(w, r)
+	})
 }
 
 func sohHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
@@ -126,6 +152,14 @@ func returnProto(p proto.Message, r *http.Request, h http.Header, b *bytes.Buffe
 	switch ctype {
 	case CONTENT_TYPE_PROTOBUF:
 		pb, err = proto.Marshal(p)
+	case CONTENT_TYPE_GEOJSON:
+		switch p := p.(type) {
+		case *dapperlib.KeyMetadataSnapshotList:
+			pb, err = marshalGeoJSON(p)
+		default:
+			ctype = CONTENT_TYPE_JSON
+			pb, err = json.Marshal(p)
+		}
 	default:
 		ctype = CONTENT_TYPE_JSON
 		pb, err = json.Marshal(p)
@@ -149,3 +183,4 @@ func returnProto(p proto.Message, r *http.Request, h http.Header, b *bytes.Buffe
 
 	return nil
 }
+
