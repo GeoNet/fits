@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,6 +38,7 @@ var valid = map[string]validator{
 	"endtime": querytime,
 	"moment": querytime,
 	"key": validstring,
+	"query": validQuery,
 	"aggregate": validstring,
 	"latest": validint,
 	"fields": validstring,
@@ -75,6 +77,21 @@ func Parameter(key, value string) error {
 	}
 
 	return f(value)
+}
+
+func validQuery(s string) error {
+	_, _, err := ParseQuery(s)
+	return err
+}
+
+func ParseQuery(s string) (string, string, error) {
+	sp := strings.Split(s, "=")
+
+	if len(sp) != 2 {
+		return "", "", fmt.Errorf("query string should be in the form of 'field=value'")
+	}
+
+	return sp[0], sp[1], nil
 }
 
 func querytime(s string) error {

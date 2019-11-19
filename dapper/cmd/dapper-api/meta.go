@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"github.com/golang/protobuf/proto"
+	"github.com/lib/pq"
 	"net/http"
 	"strings"
 	"time"
@@ -53,26 +55,71 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	return returnProto(out, r, h, b)
 }
 
-/*
-	TODO: Be able to query metadata, need some requirements so I can design the API and the resulting SQL queries.
-*/
+func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
+	out := make([]string, 0)
+	result, err := db.Query("SELECT record_key FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::timestamp;", domain, keyQ, valQ, now)
+	if err != nil {
+		return out, fmt.Errorf("failed to execute simple query: %v", err)
+	}
+
+	for result.Next() {
+		var key string
+		err = result.Scan(&key)
+		if err != nil {
+			return out, fmt.Errorf("failed to scan for simple query result: %v", err)
+		}
+		out = append(out, key)
+	}
+	return out, nil
+}
 
 func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (proto.Message, error) {
-	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"key", "aggregate"}, valid.Query)
+	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"key", "aggregate", "query"}, valid.Query)
 	if err != nil {
 		return nil, err
 	}
 
-	key := v.Get("key")
-	key = strings.Replace(key, "*", "%", -1) //% is the wildcard in postgres but easier to send an * in urls.
+	now := time.Now().UTC()
 
-	if key == "" {
+	key := v.Get("key")
+	query := v.Get("query")
+	var qRes []string
+
+	if key != "" && query != "" {
+		return nil, valid.Error{
+			Code: http.StatusBadRequest,
+			Err:  fmt.Errorf("only one of 'key' or 'query' may be provided"),
+		}
+	} else if query != "" {
+		keyQ, valQ, err := valid.ParseQuery(query)
+		if err != nil {
+			return nil, valid.Error{
+				Code: http.StatusBadRequest,
+				Err:  fmt.Errorf("failed to parse query string: %v", err),
+			}
+		}
+		qRes, err = querySimple(keyQ, valQ, domain, now)
+		if err != nil {
+			return nil, valid.Error{
+				Code: http.StatusInternalServerError,
+				Err:  fmt.Errorf("failed to perform simple query: %v", err),
+			}
+		}
+	} else if key != "" {
+		key = strings.Replace(key, "*", "%", -1) //% is the wildcard in postgres but easier to send an * in urls.
+	} else {
 		key = "%"
 	}
 
-	now := time.Now().UTC()
-
-	result, err := db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp;", domain, key, now) //TODO: Allow starttime/endtime queries
+	var result *sql.Rows
+	//Get locations
+	if key != "" {
+		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp;", domain, key, now) //TODO: Allow starttime/endtime queries
+	} else if query != "" {
+		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::timestamp;", domain, pq.Array(qRes), now)
+	} else {
+		err = fmt.Errorf("was not set to either key or query")
+	}
 	if err != nil {
 		return nil, valid.Error{
 			Code: http.StatusInternalServerError,
@@ -98,7 +145,15 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 		}
 	}
 
-	result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp ORDER BY record_key;", domain, key, now) //TODO: Allow starttime/endtime queries
+	//get metadata
+
+	if key != "" {
+		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp ORDER BY record_key;", domain, key, now) //TODO: Allow starttime/endtime queries
+	} else if query != "" {
+		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::timestamp ORDER BY record_key;", domain, pq.Array(qRes), now)
+	} else {
+		err = fmt.Errorf("was not set to either key or query")
+	}
 	if err != nil {
 		return nil, valid.Error{
 			Code: http.StatusInternalServerError,
