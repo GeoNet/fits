@@ -42,6 +42,7 @@ var valid = map[string]validator{
 	"aggregate": validstring,
 	"latest": validint,
 	"fields": validstring,
+	"tags": validstring,
 }
 
 // Query validates values and returns 400 errors for invalid, empty, or duplicate parameters.

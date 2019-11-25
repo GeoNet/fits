@@ -55,7 +55,7 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		}
 	}
 
-	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"key"}, []string{"latest", "starttime", "endtime", "fields"}, valid.Query)
+	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{"key"}, []string{"latest", "starttime", "endtime", "fields", "aggregate"}, valid.Query)
 	if err != nil {
 		return err
 	}
@@ -65,6 +65,17 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	fs := v.Get("fields")
 	if fs != "" {
 		fields = strings.Split(fs, ",")
+	}
+
+	var aggr = v.Get("aggregate")
+	switch dapperlib.DataAggrMethod(aggr) {
+	case dapperlib.DATA_AGGR_NONE, dapperlib.DATA_AGGR_MIN, dapperlib.DATA_AGGR_MAX, dapperlib.DATA_AGGR_AVG:
+		break
+	default:
+		return valid.Error{
+			Code: http.StatusBadRequest,
+			Err:  fmt.Errorf("'aggregate' parameter must be one of: ('', 'min', 'max', 'avg')"),
+		}
 	}
 
 	var results dapperlib.Table
@@ -89,7 +100,6 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 			}
 		}
 	} else {
-
 		starttime, endtime := time.Time{}, time.Now()
 		startS, endS := v.Get("starttime"), v.Get("endtime")
 		if startS != "" {
@@ -124,6 +134,8 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 			}
 		}
 	}
+
+	results = results.Aggregate(dapperlib.DataAggrMethod(aggr), dapperlib.AUTO)
 
 	if results.Len() == 0 {
 		log.Println("empty results")
@@ -287,7 +299,7 @@ func getDataSpanArchive(domain, key string, start, end time.Time, filter []strin
 		}
 	}
 
-	return out, nil
+	return out.Trim(start, end), nil
 }
 
 func getDataSpanDB(domain, key string, start, end time.Time, filter []string) (dapperlib.Table, error) {

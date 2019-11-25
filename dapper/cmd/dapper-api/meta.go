@@ -37,8 +37,6 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	var out proto.Message
 	var err error
 
-	fmt.Println(path)
-
 	switch path[2] {
 	case "list": //list all metadata keys and values in the domain
 		out, err = metaList(r, h, b, domain)
@@ -57,7 +55,7 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
 	out := make([]string, 0)
-	result, err := db.Query("SELECT record_key FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::timestamp;", domain, keyQ, valQ, now)
+	result, err := db.Query("SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::timestamp;", domain, keyQ, valQ, now)
 	if err != nil {
 		return out, fmt.Errorf("failed to execute simple query: %v", err)
 	}
@@ -73,8 +71,26 @@ func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
 	return out, nil
 }
 
+func tagsSimple(tag, domain string, now time.Time) ([]string, error) {
+	out := make([]string, 0)
+	result, err := db.Query("SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND istag AND timespan @> $3::timestamp;", domain, tag, now)
+	if err != nil {
+		return out, fmt.Errorf("failed to execute tag query: %v", err)
+	}
+
+	for result.Next() {
+		var key string
+		err = result.Scan(&key)
+		if err != nil {
+			return out, fmt.Errorf("failed to scan for tag query results: %v", err)
+		}
+		out = append(out, key)
+	}
+	return out, nil
+}
+
 func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (proto.Message, error) {
-	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"key", "aggregate", "query"}, valid.Query)
+	v, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{"key", "aggregate", "query", "tags"}, valid.Query)
 	if err != nil {
 		return nil, err
 	}
@@ -83,14 +99,21 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 
 	key := v.Get("key")
 	query := v.Get("query")
+	tags := v.Get("tags")
 	var qRes []string
 
-	if key != "" && query != "" {
+	count := 0
+	if key != "" {count++}
+	if query != "" {count++}
+	if tags != "" {count++}
+	if count > 1 {
 		return nil, valid.Error{
 			Code: http.StatusBadRequest,
-			Err:  fmt.Errorf("only one of 'key' or 'query' may be provided"),
+			Err:  fmt.Errorf("only one of 'key', 'query', 'tags' may be provided"),
 		}
-	} else if query != "" {
+	}
+
+	if query != "" {
 		keyQ, valQ, err := valid.ParseQuery(query)
 		if err != nil {
 			return nil, valid.Error{
@@ -105,6 +128,21 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 				Err:  fmt.Errorf("failed to perform simple query: %v", err),
 			}
 		}
+	} else if tags != "" {
+		tagsList := strings.Split(tags, ",")
+		if len(tagsList) != 1 {
+			return nil, valid.Error{
+				Code: http.StatusBadRequest,
+				Err:  fmt.Errorf("only one tag may be specified at this time"),
+			}
+		}
+		qRes, err = tagsSimple(tagsList[0], domain, now)
+		if err != nil {
+			return nil, valid.Error{
+				Code: http.StatusInternalServerError,
+				Err:  fmt.Errorf("failed simple tag query: %v", err),
+			}
+		}
 	} else if key != "" {
 		key = strings.Replace(key, "*", "%", -1) //% is the wildcard in postgres but easier to send an * in urls.
 	} else {
@@ -115,7 +153,7 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 	//Get locations
 	if key != "" {
 		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp;", domain, key, now) //TODO: Allow starttime/endtime queries
-	} else if query != "" {
+	} else if query != "" || tags != "" {
 		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::timestamp;", domain, pq.Array(qRes), now)
 	} else {
 		err = fmt.Errorf("was not set to either key or query")
@@ -149,7 +187,7 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 
 	if key != "" {
 		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::timestamp ORDER BY record_key;", domain, key, now) //TODO: Allow starttime/endtime queries
-	} else if query != "" {
+	} else if query != "" || tags != "" {
 		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::timestamp ORDER BY record_key;", domain, pq.Array(qRes), now)
 	} else {
 		err = fmt.Errorf("was not set to either key or query")

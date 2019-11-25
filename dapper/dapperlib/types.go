@@ -2,21 +2,116 @@ package dapperlib
 
 import (
 	"fmt"
+	"math"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
 
 /*
 	These constants define how much (timewise) data to aggregate into a single table
- */
+*/
 type TimeAggrLevel int
+
 const (
 	DAY TimeAggrLevel = iota
 	MONTH
 	YEAR
 )
+
+type DataAggrLevel int
+
+const (
+	AUTO DataAggrLevel = iota
+	NONE
+	MINS10
+	HOUR1
+	DAY1
+)
+
+type DataAggrMethod string
+type DataAggrFunc func([]string)string
+
+const (
+	DATA_AGGR_NONE DataAggrMethod = ""
+	DATA_AGGR_MIN  DataAggrMethod = "min"
+	DATA_AGGR_MAX  DataAggrMethod = "max"
+	DATA_AGGR_AVG  DataAggrMethod = "avg"
+)
+
+var daFuncs = map[DataAggrMethod]DataAggrFunc{
+	DATA_AGGR_MIN: func(in []string) string {
+		if len(in) == 0 {
+			return ""
+		}
+		var min = math.MaxFloat64
+		for _, s := range in {
+			if s == "" {
+				continue //TODO: How to handle 'null' values
+			}
+			f, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				return "NaN"
+			}
+			min = math.Min(min, f)
+		}
+		return fmt.Sprintf("%v", min)
+	},
+	DATA_AGGR_MAX: func(in []string) string {
+		if len(in) == 0 {
+			return ""
+		}
+		var max = -math.MaxFloat64
+		for _, s := range in {
+			if s == "" {
+				continue //TODO: How to handle 'null' values
+			}
+			f, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				return "NaN"
+			}
+			max = math.Max(max, f)
+		}
+		return fmt.Sprintf("%v", max)
+	},
+	DATA_AGGR_AVG: func(in []string) string {
+		if len(in) == 0 {
+			return ""
+		}
+		var tot = math.MaxFloat64
+		for _, s := range in {
+			if s == "" {
+				continue //TODO: How to handle 'null' values
+			}
+			f, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				return "NaN"
+			}
+			tot += f
+		}
+		return fmt.Sprintf("%v", tot/float64(len(in)))
+	},
+}
+
+func determineDataAggrLevel(start, end time.Time, len, n int) DataAggrLevel {
+	dur := end.Sub(start)
+
+	if len < n {
+		return NONE
+	}
+	if dur/(time.Minute*10) < time.Duration(n) {
+		return MINS10
+	}
+	if dur/(time.Hour) < time.Duration(n) {
+		return HOUR1
+	}
+	if dur/(time.Hour*24) < time.Duration(n) {
+		return DAY1
+	}
+	return DAY1
+}
 
 func GetFiles(domain, key string, start, end time.Time, tAggr TimeAggrLevel) []string {
 	out := make([]string, 0)
@@ -91,15 +186,21 @@ type Table struct {
 
 	headers map[string]bool
 	entries map[int64]map[string]string //the int64 is unixtime
+
+	start time.Time //The earliest time in the table
+	end   time.Time //The latest time in the table
 }
 
 func NewTable(domain, key string) Table {
 	return Table{
-		Domain:  domain,
-		Key:     key,
+		Domain: domain,
+		Key:    key,
 
 		headers: make(map[string]bool),
 		entries: make(map[int64]map[string]string),
+
+		start: time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC),
+		end:   time.Date(9999, 0, 0, 0, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -116,6 +217,13 @@ func (t *Table) Append(rec Record) {
 	}
 	row[rec.Field] = rec.Value
 	t.entries[rec.Time.Unix()] = row
+
+	if t.end.Before(rec.Time) {
+		t.end = rec.Time
+	}
+	if t.start.After(rec.Time) {
+		t.start = rec.Time
+	}
 }
 
 func (t Table) ToCSV() [][]string {
@@ -170,12 +278,19 @@ func (t *Table) AddCSV(in [][]string) error {
 
 			t.entries[when.Unix()] = mp
 		}
+
+		if t.end.Before(when) {
+			t.end = when
+		}
+		if t.start.After(when) {
+			t.start = when
+		}
 	}
 
 	return nil
 }
 
-func (t Table) ToRecords() []Record {
+func (t Table) ToRecords(toSort bool) []Record {
 	out := make([]Record, 0)
 
 	for head := range t.headers {
@@ -193,6 +308,12 @@ func (t Table) ToRecords() []Record {
 		}
 	}
 
+	if toSort {
+		sort.Slice(out, func(i, j int) bool {
+			return out[i].Time.Before(out[j].Time)
+		})
+	}
+
 	return out
 }
 
@@ -200,11 +321,88 @@ func (t *Table) Merge(t2 Table) error {
 	if t.Key != t2.Key || t.Domain != t2.Domain {
 		return fmt.Errorf("cannot merge tables with different domain/keys")
 	}
-	records := t2.ToRecords()
+	records := t2.ToRecords(false)
 	for _, rec := range records {
 		t.Append(rec)
 	}
 	return nil
+}
+
+func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
+	if level == AUTO {
+		level = determineDataAggrLevel(t.start, t.end, t.Len(), 300) //TODO: Document, change n
+	}
+
+	if method == DATA_AGGR_NONE {
+		return t
+	}
+
+	var trunc time.Duration
+	switch level {
+	case MINS10:
+		trunc = time.Minute * 10
+	case HOUR1:
+		trunc = time.Hour
+	case DAY1:
+		trunc = time.Hour * 24
+	case NONE:
+		return t
+	}
+
+	out := NewTable(t.Domain, t.Key)
+
+	rec := t.ToRecords(true)
+	if len(rec) == 0 {
+		return out
+	}
+
+	type fieldAggr struct {
+		ts time.Time
+		sub []string
+	}
+	fmap := make(map[string]*fieldAggr)
+
+	for _, r := range rec {
+		f, ok := fmap[r.Field]
+		if !ok {
+			f = &fieldAggr{sub: make([]string, 0), ts: r.Time.Truncate(trunc)}
+			fmap[r.Field] = f
+		}
+
+		if r.Time.After(f.ts.Add(trunc)) {
+			if len(f.sub) > 0 {
+				//Aggregate the thing
+				val := daFuncs[method](f.sub)
+
+				out.Append(Record{
+					Domain: t.Domain,
+					Key:    t.Key,
+					Field:  r.Field,
+					Time:   f.ts,
+					Value:  val,
+				})
+			}
+			f.ts = f.ts.Add(trunc)
+			f.sub = make([]string, 0)
+		}
+		f.sub =  append(f.sub, r.Value)
+	}
+
+	return out
+}
+
+func (t Table) Trim(start, end time.Time) Table {
+	if t.start.After(start) && t.end.Before(end) {
+		return t
+	}
+	rec := t.ToRecords(false)
+	out := NewTable(t.Domain, t.Key)
+	for _, r := range rec {
+		if r.Time.After(start) && r.Time.Before(end) {
+			out.Append(r)
+		}
+	}
+	return out
 }
 
 func (t Table) ToDQR() *DataQueryResults {
@@ -214,20 +412,23 @@ func (t Table) ToDQR() *DataQueryResults {
 
 	for head := range t.headers {
 		result := &DataQueryResult{
-			Domain:               t.Domain,
-			Key:                  t.Key,
-			Field:                head,
-			Records:              make([]*DataQueryRecord, 0),
+			Domain:  t.Domain,
+			Key:     t.Key,
+			Field:   head,
+			Records: make([]*DataQueryRecord, 0),
 		}
 		for when, row := range t.entries {
 			val, ok := row[head]
 			if ok {
 				result.Records = append(result.Records, &DataQueryRecord{
-					Timestamp:            when,
-					Value:                val,
+					Timestamp: when,
+					Value:     val,
 				})
 			}
 		}
+		sort.Slice(result.Records, func(i, j int) bool {
+			return result.Records[i].Timestamp < result.Records[j].Timestamp
+		})
 		out.Results = append(out.Results, result)
 	}
 
