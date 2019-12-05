@@ -49,6 +49,8 @@ message KeyMetadata {
     map<string, Tag> tags = 5;
 
     repeated PointSpan location = 6;
+
+    repeated LinkSpan links = 7;
 }
 
 message Metadata {
@@ -73,6 +75,25 @@ message Tag {
 
     // The timespan this value is valid for
     repeated Timespan span = 2;
+}
+
+message LinkSpan {
+    // The domain the metadata is associated with
+    string domain = 1;
+    // The key the metadata is associated with
+    string from_key = 2;
+    // The key the metadata is associated with
+    string to_key = 3;
+    // The locality of from_key
+    string from_locality = 4;
+    // The locality of to_key
+    string to_locality = 5;
+    // The type of relation
+    string rel_type = 6;
+    // The GeoJSON LineString
+    string geo_json = 7;
+    // The timespan this value is valid for
+    Timespan span = 8;
 }
 
 message PointSpan {
@@ -105,6 +126,8 @@ message KeyMetadataSnapshot {
     repeated string tags = 5;
 
     Point location = 6;
+
+    repeated LinkSpan links = 7;
 }
 
 message DomainMetadataList {

@@ -25,11 +25,10 @@ const (
 	maxAge86400 = "max-age=86400"
 
 	CONTENT_TYPE_PROTOBUF = "application/x-protobuf"
-	CONTENT_TYPE_JSON = "application/json"
-	CONTENT_TYPE_GEOJSON = "application/geo+json"
-	CONTENT_TYPE_CSV = "text/csv"
+	CONTENT_TYPE_JSON     = "application/json"
+	CONTENT_TYPE_GEOJSON  = "application/geo+json"
+	CONTENT_TYPE_CSV      = "text/csv"
 )
-
 
 var (
 	mux           *http.ServeMux
@@ -107,7 +106,7 @@ func sohHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	return weft.Soh(r, h, b)
 }
 
-func returnTable (t dapperlib.Table, r *http.Request, h http.Header, b *bytes.Buffer) error {
+func returnTable(t dapperlib.Table, r *http.Request, h http.Header, b *bytes.Buffer) error {
 	var pb []byte
 	var err error
 
@@ -121,7 +120,7 @@ func returnTable (t dapperlib.Table, r *http.Request, h http.Header, b *bytes.Bu
 		pb = buf.Bytes()
 	default:
 		p := t.ToDQR()
-		return returnProto(p, r, h ,b)
+		return returnProto(p, r, h, b)
 	}
 
 	if err != nil {
@@ -183,4 +182,3 @@ func returnProto(p proto.Message, r *http.Request, h http.Header, b *bytes.Buffe
 
 	return nil
 }
-
