@@ -31,6 +31,8 @@ func main() {
 		log.Fatalf("error with DB config: %v", err)
 	}
 
+	defer db.Close()
+
 	// For now we open from a file, TODO: Open from S3, probably on a queue with bucket notifications
 	if len(os.Args) != 2 {
 		log.Fatal("usage: dapper-db-meta-ingest [path to KeyMetadataList protobuf]")
@@ -64,33 +66,48 @@ func main() {
 	}
 
 	_, err = tx.Exec("DELETE FROM dapper.metageom WHERE record_domain=$1;", input.Metadata[0].Domain)
+	if err != nil {
+		_ = tx.Rollback()
+		log.Fatalf("failed to delete old metadata: %v", err)
+	}
 
-	metaStmt, err := tx.Prepare("INSERT INTO dapper.metadata (record_domain, record_key, field, value, timespan, istag) VALUES ($1, $2, $3, $4, TSRANGE($5, $6, '[)'), FALSE);")
+	_, err = tx.Exec("DELETE FROM dapper.metarel WHERE record_domain=$1;", input.Metadata[0].Domain)
+	if err != nil {
+		_ = tx.Rollback()
+		log.Fatalf("failed to delete old metadata: %v", err)
+	}
+
+	metaStmt, err := tx.Prepare("INSERT INTO dapper.metadata (record_domain, record_key, field, value, timespan, istag) VALUES ($1, $2, $3, $4, TSTZRANGE($5, $6, '[)'), FALSE);")
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to prepare metadata statement: %v", err)
 	}
 
-	tagStmt, err := tx.Prepare("INSERT INTO dapper.metadata (record_domain, record_key, field, timespan, istag) VALUES ($1, $2, $3, TSRANGE($4, $5, '[)'), TRUE);")
+	tagStmt, err := tx.Prepare("INSERT INTO dapper.metadata (record_domain, record_key, field, timespan, istag) VALUES ($1, $2, $3, TSTZRANGE($4, $5, '[)'), TRUE);")
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to prepare tag statement: %v", err)
 	}
-	defer tagStmt.Close()
 
-	locStmt, err := tx.Prepare("INSERT INTO dapper.metageom (record_domain, record_key, geom, timespan) VALUES ($1, $2, ST_MakePoint($3, $4), TSRANGE($5, $6, '[)'));")
+	locStmt, err := tx.Prepare("INSERT INTO dapper.metageom (record_domain, record_key, geom, timespan) VALUES ($1, $2, ST_MakePoint($3, $4), TSTZRANGE($5, $6, '[)'));")
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to preare loc statement: %v", err)
 	}
 
-	sem := make(chan interface{}, 30)
+	relStmt, err := tx.Prepare("INSERT INTO dapper.metarel (record_domain, from_key, to_key, rel_type, timespan) VALUES ($1, $2, $3, $4, TSTZRANGE($5, $6, '[)'));")
+	if err != nil {
+		_ = tx.Rollback()
+		log.Fatalf("failed to preare relation statement: %v", err)
+	}
+
+	sem := make(chan interface{}, 5)
 	wg := sync.WaitGroup{}
 
 	var txErr error
 
 	for i, km := range input.Metadata {
-		if (i+1) % 100 == 0 || (i+1) == len(input.Metadata) {
+		if (i+1)%100 == 0 || (i+1) == len(input.Metadata) {
 			log.Printf("Ingesting: %d/%d", i+1, len(input.Metadata))
 		}
 
@@ -98,7 +115,7 @@ func main() {
 		wg.Add(1)
 		go func(km *dapperlib.KeyMetadata) {
 			defer func() {
-				<- sem
+				<-sem
 				wg.Done()
 			}()
 
@@ -154,6 +171,46 @@ func main() {
 					return
 				}
 			}
+
+			for _, l := range km.Relations {
+				// Makes sure if the keys exists
+				found := false
+				for _, k := range input.Metadata {
+					if l.Relation.FromKey == k.Key {
+						found = true
+					}
+				}
+
+				if !found {
+					tempErr := fmt.Errorf("FromKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.FromKey)
+					log.Println(tempErr)
+					txErr = tempErr
+					return
+				}
+
+				found = false
+				for _, k := range input.Metadata {
+					if l.Relation.ToKey == k.Key {
+						found = true
+					}
+				}
+
+				if !found {
+					tempErr := fmt.Errorf("ToKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.ToKey)
+					log.Println(tempErr)
+					txErr = tempErr
+					return
+				}
+
+				start, end := time.Unix(l.Span.Start, 0), time.Unix(l.Span.End, 0)
+				_, err = relStmt.Exec(l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, l.Relation.RelType, start, end)
+				if err != nil {
+					tempErr := fmt.Errorf("%s/%s/%s failed to add metadata entry: %v", l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, err)
+					log.Println(tempErr)
+					txErr = tempErr
+					return
+				}
+			}
 		}(km)
 
 		if txErr != nil {
@@ -162,7 +219,6 @@ func main() {
 			log.Fatalf("one or more keys failed to ingest, transaction rolled back")
 		}
 	}
-
 	wg.Wait()
 
 	err = tx.Commit()
