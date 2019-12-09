@@ -120,7 +120,7 @@ func returnTable (t dapperlib.Table, r *http.Request, h http.Header, b *bytes.Bu
 		err = csvW.WriteAll(csvOut)
 		pb = buf.Bytes()
 	default:
-		p := t.ToDQR()
+		p := t.ToDQR(true) //TODO: Make this an option
 		return returnProto(p, r, h ,b)
 	}
 

@@ -80,7 +80,7 @@ var daFuncs = map[DataAggrMethod]DataAggrFunc{
 		if len(in) == 0 {
 			return ""
 		}
-		var tot = math.MaxFloat64
+		var tot float64
 		for _, s := range in {
 			if s == "" {
 				continue //TODO: How to handle 'null' values
@@ -405,7 +405,7 @@ func (t Table) Trim(start, end time.Time) Table {
 	return out
 }
 
-func (t Table) ToDQR() *DataQueryResults {
+func (t Table) ToDQR(addEmpty bool) *DataQueryResults {
 	out := &DataQueryResults{
 		Results: make([]*DataQueryResult, 0),
 	}
@@ -423,6 +423,11 @@ func (t Table) ToDQR() *DataQueryResults {
 				result.Records = append(result.Records, &DataQueryRecord{
 					Timestamp: when,
 					Value:     val,
+				})
+			} else if !ok && addEmpty {
+				result.Records = append(result.Records, &DataQueryRecord{
+					Timestamp: when,
+					Value: "",
 				})
 			}
 		}

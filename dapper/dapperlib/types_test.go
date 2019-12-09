@@ -9,6 +9,39 @@ import (
 	"time"
 )
 
+func TestDAFuncs(t *testing.T) {
+	tests := []struct {
+		f DataAggrMethod
+		in []string
+		out string
+	}{
+		{
+			f:   DATA_AGGR_AVG,
+			in:  []string{"4", "5", "6", "7"},
+			out: "5.5",
+		},
+		{
+			f:   DATA_AGGR_MAX,
+			in:  []string{"4", "5", "6", "7"},
+			out: "7",
+		},
+		{
+			f:   DATA_AGGR_MIN,
+			in:  []string{"4", "5", "6", "7"},
+			out: "4",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(string(test.f), func(t *testing.T) {
+			out := daFuncs[test.f](test.in)
+			if out != test.out {
+				t.Errorf("got '%v' expected '%v'", out, test.out)
+			}
+		})
+	}
+}
+
 func TestGetFileName(t *testing.T) {
 	tests := []struct {
 		domain, key string
