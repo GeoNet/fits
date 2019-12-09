@@ -95,7 +95,7 @@ func main() {
 		log.Fatalf("failed to preare loc statement: %v", err)
 	}
 
-	relStmt, err := tx.Prepare("INSERT INTO dapper.metarel (record_domain, from_key, to_key, from_locality, to_locality, rel_type, timespan) VALUES ($1, $2, $3, $4, $5, $6, TSTZRANGE($7, $8, '[)')) ON CONFLICT DO NOTHING;")
+	relStmt, err := tx.Prepare("INSERT INTO dapper.metarel (record_domain, from_key, to_key, timespan) VALUES ($1, $2, $3, TSTZRANGE($4, $5, '[)'));")
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to preare relation statement: %v", err)
@@ -172,17 +172,17 @@ func main() {
 				}
 			}
 
-			for _, l := range km.Links {
+			for _, l := range km.Relations {
 				// Makes sure if the keys exists
 				found := false
 				for _, k := range input.Metadata {
-					if l.FromKey == k.Key {
+					if l.Relation.FromKey == k.Key {
 						found = true
 					}
 				}
 
 				if !found {
-					tempErr := fmt.Errorf("FromKey %s/%s not found in metadata", l.Domain, l.FromKey)
+					tempErr := fmt.Errorf("FromKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.FromKey)
 					log.Println(tempErr)
 					txErr = tempErr
 					return
@@ -190,22 +190,22 @@ func main() {
 
 				found = false
 				for _, k := range input.Metadata {
-					if l.ToKey == k.Key {
+					if l.Relation.ToKey == k.Key {
 						found = true
 					}
 				}
 
 				if !found {
-					tempErr := fmt.Errorf("ToKey %s/%s not found in metadata", l.Domain, l.ToKey)
+					tempErr := fmt.Errorf("ToKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.ToKey)
 					log.Println(tempErr)
 					txErr = tempErr
 					return
 				}
 
 				start, end := time.Unix(l.Span.Start, 0), time.Unix(l.Span.End, 0)
-				_, err = relStmt.Exec(l.Domain, l.FromKey, l.ToKey, l.FromLocality, l.ToLocality, l.RelType, start, end)
+				_, err = relStmt.Exec(l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, start, end)
 				if err != nil {
-					tempErr := fmt.Errorf("%s/%s/%s/%s: failed to add metadata entry: %v", l.Domain, l.FromKey, l.ToKey, l.RelType, err)
+					tempErr := fmt.Errorf("%s/%s/%s failed to add metadata entry: %v", l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, err)
 					log.Println(tempErr)
 					txErr = tempErr
 					return

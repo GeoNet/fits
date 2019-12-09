@@ -63,17 +63,13 @@ CREATE TABLE dapper.metarel (
     record_domain TEXT NOT NULL,
     from_key TEXT NOT NULL,
     to_key TEXT NOT NULL,
-    from_locality TEXT NOT NULL,
-    to_locality TEXT NOT NULL,
-    rel_type TEXT NOT NULL,
     timespan TSTZRANGE NOT NULL,
 
-    PRIMARY KEY (record_domain, from_key, to_key, rel_type, timespan),
+    PRIMARY KEY (record_domain, from_key, to_key, timespan),
     EXCLUDE USING GIST (
         record_domain WITH =,
         from_key WITH =,
         to_key WITH =,
-        rel_type WITH =,
         timespan WITH &&
     )
 );
