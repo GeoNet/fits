@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"github.com/GeoNet/fits/dapper/dapperlib"
-	"time"
 )
 
 type geoJSON struct {
@@ -29,6 +28,13 @@ func marshalGeoJSON(list *dapperlib.KeyMetadataSnapshotList) ([]byte, error) {
 		Features: make([]geoJSONfeature, 0),
 	}
 
+	// Build a map for all localities in the snapshot
+	locPointMap := make(map[string]*dapperlib.Point)
+	for _, m := range list.Metadata {
+		if _, ok := locPointMap[m.Key]; !ok {
+			locPointMap[m.Key] = m.Location
+		}
+	}
 	for _, m := range list.Metadata {
 		if m.Location == nil {
 			continue
@@ -55,20 +61,23 @@ func marshalGeoJSON(list *dapperlib.KeyMetadataSnapshotList) ([]byte, error) {
 		links := make([]geoJSONfeature, 0)
 		for _, r := range m.Relations {
 			var fromLoc, toLoc *dapperlib.Point
-			var err error
 			// Now looking for the other end of the relation.
-			// NOTE current metadata could be the "from" or "to"
-			if r.Relation.FromKey == m.Key {
+			// NOTE
+			// 1: Current metadata could be the "from" or "to"
+			// 2: Only output with both from/to are in the main key of "metadata"
+
+			if r.FromKey == m.Key {
 				fromLoc = m.Location
-				toLoc, err = queryLocation(r.Relation.ToKey, "fdmp", time.Now())
+				toLoc = locPointMap[r.ToKey]
 			} else {
-				fromLoc, err = queryLocation(r.Relation.FromKey, "fdmp", time.Now())
+				fromLoc = locPointMap[r.FromKey]
 				toLoc = m.Location
 			}
 
-			if err != nil {
-				return []byte(""), err
+			if fromLoc == nil || toLoc == nil { // Only output with both from/to are in the main key of "metadata"
+				continue
 			}
+
 			l := geoJSONfeature{
 				Type: "Feature",
 				Geometry: GeoGeometry{
@@ -79,8 +88,9 @@ func marshalGeoJSON(list *dapperlib.KeyMetadataSnapshotList) ([]byte, error) {
 					},
 				},
 				Properties: map[string]interface{}{
-					"fromKey": r.Relation.FromKey,
-					"toKey":   r.Relation.ToKey,
+					"fromKey": r.FromKey,
+					"toKey":   r.ToKey,
+					"type":    r.RelType,
 				},
 			}
 

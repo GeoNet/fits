@@ -95,7 +95,7 @@ func main() {
 		log.Fatalf("failed to preare loc statement: %v", err)
 	}
 
-	relStmt, err := tx.Prepare("INSERT INTO dapper.metarel (record_domain, from_key, to_key, timespan) VALUES ($1, $2, $3, TSTZRANGE($4, $5, '[)'));")
+	relStmt, err := tx.Prepare("INSERT INTO dapper.metarel (record_domain, from_key, to_key, rel_type, timespan) VALUES ($1, $2, $3, $4, TSTZRANGE($5, $6, '[)'));")
 	if err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to preare relation statement: %v", err)
@@ -203,7 +203,7 @@ func main() {
 				}
 
 				start, end := time.Unix(l.Span.Start, 0), time.Unix(l.Span.End, 0)
-				_, err = relStmt.Exec(l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, start, end)
+				_, err = relStmt.Exec(l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, l.Relation.RelType, start, end)
 				if err != nil {
 					tempErr := fmt.Errorf("%s/%s/%s failed to add metadata entry: %v", l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, err)
 					log.Println(tempErr)

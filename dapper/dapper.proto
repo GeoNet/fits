@@ -91,6 +91,8 @@ message Relation {
     string from_key = 2;
     // The key the metadata is associated with
     string to_key = 3;
+    // The type of relation
+    string rel_type = 4;
 }
 
 message PointSpan {
@@ -124,7 +126,7 @@ message KeyMetadataSnapshot {
 
     Point location = 6;
 
-    repeated RelationSpan relations = 7;
+    repeated Relation relations = 7;
 }
 
 message DomainMetadataList {

@@ -17,6 +17,26 @@ import (
 /*
 	This endpoint lists all the potential metadata fields
 */
+func loadMetageomSnapshot(domain string, now time.Time) (map[string]*dapperlib.Point, error) {
+	m := make(map[string]*dapperlib.Point)
+	result, err := db.Query("SELECT record_key, ST_X(geom::geometry) AS latitude, ST_Y(geom::geometry) AS longitude FROM dapper.metageom where record_domain=$1 AND timespan @> $2::TIMESTAMPTZ;", domain, now)
+	if err != nil {
+		return m, fmt.Errorf("failed to load metageom snapshot: %v", err)
+	}
+
+	for result.Next() {
+		var key string
+		var x, y float32
+		err = result.Scan(&key, &x, &y)
+		if err != nil {
+			return m, fmt.Errorf("failed to load metageom snapshot: %v", err)
+		}
+
+		m[key] = &dapperlib.Point{Longitude: x, Latitude: y}
+	}
+	return m, nil
+}
+
 func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	//Get the domain from the path
@@ -69,16 +89,6 @@ func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
 		out = append(out, key)
 	}
 	return out, nil
-}
-
-func queryLocation(key, domain string, now time.Time) (*dapperlib.Point, error) {
-	var lat, lon float32
-	err := db.QueryRow("SELECT ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key=$2 AND timespan @> $3::TIMESTAMPTZ;", domain, key, now).Scan(&lat, &lon)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute location query: %v", err)
-	}
-
-	return &dapperlib.Point{Latitude: lat, Longitude: lon}, nil
 }
 
 func tagsSimple(tag, domain string, now time.Time) ([]string, error) {
@@ -215,7 +225,9 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 		}
 	}
 
-	out := &dapperlib.KeyMetadataSnapshotList{Metadata: make([]*dapperlib.KeyMetadataSnapshot, 0)}
+	out := &dapperlib.KeyMetadataSnapshotList{
+		Metadata: make([]*dapperlib.KeyMetadataSnapshot, 0),
+	}
 
 	var kms *dapperlib.KeyMetadataSnapshot
 	for result.Next() {
@@ -231,9 +243,9 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 
 		if kms == nil || kms.Key != key {
 			// find Links
-			frList := make([]*dapperlib.RelationSpan, 0)
-			toList := make([]*dapperlib.RelationSpan, 0)
-			fr, err := db.Query("SELECT from_key, ST_X(geom::geometry) AS from_longitude, ST_Y(geom::geometry) AS from_latitude FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.to_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.from_key ORDER BY r.from_key;", domain, key, now)
+			frList := make([]*dapperlib.Relation, 0)
+			toList := make([]*dapperlib.Relation, 0)
+			fr, err := db.Query("SELECT from_key, ST_X(geom::geometry) AS from_longitude, ST_Y(geom::geometry) AS from_latitude, rel_type FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.to_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.from_key ORDER BY r.from_key;", domain, key, now)
 			if err != nil {
 				return nil, valid.Error{
 					Code: http.StatusInternalServerError,
@@ -242,25 +254,24 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 			}
 
 			for fr.Next() {
-				var k string
+				var k, rt string
 				var fromX, fromY float32
-				err = fr.Scan(&k, &fromX, &fromY)
+				err = fr.Scan(&k, &fromX, &fromY, &rt)
 				if err != nil {
 					return nil, valid.Error{
 						Code: http.StatusInternalServerError,
 						Err:  fmt.Errorf("scanning metarel entries failed: %v", err),
 					}
 				}
-				frList = append(frList, &dapperlib.RelationSpan{
-					Relation: &dapperlib.Relation{
-						// Domain:  domain,	// No need to output domain
-						FromKey: k,
-						ToKey:   key,
-					},
+				frList = append(frList, &dapperlib.Relation{
+					// Domain:  domain,	// No need to output domain
+					FromKey: k,
+					ToKey:   key,
+					RelType: rt,
 				})
 			}
 
-			to, err := db.Query("SELECT to_key, ST_X(geom::geometry) AS to_longitude, ST_Y(geom::geometry) AS to_latitude FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.from_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.to_key ORDER BY r.to_key;", domain, key, now)
+			to, err := db.Query("SELECT to_key, ST_X(geom::geometry) AS to_longitude, ST_Y(geom::geometry) AS to_latitude, rel_type FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.from_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.to_key ORDER BY r.to_key;", domain, key, now)
 			if err != nil {
 				return nil, valid.Error{
 					Code: http.StatusInternalServerError,
@@ -269,21 +280,20 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 			}
 
 			for to.Next() {
-				var k string
+				var k, rt string
 				var toX, toY float32
-				err = to.Scan(&k, &toX, &toY)
+				err = to.Scan(&k, &toX, &toY, &rt)
 				if err != nil {
 					return nil, valid.Error{
 						Code: http.StatusInternalServerError,
 						Err:  fmt.Errorf("scanning metarel entries failed: %v", err),
 					}
 				}
-				toList = append(toList, &dapperlib.RelationSpan{
-					Relation: &dapperlib.Relation{
-						// Domain:  domain, // No need to output domain
-						FromKey: key,
-						ToKey:   k,
-					},
+				toList = append(toList, &dapperlib.Relation{
+					// Domain:  domain, // No need to output domain
+					FromKey: key,
+					ToKey:   k,
+					RelType: rt,
 				})
 			}
 			kms = &dapperlib.KeyMetadataSnapshot{
