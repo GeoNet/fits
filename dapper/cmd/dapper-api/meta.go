@@ -209,6 +209,50 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 		}
 	}
 
+	// preload all relations so we don't query in the loop
+	if key != "" {
+		result, err = db.Query("SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key ILIKE $2 OR to_key LIKE $2) AND timespan @> $3::TIMESTAMPTZ;", domain, key, now)
+	} else if query != "" || tags != "" {
+		result, err = db.Query("SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key = ANY($2) OR to_key = ANY($2)) AND timespan @> $3::TIMESTAMPTZ;", domain, pq.Array(qRes), now)
+	}
+	if err != nil {
+		return nil, valid.Error{
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("relation metadata query failed: %v", err),
+		}
+	}
+
+	allRels := make(map[string][]*dapperlib.Relation)
+	for result.Next() {
+		var from, to, rel string
+		err = result.Scan(&from, &to, &rel)
+		if err != nil {
+			return nil, valid.Error{
+				Code: http.StatusInternalServerError,
+				Err:  fmt.Errorf("relation metadata query failed: %v", err),
+			}
+		}
+
+		d := dapperlib.Relation{
+			// Domain:  domain,	// No need to output domain
+			FromKey: from,
+			ToKey:   to,
+			RelType: rel,
+		}
+
+		var r []*dapperlib.Relation
+		var ok bool
+		if r, ok = allRels[from]; !ok {
+			r = make([]*dapperlib.Relation, 0)
+		}
+		allRels[from] = append(r, &d)
+
+		if r, ok = allRels[to]; !ok {
+			r = make([]*dapperlib.Relation, 0)
+		}
+		allRels[to] = append(r, &d) // We'll only do map lookups so it's safe to reuse the same "d" object
+	}
+
 	//get metadata
 
 	if key != "" {
@@ -242,60 +286,6 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 		}
 
 		if kms == nil || kms.Key != key {
-			// find Links
-			frList := make([]*dapperlib.Relation, 0)
-			toList := make([]*dapperlib.Relation, 0)
-			fr, err := db.Query("SELECT from_key, ST_X(geom::geometry) AS from_longitude, ST_Y(geom::geometry) AS from_latitude, rel_type FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.to_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.from_key ORDER BY r.from_key;", domain, key, now)
-			if err != nil {
-				return nil, valid.Error{
-					Code: http.StatusInternalServerError,
-					Err:  fmt.Errorf("metarel entry query failed: %v", err),
-				}
-			}
-
-			for fr.Next() {
-				var k, rt string
-				var fromX, fromY float32
-				err = fr.Scan(&k, &fromX, &fromY, &rt)
-				if err != nil {
-					return nil, valid.Error{
-						Code: http.StatusInternalServerError,
-						Err:  fmt.Errorf("scanning metarel entries failed: %v", err),
-					}
-				}
-				frList = append(frList, &dapperlib.Relation{
-					// Domain:  domain,	// No need to output domain
-					FromKey: k,
-					ToKey:   key,
-					RelType: rt,
-				})
-			}
-
-			to, err := db.Query("SELECT to_key, ST_X(geom::geometry) AS to_longitude, ST_Y(geom::geometry) AS to_latitude, rel_type FROM dapper.metarel r, dapper.metageom g WHERE r.record_domain=$1 AND r.from_key=$2 AND r.timespan @> $3::TIMESTAMPTZ AND g.record_key=r.to_key ORDER BY r.to_key;", domain, key, now)
-			if err != nil {
-				return nil, valid.Error{
-					Code: http.StatusInternalServerError,
-					Err:  fmt.Errorf("metarel entry query failed: %v", err),
-				}
-			}
-
-			for to.Next() {
-				var k, rt string
-				var toX, toY float32
-				err = to.Scan(&k, &toX, &toY, &rt)
-				if err != nil {
-					return nil, valid.Error{
-						Code: http.StatusInternalServerError,
-						Err:  fmt.Errorf("scanning metarel entries failed: %v", err),
-					}
-				}
-				toList = append(toList, &dapperlib.Relation{
-					// Domain:  domain, // No need to output domain
-					FromKey: key,
-					ToKey:   k,
-					RelType: rt,
-				})
-			}
 			kms = &dapperlib.KeyMetadataSnapshot{
 				Domain:    domain,
 				Key:       key,
@@ -303,7 +293,7 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 				Metadata:  make(map[string]string),
 				Tags:      make([]string, 0),
 				Location:  locMap[key],
-				Relations: append(frList, toList...),
+				Relations: allRels[key],
 			}
 			out.Metadata = append(out.Metadata, kms)
 		}
@@ -324,8 +314,13 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 }
 
 func aggregateKMS(in *dapperlib.KeyMetadataSnapshotList, aggr string) *dapperlib.KeyMetadataSnapshotList {
-
+	keyMap := make(map[string]*dapperlib.KeyMetadataSnapshot)
 	aggrMap := make(map[string]*dapperlib.KeyMetadataSnapshot)
+
+	// Build the map with original key, we need this to lookup when adding relations later
+	for _, kms := range in.Metadata {
+		keyMap[kms.Key] = kms
+	}
 
 	for _, kms := range in.Metadata {
 		aggrVal := kms.Metadata[aggr]
@@ -337,6 +332,7 @@ func aggregateKMS(in *dapperlib.KeyMetadataSnapshotList, aggr string) *dapperlib
 		aggrKMS, ok := aggrMap[aggrKey]
 		if !ok {
 			kms.Key = aggrKey
+			kms.Relations = rekeyRelations(kms, aggr, keyMap)
 			aggrMap[aggrKey] = kms
 			continue
 		}
@@ -371,11 +367,28 @@ func aggregateKMS(in *dapperlib.KeyMetadataSnapshotList, aggr string) *dapperlib
 			kms.Location.Longitude != aggrKMS.Location.Longitude) {
 			aggrKMS.Location = nil
 		}
+
+		//bring in linked relations
+		kms.Relations = rekeyRelations(kms, aggr, keyMap)
+		for _, l := range kms.Relations {
+			found := false
+
+			for _, al := range aggrKMS.Relations {
+				if l.FromKey == al.FromKey && l.ToKey == al.ToKey && l.RelType == al.RelType {
+					found = true
+					break
+				}
+			}
+			if !found {
+				aggrKMS.Relations = append(aggrKMS.Relations, l)
+			}
+		}
+		aggrMap[aggrKey] = aggrKMS
 	}
 
 	out := &dapperlib.KeyMetadataSnapshotList{Metadata: make([]*dapperlib.KeyMetadataSnapshot, 0)}
-
 	for _, v := range aggrMap {
+		fmt.Printf("%+v", v.Relations)
 		out.Metadata = append(out.Metadata, v)
 	}
 
@@ -451,4 +464,28 @@ func metaList(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (p
 	}
 
 	return out, nil
+}
+
+func rekeyRelations(kms *dapperlib.KeyMetadataSnapshot, aggr string, keyMap map[string]*dapperlib.KeyMetadataSnapshot) []*dapperlib.Relation {
+	newRels := make([]*dapperlib.Relation, 0)
+	for _, l := range kms.Relations {
+		// The keys in aggrKMS is already altered as "<aggr>:<meta-value>"
+		lFrom := keyMap[l.FromKey].Metadata[aggr]
+		lTo := keyMap[l.ToKey].Metadata[aggr]
+
+		if lFrom == "" || lTo == "" {
+			continue
+		}
+
+		lFrom = fmt.Sprintf("%s:%s", aggr, lFrom)
+		lTo = fmt.Sprintf("%s:%s", aggr, lTo)
+
+		newRels = append(newRels, &dapperlib.Relation{
+			FromKey: lFrom,
+			ToKey:   lTo,
+			RelType: l.RelType,
+		})
+	}
+
+	return newRels
 }

@@ -57,8 +57,9 @@ func marshalGeoJSON(list *dapperlib.KeyMetadataSnapshotList) ([]byte, error) {
 		}
 		f.Properties["tags"] = m.Tags
 
-		// make links
-		links := make([]geoJSONfeature, 0)
+		out.Features = append(out.Features, f)
+
+		// Create LineString for links
 		for _, r := range m.Relations {
 			var fromLoc, toLoc *dapperlib.Point
 			// Now looking for the other end of the relation.
@@ -94,11 +95,8 @@ func marshalGeoJSON(list *dapperlib.KeyMetadataSnapshotList) ([]byte, error) {
 				},
 			}
 
-			links = append(links, l)
+			out.Features = append(out.Features, l)
 		}
-
-		f.Properties["links"] = links
-		out.Features = append(out.Features, f)
 	}
 
 	return json.Marshal(out)
