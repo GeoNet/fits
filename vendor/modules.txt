@@ -1,9 +1,9 @@
-# github.com/GeoNet/kit v0.0.0-20190918224938-2cc27e012059
+# github.com/GeoNet/kit v0.0.0-20191209020848-677e41cc6b94
 github.com/GeoNet/kit/map180
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft
 github.com/GeoNet/kit/weft/wefttest
-# github.com/golang/groupcache v0.0.0-20191002201903-404acd9df4cc
+# github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
 github.com/golang/groupcache
 github.com/golang/groupcache/consistenthash
 github.com/golang/groupcache/groupcachepb
