@@ -22,7 +22,7 @@ var (
 	queueURL  = os.Getenv("SQS_QUEUE_URL")
 	s3Client  s3.S3
 	sqsClient sqs.SQS
-	db *sql.DB
+	db        *sql.DB
 )
 
 type notification struct {
@@ -39,7 +39,7 @@ func main() {
 
 	db, err = sql.Open("postgres", p.Connection())
 	if err != nil {
-		log.Fatalf( "error with DB config: %v", err)
+		log.Fatalf("error with DB config: %v", err)
 	}
 
 	sqsClient, err = sqs.New()
@@ -69,7 +69,7 @@ func main() {
 		err = metrics.DoProcess(&n, []byte(r.Body))
 		if err != nil {
 			log.Printf("problem processing message, not redelivering: %s", err)
-			//continue
+			continue
 		}
 
 		err = sqsClient.Delete(queueURL, r.ReceiptHandle)
@@ -107,7 +107,7 @@ func (n *notification) Process(msg []byte) error {
 	// read all notified raw csv files into tablesData
 	for _, v := range n.Records { //TODO: Parallelise
 		//get the file
-		log.Println("Processing", v.S3.Bucket.Name + "/" + v.S3.Object.Key)
+		log.Println("Processing", v.S3.Bucket.Name+"/"+v.S3.Object.Key)
 		err = s3Client.Get(v.S3.Bucket.Name, v.S3.Object.Key, "", &br)
 		if err != nil {
 			tx.Rollback()

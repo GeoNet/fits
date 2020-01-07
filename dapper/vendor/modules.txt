@@ -1,9 +1,5 @@
-# github.com/GeoNet/haz v0.0.0-20191017013542-c1d98e02f0b4
-github.com/GeoNet/haz/internal/sensor
-github.com/GeoNet/haz/internal/valid
-# github.com/GeoNet/kit v0.0.0-20191113213923-d97ebbef8351
+# github.com/GeoNet/kit v0.0.0-20191209020848-677e41cc6b94
 github.com/GeoNet/kit/cfg
-github.com/GeoNet/kit/gloria_pb
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft
 # github.com/aws/aws-sdk-go v1.25.35

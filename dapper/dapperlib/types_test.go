@@ -12,9 +12,9 @@ import (
 func TestGetFileName(t *testing.T) {
 	tests := []struct {
 		domain, key string
-		t time.Time
-		tAggr  TimeAggrLevel
-		expOut string
+		t           time.Time
+		tAggr       TimeAggrLevel
+		expOut      string
 	}{
 		{
 			domain: "test",
@@ -124,25 +124,25 @@ func TestNoDuplicates(t *testing.T) {
 	ts4, _ := time.Parse(time.RFC3339, "2019-09-25T00:26:09Z")
 
 	records := []Record{
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts1, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts1, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts1, Value: "140",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts1, Value: "17",},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts1, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts1, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts1, Value: "140"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts1, Value: "17"},
 
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts2, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts2, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts2, Value: "664",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts2, Value: "18",},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts2, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts2, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts2, Value: "664"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts2, Value: "18"},
 
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts3, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts3, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts3, Value: "131",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts3, Value: "18",},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts3, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts3, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts3, Value: "131"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts3, Value: "18"},
 
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts4, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts4, Value: "0",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts4, Value: "115",},
-		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts4, Value: "18",},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "conn_check", Time: ts4, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "packet_loss", Time: ts4, Value: "0"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "rtt", Time: ts4, Value: "115"},
+		{Domain: "fdmp", Key: "cellular-balcluthadistrictcouncil", Field: "signal_hongdian", Time: ts4, Value: "18"},
 	}
 
 	tables := ParseRecords(records, MONTH)

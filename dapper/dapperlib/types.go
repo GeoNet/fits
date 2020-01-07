@@ -32,7 +32,7 @@ const (
 )
 
 type DataAggrMethod string
-type DataAggrFunc func([]string)string
+type DataAggrFunc func([]string) string
 
 const (
 	DATA_AGGR_NONE DataAggrMethod = ""
@@ -357,7 +357,7 @@ func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
 	}
 
 	type fieldAggr struct {
-		ts time.Time
+		ts  time.Time
 		sub []string
 	}
 	fmap := make(map[string]*fieldAggr)
@@ -385,7 +385,7 @@ func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
 			f.ts = f.ts.Add(trunc)
 			f.sub = make([]string, 0)
 		}
-		f.sub =  append(f.sub, r.Value)
+		f.sub = append(f.sub, r.Value)
 	}
 
 	return out

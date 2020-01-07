@@ -11,7 +11,7 @@ import (
 
 type validator func(string) error
 
-var validTimeFormats = []string {
+var validTimeFormats = []string{
 	time.RFC3339,
 	"2006-01-02",
 }
@@ -35,14 +35,14 @@ func (s Error) Status() int {
 
 var valid = map[string]validator{
 	"starttime": querytime,
-	"endtime": querytime,
-	"moment": querytime,
-	"key": validstring,
-	"query": validQuery,
+	"endtime":   querytime,
+	"moment":    querytime,
+	"key":       validstring,
+	"query":     validQuery,
 	"aggregate": validstring,
-	"latest": validint,
-	"fields": validstring,
-	"tags": validstring,
+	"latest":    validint,
+	"fields":    validstring,
+	"tags":      validstring,
 }
 
 // Query validates values and returns 400 errors for invalid, empty, or duplicate parameters.
@@ -62,7 +62,7 @@ func Query(values url.Values) error {
 		if err != nil {
 			return Error{
 				Code: http.StatusBadRequest,
-				Err: fmt.Errorf("param %s failed validation: %v", k, err),
+				Err:  fmt.Errorf("param %s failed validation: %v", k, err),
 			}
 		}
 	}

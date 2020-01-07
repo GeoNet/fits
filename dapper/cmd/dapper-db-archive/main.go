@@ -79,7 +79,7 @@ func main() {
 
 		/*
 			We get the oldest modtime to improve the speed of the `SET archived=true` query later
-		 */
+		*/
 		if modtime.Before(oldestmod) {
 			oldestmod = modtime
 		}
@@ -128,9 +128,9 @@ func archiveRecords(records []dapperlib.Record) error {
 		wg.Add(1)
 
 		go func(name string, t dapperlib.Table) {
-			defer func(){
+			defer func() {
 				wg.Done()
-				<- sem
+				<-sem
 			}()
 
 			s3path := path.Join(s3Prefix, fmt.Sprintf("%s.csv", name))

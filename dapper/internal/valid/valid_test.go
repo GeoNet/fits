@@ -1,7 +1,7 @@
 package valid_test
 
 import (
-	"github.com/GeoNet/haz/internal/valid"
+	"github.com/GeoNet/fits/dapper/internal/valid"
 	"net/http"
 	"net/url"
 	"runtime"
