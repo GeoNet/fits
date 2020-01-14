@@ -172,43 +172,31 @@ func main() {
 				}
 			}
 
-			for _, l := range km.Relations {
+			for toKey, rs := range km.Relations {
 				// Makes sure if the keys exists
 				found := false
 				for _, k := range input.Metadata {
-					if l.Relation.FromKey == k.Key {
+					if toKey == k.Key {
 						found = true
 					}
 				}
 
 				if !found {
-					tempErr := fmt.Errorf("FromKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.FromKey)
+					tempErr := fmt.Errorf("ToKey %s/%s not found in metadata", km.Domain, toKey)
 					log.Println(tempErr)
 					txErr = tempErr
 					return
 				}
 
-				found = false
-				for _, k := range input.Metadata {
-					if l.Relation.ToKey == k.Key {
-						found = true
+				for _, s := range rs.Spans {
+					start, end := time.Unix(s.Span.Start, 0), time.Unix(s.Span.End, 0)
+					_, err = relStmt.Exec(km.Domain, km.Key, toKey, s.RelType, start, end)
+					if err != nil {
+						tempErr := fmt.Errorf("%s/%s/%s failed to add metadata entry: %v", km.Domain, km.Key, toKey, err)
+						log.Println(tempErr)
+						txErr = tempErr
+						return
 					}
-				}
-
-				if !found {
-					tempErr := fmt.Errorf("ToKey %s/%s not found in metadata", l.Relation.Domain, l.Relation.ToKey)
-					log.Println(tempErr)
-					txErr = tempErr
-					return
-				}
-
-				start, end := time.Unix(l.Span.Start, 0), time.Unix(l.Span.End, 0)
-				_, err = relStmt.Exec(l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, l.Relation.RelType, start, end)
-				if err != nil {
-					tempErr := fmt.Errorf("%s/%s/%s failed to add metadata entry: %v", l.Relation.Domain, l.Relation.FromKey, l.Relation.ToKey, err)
-					log.Println(tempErr)
-					txErr = tempErr
-					return
 				}
 			}
 		}(km)

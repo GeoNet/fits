@@ -222,7 +222,8 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 		}
 	}
 
-	allRels := make(map[string][]*dapperlib.Relation)
+	allRels := make(map[string]map[string]string) // map<[fromKey], map<toKey, reltype>>
+	revRels := make(map[string]map[string]string) // map<[toKey], map<fromKey, reltype>>
 	for result.Next() {
 		var from, to, rel string
 		err = result.Scan(&from, &to, &rel)
@@ -232,25 +233,19 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 				Err:  fmt.Errorf("relation metadata query failed: %v", err),
 			}
 		}
-
-		d := dapperlib.Relation{
-			// Domain:  domain,	// No need to output domain
-			FromKey: from,
-			ToKey:   to,
-			RelType: rel,
-		}
-
-		var r []*dapperlib.Relation
+		var r map[string]string
 		var ok bool
 		if r, ok = allRels[from]; !ok {
-			r = make([]*dapperlib.Relation, 0)
+			r = make(map[string]string)
 		}
-		allRels[from] = append(r, &d)
+		r[to] = rel
+		allRels[from] = r
 
-		if r, ok = allRels[to]; !ok {
-			r = make([]*dapperlib.Relation, 0)
+		if r, ok = revRels[to]; !ok {
+			r = make(map[string]string)
 		}
-		allRels[to] = append(r, &d) // We'll only do map lookups so it's safe to reuse the same "d" object
+		r[from] = rel
+		revRels[to] = r // We'll only do map lookups so it's safe to reuse the same "d" object
 	}
 
 	//get metadata
@@ -285,6 +280,13 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 			}
 		}
 
+		rels := make([]*dapperlib.SnapshotRelation, 0)
+		for t, r := range allRels[key] {
+			rels = append(rels, &dapperlib.SnapshotRelation{FromKey: key, ToKey: t, RelType: r})
+		}
+		for t, r := range revRels[key] {
+			rels = append(rels, &dapperlib.SnapshotRelation{FromKey: t, ToKey: key, RelType: r})
+		}
 		if kms == nil || kms.Key != key {
 			kms = &dapperlib.KeyMetadataSnapshot{
 				Domain:    domain,
@@ -293,7 +295,7 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 				Metadata:  make(map[string]string),
 				Tags:      make([]string, 0),
 				Location:  locMap[key],
-				Relations: allRels[key],
+				Relations: rels,
 			}
 			out.Metadata = append(out.Metadata, kms)
 		}
@@ -383,12 +385,12 @@ func aggregateKMS(in *dapperlib.KeyMetadataSnapshotList, aggr string) *dapperlib
 				aggrKMS.Relations = append(aggrKMS.Relations, l)
 			}
 		}
+
 		aggrMap[aggrKey] = aggrKMS
 	}
 
 	out := &dapperlib.KeyMetadataSnapshotList{Metadata: make([]*dapperlib.KeyMetadataSnapshot, 0)}
 	for _, v := range aggrMap {
-		fmt.Printf("%+v", v.Relations)
 		out.Metadata = append(out.Metadata, v)
 	}
 
@@ -466,8 +468,8 @@ func metaList(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (p
 	return out, nil
 }
 
-func rekeyRelations(kms *dapperlib.KeyMetadataSnapshot, aggr string, keyMap map[string]*dapperlib.KeyMetadataSnapshot) []*dapperlib.Relation {
-	newRels := make([]*dapperlib.Relation, 0)
+func rekeyRelations(kms *dapperlib.KeyMetadataSnapshot, aggr string, keyMap map[string]*dapperlib.KeyMetadataSnapshot) []*dapperlib.SnapshotRelation {
+	newRels := make([]*dapperlib.SnapshotRelation, 0)
 	for _, l := range kms.Relations {
 		// The keys in aggrKMS is already altered as "<aggr>:<meta-value>"
 		lFrom := keyMap[l.FromKey].Metadata[aggr]
@@ -480,7 +482,7 @@ func rekeyRelations(kms *dapperlib.KeyMetadataSnapshot, aggr string, keyMap map[
 		lFrom = fmt.Sprintf("%s:%s", aggr, lFrom)
 		lTo = fmt.Sprintf("%s:%s", aggr, lTo)
 
-		newRels = append(newRels, &dapperlib.Relation{
+		newRels = append(newRels, &dapperlib.SnapshotRelation{
 			FromKey: lFrom,
 			ToKey:   lTo,
 			RelType: l.RelType,

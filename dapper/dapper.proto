@@ -50,7 +50,8 @@ message KeyMetadata {
 
     repeated PointSpan location = 6;
 
-    repeated RelationSpan relations = 7;
+    // The relations to other keys from this metadata, the key of map is to_key
+    map<string, RelationSpans> relations = 7;
 }
 
 message Metadata {
@@ -77,22 +78,22 @@ message Tag {
     repeated Timespan span = 2;
 }
 
+message RelationSpans {
+    // The relations to other keys 
+    repeated RelationSpan spans = 1;
+}
+
 message RelationSpan {
-    // The timespan this value is valid for
-    Relation relation = 1;
+    // The type of the relation
+    string rel_type = 1;
     // The timespan this value is valid for
     Timespan span = 2;
 }
 
-message Relation {
-    // The domain the metadata is associated with
-    string domain = 1;
-    // The key the metadata is associated with
-    string from_key = 2;
-    // The key the metadata is associated with
-    string to_key = 3;
-    // The type of relation
-    string rel_type = 4;
+message SnapshotRelation {
+    string from_key = 1;
+    string to_key = 2;
+    string rel_type = 3;
 }
 
 message PointSpan {
@@ -126,7 +127,8 @@ message KeyMetadataSnapshot {
 
     Point location = 6;
 
-    repeated Relation relations = 7;
+    // The relation type of to_key 
+    repeated SnapshotRelation relations = 7;
 }
 
 message DomainMetadataList {
