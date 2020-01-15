@@ -1,4 +1,4 @@
-# github.com/GeoNet/kit v0.0.0-20191209020848-677e41cc6b94
+# github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab
 github.com/GeoNet/kit/cfg
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft
@@ -47,7 +47,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/golang/protobuf/proto
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/lib/pq v1.2.0
+# github.com/lib/pq v1.3.0
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
