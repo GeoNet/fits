@@ -58,7 +58,7 @@ func main() {
 		// TODO - does this visibility time out make sense?
 		// we don't want the message to become visible again if there is
 		// still processing happening
-		r, err = sqsClient.Receive(queueURL, 120)
+		r, err = sqsClient.Receive(queueURL, 900)
 		if err != nil {
 			log.Printf("problem receiving message, backing off: %s", err)
 			time.Sleep(time.Second * 20)
