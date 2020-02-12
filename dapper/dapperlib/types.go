@@ -82,7 +82,7 @@ var daFuncs = map[DataAggrMethod]DataAggrFunc{
 		if len(in) == 0 {
 			return ""
 		}
-		var tot = math.MaxFloat64
+		var tot = 0.0
 		for _, s := range in {
 			if s == "" {
 				continue //TODO: How to handle 'null' values
@@ -215,8 +215,8 @@ func NewTable(domain, key string) Table {
 		headers: make(map[string]bool),
 		entries: make(map[int64]map[string]string),
 
-		start: time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC),
-		end:   time.Date(9999, 0, 0, 0, 0, 0, 0, time.UTC),
+		start: time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC),
+		end:   time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -234,10 +234,10 @@ func (t *Table) Append(rec Record) {
 	row[rec.Field] = rec.Value
 	t.entries[rec.Time.Unix()] = row
 
-	if t.end.Before(rec.Time) {
+	if t.end.UTC().Year() == 9999 || t.end.Before(rec.Time) {
 		t.end = rec.Time
 	}
-	if t.start.After(rec.Time) {
+	if t.start.UTC().Year() == 0 || t.start.After(rec.Time) {
 		t.start = rec.Time
 	}
 }
