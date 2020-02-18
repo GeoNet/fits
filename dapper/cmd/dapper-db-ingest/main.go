@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/platform/s3"
@@ -59,7 +58,7 @@ func main() {
 		// TODO - does this visibility time out make sense?
 		// we don't want the message to become visible again if there is
 		// still processing happening
-		r, err = sqsClient.Receive(queueURL, 120)
+		r, err = sqsClient.Receive(queueURL, 900)
 		if err != nil {
 			log.Printf("problem receiving message, backing off: %s", err)
 			time.Sleep(time.Second * 20)
@@ -68,7 +67,7 @@ func main() {
 
 		err = metrics.DoProcess(&n, []byte(r.Body))
 		if err != nil {
-			log.Printf("problem processing message, not redelivering: %s", err)
+			log.Printf("problem processing message, redelivering: %s", err)
 			continue
 		}
 
@@ -83,13 +82,16 @@ func main() {
 func (n *notification) Process(msg []byte) error {
 	err := json.Unmarshal(msg, n)
 	if err != nil {
-		return err
+		log.Println(err, "not redelivering")
+		return nil // not going to retry this
 	}
 	if n.Records == nil {
-		return errors.New("got nil Records pointer in notification message")
+		log.Println("got nil Records pointer in notification message, not redelivering")
+		return nil // not going to retry this
 	}
 	if len(n.Records) == 0 {
-		return errors.New("got zero Records in notification message")
+		log.Println("got zero Records in notification message, not redelivering")
+		return nil // not going to retry this
 	}
 
 	tx, err := db.Begin()
@@ -105,6 +107,7 @@ func (n *notification) Process(msg []byte) error {
 	var br bytes.Buffer
 
 	// read all notified raw csv files into tablesData
+	// TODO: dealing with a notification contains multiple records and one of the record got error
 	for _, v := range n.Records { //TODO: Parallelise
 		//get the file
 		log.Println("Processing", v.S3.Bucket.Name+"/"+v.S3.Object.Key)
@@ -132,15 +135,16 @@ func (n *notification) Process(msg []byte) error {
 			_, err = stmt.Exec(rec.Domain, rec.Key, rec.Field, rec.Time, rec.Value)
 			if err != nil {
 				tx.Rollback()
-				return fmt.Errorf("query failed: %v", err)
+				return fmt.Errorf("query failed: %v for record %s,%s,%s,%s", err, rec.Domain, rec.Key, rec.Field, rec.Time.Format(time.RFC3339))
 			}
 		}
+		log.Println("Done processing", v.S3.Bucket.Name+"/"+v.S3.Object.Key)
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("couldn't commit db transaction: %v", err)
 	}
-
+	log.Println("Transactions committed to database")
 	return nil
 }
