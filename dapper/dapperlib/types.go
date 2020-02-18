@@ -26,8 +26,10 @@ type DataAggrLevel int
 const (
 	AUTO DataAggrLevel = iota
 	NONE
-	MINS10
+	MINS30
 	HOUR1
+	HOUR2
+	HOUR4
 	DAY1
 )
 
@@ -80,7 +82,7 @@ var daFuncs = map[DataAggrMethod]DataAggrFunc{
 		if len(in) == 0 {
 			return ""
 		}
-		var tot = math.MaxFloat64
+		var tot = 0.0
 		for _, s := range in {
 			if s == "" {
 				continue //TODO: How to handle 'null' values
@@ -95,21 +97,35 @@ var daFuncs = map[DataAggrMethod]DataAggrFunc{
 	},
 }
 
+/**
+ * determine the aggregation level by number of records and duration
+ * 1. aggregate for number of records > 300 and more than 1 day
+ * 2. aggregation options:
+ * 2.1. 1 - 7 days: aggregate by 30 minutes
+ * 2.2. 7 - 30 days: 1 hour
+ * 2.3. 30 - 60 days: 2 hours
+ * 2.4. 60 - 90 days: 4 hours
+ * 2.5. > 90 days: 1 day
+ */
 func determineDataAggrLevel(start, end time.Time, len, n int) DataAggrLevel {
 	dur := end.Sub(start)
 
-	if len < n {
+	if len < n || dur <= (time.Hour*24) {
 		return NONE
 	}
-	if dur/(time.Minute*10) < time.Duration(n) {
-		return MINS10
+	if dur <= (time.Hour * 24 * 7) {
+		return MINS30
 	}
-	if dur/(time.Hour) < time.Duration(n) {
+	if dur <= (time.Hour * 24 * 30) {
 		return HOUR1
 	}
-	if dur/(time.Hour*24) < time.Duration(n) {
-		return DAY1
+	if dur <= (time.Hour * 24 * 60) {
+		return HOUR2
 	}
+	if dur <= (time.Hour * 24 * 90) {
+		return HOUR4
+	}
+
 	return DAY1
 }
 
@@ -199,8 +215,8 @@ func NewTable(domain, key string) Table {
 		headers: make(map[string]bool),
 		entries: make(map[int64]map[string]string),
 
-		start: time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC),
-		end:   time.Date(9999, 0, 0, 0, 0, 0, 0, time.UTC),
+		start: time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC),
+		end:   time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -218,10 +234,10 @@ func (t *Table) Append(rec Record) {
 	row[rec.Field] = rec.Value
 	t.entries[rec.Time.Unix()] = row
 
-	if t.end.Before(rec.Time) {
+	if t.end.UTC().Year() == 9999 || t.end.Before(rec.Time) {
 		t.end = rec.Time
 	}
-	if t.start.After(rec.Time) {
+	if t.start.UTC().Year() == 0 || t.start.After(rec.Time) {
 		t.start = rec.Time
 	}
 }
@@ -339,10 +355,14 @@ func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
 
 	var trunc time.Duration
 	switch level {
-	case MINS10:
-		trunc = time.Minute * 10
+	case MINS30:
+		trunc = time.Minute * 30
 	case HOUR1:
 		trunc = time.Hour
+	case HOUR2:
+		trunc = time.Hour * 2
+	case HOUR4:
+		trunc = time.Hour * 4
 	case DAY1:
 		trunc = time.Hour * 24
 	case NONE:

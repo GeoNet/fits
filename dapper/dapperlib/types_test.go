@@ -176,4 +176,26 @@ func TestNoDuplicates(t *testing.T) {
 	}
 
 	t.Log(buf.String())
+
+}
+
+func TestDetermineDataAggrLevel(t *testing.T) {
+	end := time.Now()
+	start := end.Add(-1 * time.Hour)
+	level := determineDataAggrLevel(start, end, 200, 300)
+	if level != NONE {
+		t.Fatal("level must be NONE")
+	}
+
+	durs := []int{24, 25, 24 * 7, 24 * 8, 24 * 30, 24 * 31, 24 * 60, 24 * 61, 24 * 90, 24 * 91}
+	levels := []DataAggrLevel{NONE, MINS30, MINS30, HOUR1, HOUR1, HOUR2, HOUR2, HOUR4, HOUR4, DAY1}
+	for i, dur := range durs {
+		start = end.Add(-1 * time.Duration(dur) * time.Hour)
+		level = determineDataAggrLevel(start, end, 400, 300)
+
+		if level != levels[i] {
+			t.Fatal("level must be ", levels[i])
+		}
+	}
+
 }
