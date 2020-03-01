@@ -43,8 +43,8 @@ func (sc SendClient) Send(data []Record) error {
 	records := []*firehose.Record{}
 
 	for _, result := range data {
-		data := RecordToCSV(result)
-		records = append(records, &firehose.Record{Data: []byte(data)})
+		d := RecordToCSV(result)
+		records = append(records, &firehose.Record{Data: []byte(d)})
 	}
 
 	// PutRecordBatch has a maximum number per batch so we'll split them
