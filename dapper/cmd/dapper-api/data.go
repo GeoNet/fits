@@ -7,7 +7,6 @@ import (
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -138,7 +137,6 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	results = results.Aggregate(dapperlib.DataAggrMethod(aggr), dapperlib.AUTO)
 
 	if results.Len() == 0 {
-		log.Println("empty results")
 		return valid.Error{
 			Code: http.StatusNotFound,
 			Err:  fmt.Errorf("no results for query"),
@@ -150,8 +148,6 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 func getDBFields(domain, key string, filter []string) ([]string, error) {
 	out := make([]string, 0)
-
-	log.Println(filter)
 
 	rows, err := db.Query("SELECT distinct(field) FROM dapper.records WHERE record_domain=$1 AND record_key=$2;", domain, key)
 	if err != nil {
@@ -191,8 +187,6 @@ func getDBFields(domain, key string, filter []string) ([]string, error) {
 
 func getDataLatest(domain, key string, latest int, filter []string) (dapperlib.Table, error) {
 	out := dapperlib.NewTable(domain, key)
-
-	log.Println("getDataLatest")
 
 	fields, err := getDBFields(domain, key, filter)
 	if err != nil {
