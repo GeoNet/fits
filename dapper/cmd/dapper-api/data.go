@@ -8,6 +8,7 @@ import (
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -27,11 +28,22 @@ type DomainConfig struct {
 
 func init() {
 	//TODO: This config should load from somewhere
-	domainMap["fdmp"] = DomainConfig{
-		s3bucket: "tf-dev-dapper-fdmp",
-		s3prefix: "data",
-		aggrtime: dapperlib.MONTH,
+	//NOTE: Currently this config doesn't change often so we hard coded here.
+	//		Add domain configuration pair (prod and dev) here when needed.
+	if os.Getenv("DOMAIN_ENV") == "prod" {
+		domainMap["fdmp"] = DomainConfig{
+			s3bucket: "tf-prod-dapper-fdmp",
+			s3prefix: "data",
+			aggrtime: dapperlib.MONTH,
+		}
+	} else {
+		domainMap["fdmp"] = DomainConfig{
+			s3bucket: "tf-dev-dapper-fdmp",
+			s3prefix: "data",
+			aggrtime: dapperlib.MONTH,
+		}
 	}
+
 }
 
 /*
