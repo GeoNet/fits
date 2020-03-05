@@ -7,8 +7,8 @@ import (
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"log"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -28,11 +28,22 @@ type DomainConfig struct {
 
 func init() {
 	//TODO: This config should load from somewhere
-	domainMap["fdmp"] = DomainConfig{
-		s3bucket: "tf-dev-dapper-fdmp",
-		s3prefix: "data",
-		aggrtime: dapperlib.MONTH,
+	//NOTE: Currently this config doesn't change often so we hard coded here.
+	//		Add domain configuration pair (prod and dev) here when needed.
+	if os.Getenv("DOMAIN_ENV") == "prod" {
+		domainMap["fdmp"] = DomainConfig{
+			s3bucket: "tf-prod-dapper-fdmp",
+			s3prefix: "data",
+			aggrtime: dapperlib.MONTH,
+		}
+	} else {
+		domainMap["fdmp"] = DomainConfig{
+			s3bucket: "tf-dev-dapper-fdmp",
+			s3prefix: "data",
+			aggrtime: dapperlib.MONTH,
+		}
 	}
+
 }
 
 /*
@@ -138,7 +149,6 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	results = results.Aggregate(dapperlib.DataAggrMethod(aggr), dapperlib.AUTO)
 
 	if results.Len() == 0 {
-		log.Println("empty results")
 		return valid.Error{
 			Code: http.StatusNotFound,
 			Err:  fmt.Errorf("no results for query"),
@@ -150,8 +160,6 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 func getDBFields(domain, key string, filter []string) ([]string, error) {
 	out := make([]string, 0)
-
-	log.Println(filter)
 
 	rows, err := db.Query("SELECT distinct(field) FROM dapper.records WHERE record_domain=$1 AND record_key=$2;", domain, key)
 	if err != nil {
@@ -191,8 +199,6 @@ func getDBFields(domain, key string, filter []string) ([]string, error) {
 
 func getDataLatest(domain, key string, latest int, filter []string) (dapperlib.Table, error) {
 	out := dapperlib.NewTable(domain, key)
-
-	log.Println("getDataLatest")
 
 	fields, err := getDBFields(domain, key, filter)
 	if err != nil {

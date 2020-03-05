@@ -1,3 +1,4 @@
+github.com/GeoNet/fits v0.0.0-20200302010520-694b45aa3ae9 h1:e+3opKMsyYwv+X0We73aQoSYeCYVwD3TQmhDjU7NyYw=
 github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab h1:VZmGIFcIWA88MejKsJnPYyBp8DP2FMa8km9giY3s9PY=
 github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab/go.mod h1:DVxQj3VMLvEdbZeqvKKdTC3sLnmDiTegESfoptv7QHM=
 github.com/aws/aws-sdk-go v1.25.35 h1:fe2tJnqty/v/50pyngKdNk/NP8PFphYDA1Z7N3EiiiE=
