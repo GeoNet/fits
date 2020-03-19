@@ -21,7 +21,8 @@ before_install:
 
 install:
   - export GOFLAGS=-mod=vendor
-  - pip install awscli
+  - pip install --upgrade pip
+  - pip install --user awscli
 addons:
   postgresql: '9.6'
 before_script:
