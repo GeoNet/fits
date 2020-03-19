@@ -10,6 +10,10 @@
 #
 # usage: ./all.sh
 
+# Experiment AWS account ID
+ACCOUNT=$(aws sts get-caller-identity --output text --query 'Account')
+echo $ACCOUNT
+
 set -e
 
 if [ ! -f all.sh ]; then
