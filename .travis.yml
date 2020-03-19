@@ -21,15 +21,14 @@ before_install:
 
 install:
   - export GOFLAGS=-mod=vendor
-  - pip install --upgrade pip
-  - pip install --user awscli
 addons:
   postgresql: '9.6'
 before_script:
   - psql -U postgres -c "create extension postgis"
   - ./etc/scripts/initdb.sh
   - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-
+  - pip install --user awscli
+  
 script: 
   - test -z "$(gofmt -s -l `find . -type f -name "*.go" -not -path '*/vendor/*'` | tee /dev/stderr)"
   - go vet ./...
