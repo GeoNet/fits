@@ -13,3 +13,5 @@ do
 		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 
 		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 done
+
+./dapper/dockerbuild.sh
