@@ -25,7 +25,7 @@ var (
 	db        *sql.DB
 	s3Client  s3.S3
 	sqsClient sqs.SQS
-	queueURL  = os.Getenv("QUEUE_URL")
+	queueURL  = os.Getenv("SQS_QUEUE_URL")
 )
 
 type notification struct {
