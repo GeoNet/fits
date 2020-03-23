@@ -6,12 +6,15 @@
 
 ./build.sh $@
 
+ACCOUNT=$(aws sts get-caller-identity --output text --query 'Account')
 VERSION='git-'`git rev-parse --short HEAD`
 
 for i in "$@"
 do
-		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 
-		docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
+		docker push ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION 
+		docker push ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 done
 
-./dapper/dockerbuild.sh
+cd dapper
+./dockerbuild.sh dapper-api dapper-db-archive dapper-db-ingest dapper-db-meta-ingest
+cd ..
