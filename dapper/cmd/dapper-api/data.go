@@ -7,6 +7,7 @@ import (
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -18,6 +19,7 @@ import (
 var (
 	domainMap = make(map[string]DomainConfig)
 	dbspan    = time.Hour * 24 * 14 //2 weeks
+
 )
 
 type DomainConfig struct {
@@ -27,23 +29,45 @@ type DomainConfig struct {
 }
 
 func init() {
-	//TODO: This config should load from somewhere
-	//NOTE: Currently this config doesn't change often so we hard coded here.
-	//		Add domain configuration pair (prod and dev) here when needed.
-	if os.Getenv("DOMAIN_ENV") == "prod" {
-		domainMap["fdmp"] = DomainConfig{
-			s3bucket: "tf-prod-dapper-fdmp",
-			s3prefix: "data",
-			aggrtime: dapperlib.MONTH,
-		}
-	} else {
-		domainMap["fdmp"] = DomainConfig{
-			s3bucket: "tf-dev-dapper-fdmp",
-			s3prefix: "data",
-			aggrtime: dapperlib.MONTH,
+	// Re-constructing domainMap from DOMAINS,DOMAIN_BUCKETS, and DOMAIN_PREFIXES.
+	str := os.Getenv("DOMAINS")
+	if str == "" {
+		log.Fatal("missing DOMAINS env var")
+	}
+	domains := strings.Split(str, ",")
+	if len(domains) == 0 {
+		log.Fatal("invalid format for DOMAINS env var")
+	}
+	str = os.Getenv("DOMAIN_BUCKETS")
+	if str == "" {
+		log.Fatal("missing DOMAIN_BUCKETS env var")
+	}
+	domainBuckets := strings.Split(str, ",")
+	if len(domainBuckets) == 0 {
+		log.Fatal("invalid format for DOMAIN_BUCKETS env var")
+	}
+	str = os.Getenv("DOMAIN_PREFIXES")
+	if str == "" {
+		log.Fatal("missing DOMAIN_PREFIXES env var")
+	}
+	domainPrefixes := strings.Split(str, ",")
+	if len(domainPrefixes) == 0 {
+		log.Fatal("invalid format for DOMAIN_PREFIXES env var")
+	}
+
+	if len(domains) != len(domainBuckets) || len(domains) != len(domainPrefixes) {
+		log.Fatal("size mismatch for DOMAINS, DOMAIN_BUCKET, or DOMAIN_PREFIXES.")
+	}
+
+	for i, v := range domains {
+		domainMap[v] = DomainConfig{
+			s3bucket: domainBuckets[i],
+			s3prefix: domainPrefixes[i],
+			aggrtime: dapperlib.MONTH, // Currently we hard coded to MONTH
 		}
 	}
 
+	log.Printf("domainMap:\n%+v", domainMap)
 }
 
 /*
