@@ -75,6 +75,8 @@ func main() {
 
 	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
 
+	cacheLatest()
+
 	log.Println("starting server")
 	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
 }
@@ -106,21 +108,27 @@ func sohHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	return weft.Soh(r, h, b)
 }
 
-func returnTable(t dapperlib.Table, r *http.Request, h http.Header, b *bytes.Buffer) error {
+func returnTables(ts []dapperlib.Table, r *http.Request, h http.Header, b *bytes.Buffer) error {
 	var pb []byte
 	var err error
 
 	ctype := r.Header.Get("Accept")
 	switch ctype {
 	case CONTENT_TYPE_CSV:
-		csvOut := t.ToCSV()
 		buf := &bytes.Buffer{}
-		csvW := csv.NewWriter(buf)
-		err = csvW.WriteAll(csvOut)
+		for _, t := range ts {
+			csvOut := t.ToCSV()
+			csvW := csv.NewWriter(buf)
+			err = csvW.WriteAll(csvOut)
+		}
 		pb = buf.Bytes()
 	default:
-		p := t.ToDQR()
-		return returnProto(p, r, h, b)
+		ps := &dapperlib.DataQueryResults{}
+		for _, t := range ts {
+			p := t.ToDQR()
+			ps.Results = append(ps.Results, p.Results...)
+		}
+		return returnProto(ps, r, h, b)
 	}
 
 	if err != nil {
