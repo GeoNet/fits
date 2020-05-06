@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"github.com/GeoNet/fits/dapper/dapperlib"
@@ -13,13 +14,21 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-var (
-	domainMap = make(map[string]DomainConfig)
-	dbspan    = time.Hour * 24 * 14 //2 weeks
+type latestTables struct {
+	tables []dapperlib.Table
+	ts     time.Time
+}
 
+var (
+	domainMap       = make(map[string]DomainConfig)
+	dbspan          = time.Hour * 24 * 14 //2 weeks
+	allLatestTables map[string]latestTables
+	rx              = &sync.Mutex{}
+	cacheRefresh    = 1 * time.Minute
 )
 
 type DomainConfig struct {
@@ -68,6 +77,7 @@ func init() {
 	}
 
 	log.Printf("domainMap:\n%+v", domainMap)
+	allLatestTables = make(map[string]latestTables)
 }
 
 /*
@@ -115,6 +125,17 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	var results dapperlib.Table
 
+	if key == "all" {
+		// NOTE: when "key=all" we'll only return 1 record for each key, ignoring numbner of records requested
+		t, verr := hitCache(domain)
+		if verr.Err != nil {
+			return verr
+		}
+
+		// No aggregation for "all"
+		return returnTables(t.tables, r, h, b)
+	}
+
 	var latest int
 	latestS := v.Get("latest")
 	if latestS != "" {
@@ -132,6 +153,15 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 			return valid.Error{
 				Code: http.StatusInternalServerError,
 				Err:  fmt.Errorf("getDataLatest failed: %v", err),
+			}
+		}
+
+		// Also update cache tables
+		if latest == 1 { // Not interested in re-creating the cache table for 1 entry if "results" isn't.
+			for i, t := range allLatestTables[domain].tables {
+				if t.Key == key {
+					allLatestTables[domain].tables[i] = results
+				}
 			}
 		}
 	} else {
@@ -179,7 +209,7 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		}
 	}
 
-	return returnTable(results, r, h, b)
+	return returnTables([]dapperlib.Table{results}, r, h, b)
 }
 
 func getDBFields(domain, key string, filter []string) ([]string, error) {
@@ -361,4 +391,150 @@ func getDataSpanDB(domain, key string, start, end time.Time, filter []string) (d
 	}
 
 	return out, nil
+}
+
+func cacheLatest() error {
+	log.Println("refreshing latest cache")
+	rows, err := db.Query(
+		`SELECT r.record_domain, r.record_key, r.field, value, r.time FROM
+				(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
+					WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) m
+				INNER JOIN
+				(SELECT record_domain, time, record_key, field, value FROM dapper.records
+					WHERE time > NOW() - INTERVAL '2 days') r
+				ON m.record_domain=r.record_domain AND m.record_key=r.record_key
+			INNER JOIN
+				(SELECT time, x.record_domain, x.record_key, field FROM (
+					(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
+						WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) n
+					INNER JOIN
+					(SELECT record_domain, MAX(time) AS time, record_key, field FROM dapper.records
+						WHERE time > NOW() - INTERVAL '2 days'
+						GROUP BY record_domain, record_key, field) x
+					ON n.record_domain=x.record_domain AND n.record_key=x.record_key
+					)
+				) z
+			ON r.record_domain=z.record_domain
+			AND r.record_key=z.record_key
+			AND r.time=z.time
+			AND r.field=z.field
+			ORDER BY r.record_domain, r.record_key, r.field`)
+
+	if err != nil {
+		return fmt.Errorf("cacheLatest failed(2): %v", err)
+	}
+
+	var t dapperlib.Table
+
+	domains := make([]string, 0)
+	prevDomain := ""
+	prevKey := ""
+	var out latestTables
+	latestTs := time.Time{}
+
+	for rows.Next() {
+		rec := dapperlib.Record{}
+
+		err := rows.Scan(&rec.Domain, &rec.Key, &rec.Field, &rec.Value, &rec.Time)
+		if err != nil {
+			return fmt.Errorf("failed to scan row for record: %v", err)
+		}
+
+		if prevDomain != rec.Domain {
+			if prevDomain != "" {
+				out.ts = latestTs
+				rx.Lock()
+				allLatestTables[prevDomain] = out
+				rx.Unlock()
+				domains = append(domains, prevDomain)
+				latestTs = time.Time{}
+			}
+			out = latestTables{
+				tables: make([]dapperlib.Table, 0),
+			}
+			prevDomain = rec.Domain
+			prevKey = ""
+		}
+		if rec.Key != prevKey {
+			if prevKey != "" {
+				out.tables = append(out.tables, t)
+			}
+			t = dapperlib.NewTable(rec.Domain, rec.Key)
+			prevKey = rec.Key
+		}
+		t.Append(rec)
+		if rec.Time.After(latestTs) {
+			latestTs = rec.Time
+		}
+	}
+	// The last table
+	if prevDomain != "" { // Don't add empty struct if it's an empty query result
+		if prevKey != "" {
+			out.tables = append(out.tables, t)
+			out.ts = latestTs
+			rx.Lock()
+			allLatestTables[prevDomain] = out
+			rx.Unlock()
+		}
+		domains = append(domains, prevDomain)
+	}
+
+	// remove unused domains
+	rx.Lock()
+nextTables:
+	for k := range allLatestTables {
+		for _, d := range domains {
+			if k == d {
+				continue nextTables
+			}
+		}
+		delete(allLatestTables, k)
+	}
+	rx.Unlock()
+	log.Printf("Done refreshing latest cache for %d domain(s)", len(allLatestTables))
+	return nil
+}
+
+func hitCache(domain string) (latestTables, valid.Error) {
+	rx.Lock()
+	t, ok := allLatestTables[domain]
+	rx.Unlock()
+	if !ok { // Should've cached before
+		return t, valid.Error{
+			Code: http.StatusBadRequest,
+			Err:  fmt.Errorf("can't find domain %s", domain),
+		}
+	}
+
+	// check if we should refill cache
+	var k string
+	err := db.QueryRow("SELECT record_key FROM dapper.records WHERE record_domain=$1 AND time > $2", domain, t.ts).Scan(&k)
+	switch {
+	case err == sql.ErrNoRows:
+		// The cache is still the latest, do nothing
+	case err != nil:
+		return t, valid.Error{
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("error query latest record for %s:%s", domain, err.Error()),
+		}
+	default:
+		// There are records later than our cache, refresh cache.
+		if err = cacheLatest(); err != nil {
+			return t, valid.Error{
+				Code: http.StatusInternalServerError,
+				Err:  fmt.Errorf("error caching latest record for %s:%s", domain, err.Error()),
+			}
+		}
+		rx.Lock()
+		t, ok = allLatestTables[domain]
+		rx.Unlock()
+		if !ok {
+			return t, valid.Error{
+				Code: http.StatusBadRequest,
+				Err:  fmt.Errorf("can't find domain %s", domain),
+			}
+		}
+	}
+
+	return t, valid.Error{}
 }
