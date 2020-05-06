@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+const CACHE_EXPIRE = time.Minute * 5
+
 type latestTables struct {
 	tables []dapperlib.Table
 	ts     time.Time
@@ -28,7 +30,7 @@ var (
 	dbspan          = time.Hour * 24 * 14 //2 weeks
 	allLatestTables map[string]latestTables
 	rx              = &sync.Mutex{}
-	cacheRefresh    = 1 * time.Minute
+	cacheLoading    bool
 )
 
 type DomainConfig struct {
@@ -506,33 +508,46 @@ func hitCache(domain string) (latestTables, valid.Error) {
 		}
 	}
 
-	// check if we should refill cache
-	var k string
-	err := db.QueryRow("SELECT record_key FROM dapper.records WHERE record_domain=$1 AND time > $2", domain, t.ts).Scan(&k)
-	switch {
-	case err == sql.ErrNoRows:
-		// The cache is still the latest, do nothing
-	case err != nil:
-		return t, valid.Error{
-			Code: http.StatusInternalServerError,
-			Err:  fmt.Errorf("error query latest record for %s:%s", domain, err.Error()),
-		}
-	default:
-		// There are records later than our cache, refresh cache.
-		if err = cacheLatest(); err != nil {
-			return t, valid.Error{
-				Code: http.StatusInternalServerError,
-				Err:  fmt.Errorf("error caching latest record for %s:%s", domain, err.Error()),
+	// We forced the cache to valid at least CACHE_EXPIRE long
+	if !cacheLoading && time.Since(t.ts) > CACHE_EXPIRE {
+		err := func() valid.Error {
+			cacheLoading = true
+			defer func() {
+				cacheLoading = false
+			}()
+			// check if we should refill cache
+			var k string
+			err := db.QueryRow("SELECT record_key FROM dapper.records WHERE record_domain=$1 AND time > $2", domain, t.ts).Scan(&k)
+			switch {
+			case err == sql.ErrNoRows:
+				// The cache is still the latest, do nothing
+			case err != nil:
+				return valid.Error{
+					Code: http.StatusInternalServerError,
+					Err:  fmt.Errorf("error query latest record for %s:%s", domain, err.Error()),
+				}
+			default:
+				// There are records later than our cache, refresh cache.
+				if err = cacheLatest(); err != nil {
+					return valid.Error{
+						Code: http.StatusInternalServerError,
+						Err:  fmt.Errorf("error caching latest record for %s:%s", domain, err.Error()),
+					}
+				}
+				rx.Lock()
+				t, ok = allLatestTables[domain]
+				rx.Unlock()
+				if !ok {
+					return valid.Error{
+						Code: http.StatusBadRequest,
+						Err:  fmt.Errorf("can't find domain %s", domain),
+					}
+				}
 			}
-		}
-		rx.Lock()
-		t, ok = allLatestTables[domain]
-		rx.Unlock()
-		if !ok {
-			return t, valid.Error{
-				Code: http.StatusBadRequest,
-				Err:  fmt.Errorf("can't find domain %s", domain),
-			}
+			return valid.Error{}
+		}()
+		if err.Err != nil {
+			return t, err
 		}
 	}
 
