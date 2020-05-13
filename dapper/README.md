@@ -68,8 +68,7 @@ Metadata also is kept in a `domain`. And is also defined with a `key`. This `dom
 
 While this is by no means an exhaustive list here is a brain dump of some things that may need to be done to `dapper` to get it production ready:
 
- - Currently the `archive` process only archives one domain (controlled by env var). This needs some thought, do we have one process per `domain` or one that can do all the domains?
- - `domain` config is currently hardcoded into the `dapper-api` and `archive` processes, this should be somewhere else (config files in S3? where would we build the config from?).
+- Currently the `archive` process only archives one domain (controlled by env var). This needs some thought, do we have one process per `domain` or one that can do all the domains?
 - documentation. both for internal use and available directly from the API (like https://api.geonet.org.nz)
 
 ### The Vision

@@ -43,6 +43,9 @@ const (
 	DATA_AGGR_AVG  DataAggrMethod = "avg"
 )
 
+var defaultStartDate = time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
+var defaultEndDate = time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC)
+
 var daFuncs = map[DataAggrMethod]DataAggrFunc{
 	DATA_AGGR_MIN: func(in []string) string {
 		if len(in) == 0 {
@@ -215,8 +218,8 @@ func NewTable(domain, key string) Table {
 		headers: make(map[string]bool),
 		entries: make(map[int64]map[string]string),
 
-		start: time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC),
-		end:   time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC),
+		start: defaultStartDate,
+		end:   defaultEndDate,
 	}
 }
 
@@ -274,7 +277,7 @@ func (t Table) ToCSV() [][]string {
 	return rows
 }
 
-func (t *Table) AddCSV(in [][]string) error {
+func (t *Table) AddCSV(in [][]string, filter []string) error {
 	inHeader := in[0]
 
 	for _, row := range in[1:] {
@@ -284,6 +287,9 @@ func (t *Table) AddCSV(in [][]string) error {
 		}
 
 		for i := 1; i < len(inHeader); i++ {
+			if !contains(filter, inHeader[i]) {
+				continue
+			}
 			t.headers[inHeader[i]] = true
 
 			mp, ok := t.entries[when.Unix()]
@@ -295,10 +301,10 @@ func (t *Table) AddCSV(in [][]string) error {
 			t.entries[when.Unix()] = mp
 		}
 
-		if t.end.Before(when) {
+		if t.end.Before(when) || t.end == defaultEndDate {
 			t.end = when
 		}
-		if t.start.After(when) {
+		if t.start.After(when) || t.start == defaultStartDate {
 			t.start = when
 		}
 	}
@@ -471,4 +477,16 @@ func ParseRecords(in []Record, tAggr TimeAggrLevel) map[string]Table {
 	}
 
 	return out
+}
+
+func contains(in []string, key string) bool {
+	if in == nil || len(in) == 0 {
+		return true
+	}
+	for _, i := range in {
+		if key == i {
+			return true
+		}
+	}
+	return false
 }
