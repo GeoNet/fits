@@ -104,11 +104,16 @@ func main() {
 		log.Fatalf("failed to archive records: %v", err)
 	}
 
-	//DELETE FROM dapper.records WHERE record_domain='fdmp' AND archived=TRUE AND time < now() - interval '14 days';
+	res, err := db.Exec(`DELETE FROM dapper.records WHERE record_domain=$1 AND archived=TRUE AND time < now() - interval '14 days'`, domain)
+	if err != nil {
+		log.Fatalf("failed to delete old records: %v", err)
+	}
 
-	//TODO: Trigger a clear of old records from the DB (for this domain at least)
-
-	log.Println("archive operation complete")
+	n, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalf("failed to get number of rows affected: %v", err)
+	}
+	log.Printf("archive operation complete. %d archived db records deleted.", n)
 }
 
 func archiveRecords(records []dapperlib.Record) error {
@@ -117,6 +122,12 @@ func archiveRecords(records []dapperlib.Record) error {
 	tables := dapperlib.ParseRecords(records, dapperlib.MONTH) //TODO: Configurable
 
 	log.Printf("across %v tables", len(tables))
+
+	stmt, err := db.Prepare("UPDATE dapper.records SET archived=TRUE WHERE record_domain=$1 AND record_key=$2 AND modtime>=$3 AND modtime<=$4;")
+	if err != nil {
+		metrics.MsgErr()
+		return fmt.Errorf("failed to prepare archived statment: %v", err)
+	}
 
 	sem := make(chan int, 10)
 	var wg sync.WaitGroup
@@ -159,7 +170,7 @@ func archiveRecords(records []dapperlib.Record) error {
 					return
 				}
 
-				err = t.AddCSV(inCsv)
+				err = t.AddCSV(inCsv, nil)
 				if err != nil {
 					goErr = fmt.Errorf("failed to add existing CSV records to table: %v", err)
 					metrics.MsgErr()
@@ -185,13 +196,6 @@ func archiveRecords(records []dapperlib.Record) error {
 				return
 			}
 			metrics.MsgTx()
-
-			stmt, err := db.Prepare("UPDATE dapper.records SET archived=TRUE WHERE record_domain=$1 AND record_key=$2 AND modtime>=$3 AND modtime<=$4;")
-			if err != nil {
-				goErr = fmt.Errorf("failed to prepare archived statment: %v", err)
-				metrics.MsgErr()
-				return
-			}
 
 			_, err = stmt.Exec(t.Domain, t.Key, oldestmod, startTime)
 			if err != nil {

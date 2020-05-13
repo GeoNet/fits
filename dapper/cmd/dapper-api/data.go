@@ -292,7 +292,7 @@ func getDataSpan(domain, key string, start, end time.Time, filter []string) (dap
 	toMerge := make([]dapperlib.Table, 0)
 
 	dbExt := time.Now().Add(-dbspan)
-
+	qEnd := end
 	//Check if we can load some data from the database
 	if end.After(dbExt) {
 		dbStart := dbExt
@@ -305,9 +305,10 @@ func getDataSpan(domain, key string, start, end time.Time, filter []string) (dap
 			return out, fmt.Errorf("getDataSpanDB failed: %v", err)
 		}
 		toMerge = append(toMerge, t)
+		qEnd = dbExt // shift end to "end of archive csv"
 	}
 	if start.Before(dbExt) {
-		t, err := getDataSpanArchive(domain, key, start, dbExt, filter)
+		t, err := getDataSpanArchive(domain, key, start, qEnd, filter)
 		if err != nil {
 			return out, fmt.Errorf("getDataSpanArchive failed: %v", err)
 		}
@@ -355,7 +356,7 @@ func getDataSpanArchive(domain, key string, start, end time.Time, filter []strin
 			return out, fmt.Errorf("csv read failed: %v", err)
 		}
 
-		err = out.AddCSV(csvIn)
+		err = out.AddCSV(csvIn, filter)
 		if err != nil {
 			return out, fmt.Errorf("")
 		}
