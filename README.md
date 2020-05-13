@@ -11,8 +11,8 @@ There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
 ```
-docker build --rm=true -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:9.5 -f etc/Dockerfile database
-docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:9.5
+docker build --rm=true -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12 -f etc/Dockerfile database
+docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12
 ```
 
 Add test data to the DB with:
