@@ -151,7 +151,7 @@ func geoJSONSites(typeID, methodID, within string) ([]byte, error) {
 			siteGeoJSON+
 				` where sitepk IN
 (select distinct on (sitepk) sitepk from fits.observation where observation.typepk = (select typepk from fits.type where typeid = $1)) 
- AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($2, 4326)))`+fc, typeID, within).Scan(&d)
+ AND ST_Within(ST_ShiftLongitude(location::geometry), ST_ShiftLongitude(ST_GeomFromText($2, 4326)))`+fc, typeID, within).Scan(&d)
 	case typeID != "" && methodID != "" && within == "":
 		err = db.QueryRow(
 			siteGeoJSON+
@@ -166,7 +166,7 @@ func geoJSONSites(typeID, methodID, within string) ([]byte, error) {
 (select distinct on (sitepk) sitepk from fits.observation where 
 	observation.typepk = (select typepk from fits.type where typeid = $1)
 	AND observation.methodpk = (select methodpk from fits.method where methodid = $2))
-		 AND ST_Within(ST_Shift_Longitude(location::geometry), ST_Shift_Longitude(ST_GeomFromText($3, 4326)))`+fc, typeID, methodID, within).Scan(&d)
+		 AND ST_Within(ST_ShiftLongitude(location::geometry), ST_ShiftLongitude(ST_GeomFromText($3, 4326)))`+fc, typeID, methodID, within).Scan(&d)
 	}
 
 	return []byte(d), err
