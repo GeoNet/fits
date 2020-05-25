@@ -29,7 +29,7 @@ var (
 	domainMap       = make(map[string]DomainConfig)
 	dbspan          = time.Hour * 24 * 14 //2 weeks
 	allLatestTables map[string]latestTables
-	rx              = &sync.Mutex{}
+	rx              = &sync.RWMutex{}
 	cacheLoading    bool
 )
 
@@ -499,9 +499,9 @@ nextTables:
 }
 
 func hitCache(domain string) (latestTables, valid.Error) {
-	rx.Lock()
+	rx.RLock()
 	t, ok := allLatestTables[domain]
-	rx.Unlock()
+	rx.RUnlock()
 	if !ok { // Should've cached before
 		return t, valid.Error{
 			Code: http.StatusBadRequest,
@@ -535,9 +535,9 @@ func hitCache(domain string) (latestTables, valid.Error) {
 						Err:  fmt.Errorf("error caching latest record for %s:%s", domain, err.Error()),
 					}
 				}
-				rx.Lock()
+				rx.RLock()
 				t, ok = allLatestTables[domain]
-				rx.Unlock()
+				rx.RUnlock()
 				if !ok {
 					return valid.Error{
 						Code: http.StatusBadRequest,
