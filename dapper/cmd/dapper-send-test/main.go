@@ -1,14 +1,19 @@
+// +build devtest
+
 package main
 
 import (
 	"fmt"
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"log"
+	"os"
 	"time"
 )
 
+var fhStream = os.Getenv("DAPPER_FH_STREAM")
+
 func main() {
-	sc, err := dapperlib.NewSendClient()
+	sc, err := dapperlib.NewSendClient(fhStream)
 
 	if err != nil {
 		log.Fatalf("failed to create dapper SendClient: %v", err)

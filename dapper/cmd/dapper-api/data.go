@@ -19,6 +19,34 @@ import (
 )
 
 const CACHE_EXPIRE = time.Minute * 5
+const sqlDataSpan = `SELECT time, value FROM dapper.records WHERE record_domain=$1 AND record_key=$2 AND field=$3 AND time >= $4 AND time <= $5;`
+const sqlFields = `SELECT distinct(field) FROM dapper.records WHERE record_domain=$1 AND record_key=$2;`
+const sqlDataLatest = `SELECT time, value FROM dapper.records WHERE record_domain=$1 AND record_key=$2 AND field=$3 ORDER BY time DESC LIMIT $4;`
+const sqlCacheLatest = `
+	SELECT r.record_domain, r.record_key, r.field, value, r.time FROM
+		(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
+			WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) m
+		INNER JOIN
+		(SELECT record_domain, time, record_key, field, value FROM dapper.records
+			WHERE time > NOW() - INTERVAL '2 days') r
+		ON m.record_domain=r.record_domain AND m.record_key=r.record_key
+		INNER JOIN
+		(SELECT time, x.record_domain, x.record_key, field FROM (
+			(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
+				WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) n
+			INNER JOIN
+			(SELECT record_domain, MAX(time) AS time, record_key, field FROM dapper.records
+				WHERE time > NOW() - INTERVAL '2 days'
+				GROUP BY record_domain, record_key, field) x
+			ON n.record_domain=x.record_domain AND n.record_key=x.record_key
+			)
+		) z
+		ON r.record_domain=z.record_domain
+		AND r.record_key=z.record_key
+		AND r.time=z.time
+		AND r.field=z.field
+		ORDER BY r.record_domain, r.record_key, r.field`
+const sqlHasNewRec = `SELECT record_key FROM dapper.records WHERE record_domain=$1 AND time > $2`
 
 type latestTables struct {
 	tables []dapperlib.Table
@@ -217,7 +245,7 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 func getDBFields(domain, key string, filter []string) ([]string, error) {
 	out := make([]string, 0)
 
-	rows, err := db.Query("SELECT distinct(field) FROM dapper.records WHERE record_domain=$1 AND record_key=$2;", domain, key)
+	rows, err := db.Query(sqlFields, domain, key)
 	if err != nil {
 		return out, fmt.Errorf("field query failed: %v", err)
 	}
@@ -262,7 +290,7 @@ func getDataLatest(domain, key string, latest int, filter []string) (dapperlib.T
 	}
 
 	for _, f := range fields {
-		rows, err := db.Query("SELECT time, value FROM dapper.records WHERE record_domain=$1 AND record_key=$2 AND field=$3 ORDER BY time DESC LIMIT $4;", domain, key, f, latest)
+		rows, err := db.Query(sqlDataLatest, domain, key, f, latest)
 		if err != nil {
 			return out, fmt.Errorf("record query failed: %v", err)
 		}
@@ -374,7 +402,7 @@ func getDataSpanDB(domain, key string, start, end time.Time, filter []string) (d
 	}
 
 	for _, f := range fields {
-		rows, err := db.Query("SELECT time, value FROM dapper.records WHERE record_domain=$1 AND record_key=$2 AND field=$3 AND time >= $4 AND time <= $5;", domain, key, f, start, end)
+		rows, err := db.Query(sqlDataSpan, domain, key, f, start, end)
 		if err != nil {
 			return out, fmt.Errorf("record query failed: %v", err)
 		}
@@ -398,30 +426,7 @@ func getDataSpanDB(domain, key string, start, end time.Time, filter []string) (d
 
 func cacheLatest() error {
 	log.Println("refreshing latest cache")
-	rows, err := db.Query(
-		`SELECT r.record_domain, r.record_key, r.field, value, r.time FROM
-				(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
-					WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) m
-				INNER JOIN
-				(SELECT record_domain, time, record_key, field, value FROM dapper.records
-					WHERE time > NOW() - INTERVAL '2 days') r
-				ON m.record_domain=r.record_domain AND m.record_key=r.record_key
-			INNER JOIN
-				(SELECT time, x.record_domain, x.record_key, field FROM (
-					(SELECT DISTINCT record_domain, record_key FROM dapper.metadata
-						WHERE timespan @> NOW()::TIMESTAMPTZ ORDER BY record_key) n
-					INNER JOIN
-					(SELECT record_domain, MAX(time) AS time, record_key, field FROM dapper.records
-						WHERE time > NOW() - INTERVAL '2 days'
-						GROUP BY record_domain, record_key, field) x
-					ON n.record_domain=x.record_domain AND n.record_key=x.record_key
-					)
-				) z
-			ON r.record_domain=z.record_domain
-			AND r.record_key=z.record_key
-			AND r.time=z.time
-			AND r.field=z.field
-			ORDER BY r.record_domain, r.record_key, r.field`)
+	rows, err := db.Query(sqlCacheLatest)
 
 	if err != nil {
 		return fmt.Errorf("cacheLatest failed(2): %v", err)
@@ -518,7 +523,7 @@ func hitCache(domain string) (latestTables, valid.Error) {
 			}()
 			// check if we should refill cache
 			var k string
-			err := db.QueryRow("SELECT record_key FROM dapper.records WHERE record_domain=$1 AND time > $2", domain, t.ts).Scan(&k)
+			err := db.QueryRow(sqlHasNewRec, domain, t.ts).Scan(&k)
 			switch {
 			case err == sql.ErrNoRows:
 				// The cache is still the latest, do nothing

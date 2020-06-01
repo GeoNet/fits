@@ -74,7 +74,7 @@ func Query(values url.Values) error {
 func Parameter(key, value string) error {
 	f, ok := valid[key]
 	if !ok {
-		return Error{Code: http.StatusInternalServerError, Err: fmt.Errorf("no validator for %s", key)}
+		return Error{Code: http.StatusBadRequest, Err: fmt.Errorf("no validator for %s", key)}
 	}
 
 	return f(value)
@@ -89,7 +89,7 @@ func ParseQuery(s string) (string, string, error) {
 	sp := strings.Split(s, "=")
 
 	if len(sp) != 2 {
-		return "", "", fmt.Errorf("query string should be in the form of 'field=value'")
+		return "", "", Error{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid string: %s", s)}
 	}
 
 	return sp[0], sp[1], nil
@@ -107,7 +107,7 @@ func ParseQueryTime(s string) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Time{}, fmt.Errorf("no available time formats for '%s'", s)
+	return time.Time{}, Error{Code: http.StatusBadRequest, Err: fmt.Errorf("invalid date: %s", s)}
 }
 
 func validstring(value string) error {

@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+const sqlInsert = `INSERT INTO dapper.records (record_domain, record_key, field, time, value, archived, modtime) VALUES ($1, $2, $3, $4, $5, FALSE, NOW());`
+
 var (
 	queueURL  = os.Getenv("SQS_QUEUE_URL")
 	s3Client  s3.S3
@@ -99,7 +101,7 @@ func (n *notification) Process(msg []byte) error {
 		return fmt.Errorf("couldn't open db transaction: %v", err)
 	}
 
-	stmt, err := tx.Prepare(`INSERT INTO dapper.records (record_domain, record_key, field, time, value, archived, modtime) VALUES ($1, $2, $3, $4, $5, FALSE, NOW());`)
+	stmt, err := tx.Prepare(sqlInsert)
 	if err != nil {
 		return fmt.Errorf("failed to prepare record insert stmt: %v", err)
 	}

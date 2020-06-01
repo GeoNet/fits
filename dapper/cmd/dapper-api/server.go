@@ -31,7 +31,7 @@ const (
 )
 
 var (
-	mux           *http.ServeMux
+	mux           = http.NewServeMux()
 	handledRoutes = make([]string, 0) //For Testing
 
 	db       *sql.DB
@@ -46,6 +46,13 @@ func handle(route string, handler http.Handler) {
 func handleFunc(route string, handlerFunc http.HandlerFunc) {
 	mux.HandleFunc(route, handlerFunc)
 	handledRoutes = append(handledRoutes, route)
+}
+
+func init() {
+	handleFunc("/soh", weft.MakeHandler(sohHandler, weft.TextError))
+	handleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
+	handleFunc("/data/", weft.MakeHandler(dataHandler, weft.TextError))
+	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
 }
 
 func main() {
@@ -66,14 +73,6 @@ func main() {
 	}
 
 	weft.SetLogger(log.New(os.Stdout, "dapper-api", -1))
-
-	mux = http.NewServeMux()
-	handleFunc("/soh", weft.MakeHandler(sohHandler, weft.TextError))
-	handleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
-
-	handleFunc("/data/", weft.MakeHandler(dataHandler, weft.TextError))
-
-	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
 
 	cacheLatest()
 
