@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+: "${VERSION="$(git rev-parse --short HEAD)"}"
+ecode=0
+if [[ -z ${ACCOUNT+x} ]]; then
+    ecode=255
+    echo "\$ACCOUNT env var not set, this is only okay for a localbuild!"
+    ACCOUNT='LOCAL'
+fi
+
 set -eu # Exit if any command fails
 
 for i in "$@"
@@ -15,3 +23,5 @@ do
     docker tag ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:${VERSION}
 
 done
+
+exit $ecode
