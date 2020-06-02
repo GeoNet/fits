@@ -11,6 +11,14 @@
 #
 # usage: ./build.sh project [project]
 
+: "${VERSION="$(git rev-parse --short HEAD)"}"
+ecode=0
+if [[ -z ${ACCOUNT+x} ]]; then
+    ecode=255
+    echo "\$ACCOUNT env var not set, this is only okay for a localbuild!"
+    ACCOUNT='LOCAL'
+fi
+
 set -euo pipefail
 
 if [ $# -eq 0 ]; then
@@ -30,3 +38,6 @@ do
     docker tag "${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION" "${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest"
 
 done
+
+exit $ecode
+
