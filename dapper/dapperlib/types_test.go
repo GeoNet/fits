@@ -3,6 +3,7 @@ package dapperlib
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -196,6 +197,54 @@ func TestDetermineDataAggrLevel(t *testing.T) {
 		if level != levels[i] {
 			t.Fatal("level must be ", levels[i])
 		}
+	}
+}
+
+func TestAggregate(t *testing.T) {
+	type testStruct struct {
+		Timestamp int64
+		Value     string
+	}
+
+	var src []testStruct
+	b, err := ioutil.ReadFile("testdata/source.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = json.Unmarshal(b, &src)
+	if err != nil {
+		t.Error(err)
+	}
+	var aggrred []testStruct
+	b, err = ioutil.ReadFile("testdata/aggrred.json")
+	if err != nil {
+		t.Error(err)
+	}
+	err = json.Unmarshal(b, &aggrred)
+	if err != nil {
+		t.Error(err)
+	}
+
+	tb := NewTable("testdomain", "testkey")
+	tb.start = time.Date(2020, 6, 9, 0, 0, 0, 0, time.UTC)
+	tb.end = time.Date(2020, 7, 8, 0, 0, 0, 0, time.UTC)
+	tb.headers = make(map[string]bool)
+	tb.headers["clock"] = true
+	for _, v := range src {
+		m := make(map[string]string)
+		m["clock"] = v.Value
+		tb.entries[v.Timestamp] = m
+	}
+
+	nt := tb.Aggregate(DATA_AGGR_AVG, AUTO)
+	if nt.Len() != len(aggrred) {
+		t.Errorf("length differs. got %d expected %d", len(nt.entries), len(aggrred))
+	}
+
+	recs := nt.ToRecords(true)
+	if recs[len(recs)-1].Time.UTC().Unix() != aggrred[len(aggrred)-1].Timestamp {
+		t.Errorf("timestamp differs. got %v expected %v", recs[len(recs)-1].Time.UTC().Unix(), aggrred[len(aggrred)-1].Timestamp)
 	}
 
 }

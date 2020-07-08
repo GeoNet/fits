@@ -1,0 +1,618 @@
+[
+  {
+    "Timestamp": 1592654400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592658000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592661600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592665200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592668800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592672400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592676000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592679600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592683200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592686800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592690400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592694000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592697600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592701200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592704800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592708400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592712000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592715600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592719200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592722800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592726400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592730000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592733600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592737200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592740800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592744400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592748000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592751600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592755200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592758800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592762400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592766000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592769600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592773200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592776800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592780400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592784000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592787600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592791200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592794800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592798400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592802000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592805600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592809200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592812800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592816400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592820000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592823600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592827200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592830800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592834400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592838000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592841600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592845200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592848800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592852400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592856000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592859600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592863200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592866800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592870400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592874000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592877600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592881200,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592884800,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592888400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592892000,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592895600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592899200,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592902800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592906400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592910000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592913600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592917200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592920800,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592924400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592928000,
+    "Value": "25"
+  },
+  {
+    "Timestamp": 1592931600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592935200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592938800,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592942400,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592946000,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592949600,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1592953200,
+    "Value": "0"
+  },
+  {
+    "Timestamp": 1593057600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593090000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593140400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593162000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593169200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593190800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593198000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593212400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593255600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593273600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593280800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593288000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593298800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593306000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593313200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593316800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593327600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593334800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593342000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593352800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593356400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593370800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593374400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593378000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593385200,
+    "Value": "90"
+  },
+  {
+    "Timestamp": 1593392400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593396000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593403200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593421200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593439200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593446400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593450000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593460800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593468000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593486000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593489600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593543600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593547200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593561600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593565200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593568800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593622800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593633600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593655200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593673200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593694800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593702000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593748800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593752400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593766800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593777600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593784800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593802800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593824400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593871200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593892800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593900000,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593907200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593914400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593928800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593932400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593961200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593964800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593968400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1593982800,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1594004400,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1594029600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1594033200,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1594065600,
+    "Value": "100"
+  },
+  {
+    "Timestamp": 1594080000,
+    "Value": "100"
+  }
+]

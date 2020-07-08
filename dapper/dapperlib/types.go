@@ -387,7 +387,6 @@ func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
 		sub []string
 	}
 	fmap := make(map[string]*fieldAggr)
-
 	for _, r := range rec {
 		f, ok := fmap[r.Field]
 		if !ok {
@@ -408,10 +407,24 @@ func (t Table) Aggregate(method DataAggrMethod, level DataAggrLevel) Table {
 					Value:  val,
 				})
 			}
-			f.ts = f.ts.Add(trunc)
+			f.ts = r.Time.Truncate(trunc)
 			f.sub = make([]string, 0)
 		}
 		f.sub = append(f.sub, r.Value)
+	}
+
+	// The leftovers
+	for k, v := range fmap {
+		if v != nil && len(v.sub) > 0 {
+			val := daFuncs[method](v.sub)
+			out.Append(Record{
+				Domain: t.Domain,
+				Key:    t.Key,
+				Field:  k,
+				Time:   v.ts,
+				Value:  val,
+			})
+		}
 	}
 
 	return out
