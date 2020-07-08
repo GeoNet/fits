@@ -17,6 +17,10 @@ import (
 	"time"
 )
 
+const sqlSelectArchive = `SELECT record_domain, record_key, field, time, value, modtime FROM dapper.records WHERE record_domain=$1 AND archived=FALSE ORDER BY record_key;`
+const sqlDeleteArchive = `DELETE FROM dapper.records WHERE record_domain=$1 AND archived=TRUE AND time < now() - interval '14 days'`
+const sqlUpdateArchive = `UPDATE dapper.records SET archived=TRUE WHERE record_domain=$1 AND record_key=$2 AND modtime>=$3 AND modtime<=$4;`
+
 var (
 	s3Client s3.S3
 	db       *sql.DB
@@ -54,7 +58,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	stmt, err := db.Prepare("SELECT record_domain, record_key, field, time, value, modtime FROM dapper.records WHERE record_domain=$1 AND archived=FALSE ORDER BY record_key;")
+	stmt, err := db.Prepare(sqlSelectArchive)
 	if err != nil {
 		log.Fatalf("failed to prepare statement: %v", err)
 	}
@@ -66,7 +70,7 @@ func main() {
 
 	records := make([]dapperlib.Record, 0)
 
-	var prev_key string
+	var prevKey string
 
 	for rows.Next() {
 		rec := dapperlib.Record{}
@@ -86,7 +90,7 @@ func main() {
 
 		records = append(records, rec)
 
-		if len(records) >= 100000 && prev_key != rec.Key { //To reduce memory usage do batches, but don't let a key span batches
+		if len(records) >= 100000 && prevKey != rec.Key { //To reduce memory usage do batches, but don't let a key span batches
 			err = archiveRecords(records)
 			if err != nil {
 				log.Printf("failed to archive records: %v", err)
@@ -96,7 +100,7 @@ func main() {
 			oldestmod = time.Unix(1<<63-62135596801, 999999999)
 		}
 
-		prev_key = rec.Key
+		prevKey = rec.Key
 	}
 
 	err = archiveRecords(records)
@@ -104,7 +108,7 @@ func main() {
 		log.Fatalf("failed to archive records: %v", err)
 	}
 
-	res, err := db.Exec(`DELETE FROM dapper.records WHERE record_domain=$1 AND archived=TRUE AND time < now() - interval '14 days'`, domain)
+	res, err := db.Exec(sqlDeleteArchive, domain)
 	if err != nil {
 		log.Fatalf("failed to delete old records: %v", err)
 	}
@@ -123,7 +127,7 @@ func archiveRecords(records []dapperlib.Record) error {
 
 	log.Printf("across %v tables", len(tables))
 
-	stmt, err := db.Prepare("UPDATE dapper.records SET archived=TRUE WHERE record_domain=$1 AND record_key=$2 AND modtime>=$3 AND modtime<=$4;")
+	stmt, err := db.Prepare(sqlUpdateArchive)
 	if err != nil {
 		metrics.MsgErr()
 		return fmt.Errorf("failed to prepare archived statment: %v", err)

@@ -152,7 +152,7 @@ func TestNoDuplicates(t *testing.T) {
 		t.Fatal("expected table was not created")
 	}
 
-	err = table.AddCSV(inCsv)
+	err = table.AddCSV(inCsv, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

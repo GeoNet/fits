@@ -64,6 +64,20 @@ A `domain` has some configuration alongside it:
 
 Metadata also is kept in a `domain`. And is also defined with a `key`. This `domain` and `key` should match those from the data so users can easily fetch both. Again a metadata `key` must be unique within the `domain`.
 
+### Database
+
+Add test data to the DB with:
+
+```
+./etc/scripts/initdb-test.sh
+```
+
+Full DB init and load a small amount of test data with:
+
+```
+cd scripts; ./initdb.sh
+```
+
 ### TODO
 
 While this is by no means an exhaustive list here is a brain dump of some things that may need to be done to `dapper` to get it production ready:

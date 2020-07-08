@@ -14,28 +14,16 @@ import (
 	"time"
 )
 
-/*
-	This endpoint lists all the potential metadata fields
-*/
-func loadMetageomSnapshot(domain string, now time.Time) (map[string]*dapperlib.Point, error) {
-	m := make(map[string]*dapperlib.Point)
-	result, err := db.Query("SELECT record_key, ST_X(geom::geometry) AS latitude, ST_Y(geom::geometry) AS longitude FROM dapper.metageom where record_domain=$1 AND timespan @> $2::TIMESTAMPTZ;", domain, now)
-	if err != nil {
-		return m, fmt.Errorf("failed to load metageom snapshot: %v", err)
-	}
-
-	for result.Next() {
-		var key string
-		var x, y float32
-		err = result.Scan(&key, &x, &y)
-		if err != nil {
-			return m, fmt.Errorf("failed to load metageom snapshot: %v", err)
-		}
-
-		m[key] = &dapperlib.Point{Longitude: x, Latitude: y}
-	}
-	return m, nil
-}
+const sqlReverseFindKey = `SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::TIMESTAMPTZ;`
+const sqlListKeys = `SELECT DISTINCT record_key FROM dapper.metadata WHERE record_domain=$1 AND timespan @> $2::TIMESTAMPTZ ORDER BY record_key;`
+const sqlMetaFields = `SELECT DISTINCT field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND timespan @> $2::TIMESTAMPTZ ORDER BY field, value;`
+const sqlTag = `SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND istag AND timespan @> $3::TIMESTAMPTZ;`
+const sqlILike = `SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::TIMESTAMPTZ ORDER BY record_key;`
+const sqlAny = `SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::TIMESTAMPTZ ORDER BY record_key;`
+const sqlGeomILike = `SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::TIMESTAMPTZ;`
+const sqlGeomAny = `SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::TIMESTAMPTZ;`
+const sqlRelILike = `SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key ILIKE $2 OR to_key ILIKE $2) AND timespan @> $3::TIMESTAMPTZ;`
+const sqlRelAny = `SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key = ANY($2) OR to_key = ANY($2)) AND timespan @> $3::TIMESTAMPTZ;`
 
 func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
@@ -75,7 +63,7 @@ func metaHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
 	out := make([]string, 0)
-	result, err := db.Query("SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::TIMESTAMPTZ;", domain, keyQ, valQ, now)
+	result, err := db.Query(sqlReverseFindKey, domain, keyQ, valQ, now)
 	if err != nil {
 		return out, fmt.Errorf("failed to execute simple query: %v", err)
 	}
@@ -93,7 +81,7 @@ func querySimple(keyQ, valQ, domain string, now time.Time) ([]string, error) {
 
 func tagsSimple(tag, domain string, now time.Time) ([]string, error) {
 	out := make([]string, 0)
-	result, err := db.Query("SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND istag AND timespan @> $3::TIMESTAMPTZ;", domain, tag, now)
+	result, err := db.Query(sqlTag, domain, tag, now)
 	if err != nil {
 		return out, fmt.Errorf("failed to execute tag query: %v", err)
 	}
@@ -178,9 +166,9 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 	var result *sql.Rows
 	//Get locations
 	if key != "" {
-		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::TIMESTAMPTZ;", domain, key, now) //TODO: Allow starttime/endtime queries
+		result, err = db.Query(sqlGeomILike, domain, key, now) //TODO: Allow starttime/endtime queries
 	} else if query != "" || tags != "" {
-		result, err = db.Query("SELECT record_key, ST_X(geom::geometry) as longitude, ST_Y(geom::geometry) as latitude FROM dapper.metageom WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::TIMESTAMPTZ;", domain, pq.Array(qRes), now)
+		result, err = db.Query(sqlGeomAny, domain, pq.Array(qRes), now)
 	} else {
 		err = fmt.Errorf("was not set to either key or query")
 	}
@@ -211,9 +199,9 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 
 	// preload all relations so we don't query in the loop
 	if key != "" {
-		result, err = db.Query("SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key ILIKE $2 OR to_key LIKE $2) AND timespan @> $3::TIMESTAMPTZ;", domain, key, now)
+		result, err = db.Query(sqlRelILike, domain, key, now)
 	} else if query != "" || tags != "" {
-		result, err = db.Query("SELECT from_key, to_key, rel_type FROM dapper.metarel WHERE record_domain=$1 AND (from_key = ANY($2) OR to_key = ANY($2)) AND timespan @> $3::TIMESTAMPTZ;", domain, pq.Array(qRes), now)
+		result, err = db.Query(sqlRelAny, domain, pq.Array(qRes), now)
 	}
 	if err != nil {
 		return nil, valid.Error{
@@ -251,9 +239,9 @@ func metaEntries(r *http.Request, h http.Header, b *bytes.Buffer, domain string)
 	//get metadata
 
 	if key != "" {
-		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key ILIKE $2 AND timespan @> $3::TIMESTAMPTZ ORDER BY record_key;", domain, key, now) //TODO: Allow starttime/endtime queries
+		result, err = db.Query(sqlILike, domain, key, now) //TODO: Allow starttime/endtime queries
 	} else if query != "" || tags != "" {
-		result, err = db.Query("SELECT record_key, field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND record_key = ANY($2) AND timespan @> $3::TIMESTAMPTZ ORDER BY record_key;", domain, pq.Array(qRes), now)
+		result, err = db.Query(sqlAny, domain, pq.Array(qRes), now)
 	} else {
 		err = fmt.Errorf("was not set to either key or query")
 	}
@@ -405,7 +393,7 @@ func metaList(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (p
 
 	now := time.Now().UTC()
 
-	result, err := db.Query("SELECT DISTINCT field, value, istag FROM dapper.metadata WHERE record_domain=$1 AND timespan @> $2::TIMESTAMPTZ ORDER BY field, value;", domain, now) //TODO: Allow starttime/endtime queries
+	result, err := db.Query(sqlMetaFields, domain, now) //TODO: Allow starttime/endtime queries
 	if err != nil {
 		return nil, valid.Error{
 			Code: http.StatusInternalServerError,
@@ -445,7 +433,7 @@ func metaList(r *http.Request, h http.Header, b *bytes.Buffer, domain string) (p
 		}
 	}
 
-	result, err = db.Query("SELECT DISTINCT record_key FROM dapper.metadata WHERE record_domain=$1 AND timespan @> $2::TIMESTAMPTZ ORDER BY record_key;", domain, now) //TODO: Allow starttime/endtime queries
+	result, err = db.Query(sqlListKeys, domain, now) //TODO: Allow starttime/endtime queries
 	if err != nil {
 		return nil, valid.Error{
 			Code: http.StatusInternalServerError,
