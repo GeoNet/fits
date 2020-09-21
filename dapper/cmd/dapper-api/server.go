@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -51,6 +52,7 @@ func handleFunc(route string, handlerFunc http.HandlerFunc) {
 func init() {
 	handleFunc("/soh", weft.MakeHandler(sohHandler, weft.TextError))
 	handleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
+	handleFunc("/soh/summary", weft.MakeHandler(summary, weft.TextError))
 	handleFunc("/data/", weft.MakeHandler(dataHandler, weft.TextError))
 	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
 }
@@ -75,6 +77,23 @@ func main() {
 	weft.SetLogger(log.New(os.Stdout, "dapper-api", -1))
 
 	cacheLatest()
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		for range ticker.C {
+			m := make(map[string]int)
+			for k := range domainMap {
+				m["tables#domain:"+k] = len(allLatestTables[k].tables)
+			}
+			if os.Getenv("DDOG_API_KEY") != "" {
+				if err := ddogMsg(m); err != nil {
+					log.Println("Error sending stat metrics to Datadog:", err)
+				}
+			} else {
+				log.Printf("count stats: %+v\n", m)
+			}
+		}
+	}()
 
 	log.Println("starting server")
 	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
