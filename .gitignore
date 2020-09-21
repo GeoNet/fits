@@ -5,4 +5,4 @@ Godeps/_workspace/src/github.com/GeoNet/map180/data/new_zealand_map_layers.ddl.g
 .idea/*
 doc/
 *.iml
-docker-build-tmp
+dapper/docker-build-tmp
