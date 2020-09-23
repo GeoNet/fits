@@ -15,6 +15,6 @@ do
 		docker push ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest
 done
 
-cd dapper
-./dockerbuild.sh dapper-api dapper-db-archive dapper-db-ingest dapper-db-meta-ingest
-cd ..
+#cd dapper
+#./dockerbuild.sh dapper-api dapper-db-archive dapper-db-ingest dapper-db-meta-ingest
+#cd ..
