@@ -11,20 +11,26 @@ There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
 ```
-docker build --rm=true -t 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12 -f etc/Dockerfile database
-docker push 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12
+docker build --rm=true -t 615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12 -f etc/Dockerfile database
+docker push 615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12
+```
+
+To start the database:
+
+```
+docker run -e POSTGRES_PASSWORD={yourpassword} -p 5432:5432  615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12
 ```
 
 Add test data to the DB with:
 
 ```
-./etc/scripts/initdb-test.sh
+./etc/scripts/initdb-test.sh postgres {yourpassword}
 ```
 
 Full DB init and load a small amount of test data with:
 
 ```
-cd scripts; ./initdb.sh
+cd scripts; ./initdb.sh postgres {yourpassword}
 ```
 
 #### Logical Model
