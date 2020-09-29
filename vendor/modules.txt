@@ -1,4 +1,4 @@
-# github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab
+# github.com/GeoNet/kit v0.0.0-20200925000328-10c206971dcd
 github.com/GeoNet/kit/map180
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft

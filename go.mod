@@ -1,8 +1,8 @@
 module github.com/GeoNet/fits
 
-go 1.13.1
+go 1.13
 
 require (
-	github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab
+	github.com/GeoNet/kit v0.0.0-20200925000328-10c206971dcd
 	github.com/lib/pq v1.3.0
 )

@@ -1,30 +1,15 @@
-FROM ubuntu:xenial
+## https://github.com/postgis/docker-postgis/blob/master/12-3.0/Dockerfile
+FROM postgis/postgis:12-master
 
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-
-# https://www.postgresql.org/media/keys/ACCC4CF8.asc
-RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2
-
-USER postgres
+RUN mkdir -p /docker-entrypoint-initdb.d
+#COPY ./scripts/initdb-postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
+#COPY ./scripts/update-postgis.sh /usr/local/bin/
 
 ADD ddl /ddl
+COPY ./scripts/initdb-fits.sh /docker-entrypoint-initdb.d/
 
-RUN /etc/init.d/postgresql start  && \
-    /usr/bin/psql -d postgres --username=postgres --file=/ddl/drop-create-users.ddl && \
-    /usr/bin/psql -d postgres --username=postgres --file=/ddl/create-db.ddl && \
-    /usr/bin/psql --dbname=fits --username=postgres -c 'create extension postgis;' && \
-    /usr/bin/psql --quiet --username=postgres --dbname=fits --file=/ddl/fits-create.ddl && \
-    /usr/bin/psql --quiet --username=postgres --dbname=fits --file=/ddl/fits-functions.ddl && \
-    /usr/bin/psql --quiet --username=postgres --dbname=fits --file=/ddl/user-permissions.ddl
-
-RUN echo "host    all             all             0.0.0.0/0            trust" >> /etc/postgresql/9.5/main/pg_hba.conf && \
-    echo "local   all         all                               trust" >> /etc/postgresql/9.5/main/pg_hba.conf && \
-    echo "listen_addresses='*'" >> /etc/postgresql/9.5/main/postgresql.conf
+RUN echo "host    all         all             0.0.0.0/0         trust" >> /var/lib/postgresql/data/pg_hba.conf && \
+    echo "local   all         all                               trust" >> /var/lib/postgresql/data/pg_hba.conf
 
 EXPOSE 5432
-
-CMD ["/usr/lib/postgresql/9.5/bin/postgres", "-D", "/var/lib/postgresql/9.5/main", "-c", "config_file=/etc/postgresql/9.5/main/postgresql.conf"]
+#CMD ["docker-entrypoint.sh", "postgres"]
