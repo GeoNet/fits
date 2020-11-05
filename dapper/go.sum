@@ -1,5 +1,9 @@
+github.com/GeoNet/fits v0.0.0-20201023013444-180cd47caee3 h1:T/yn5ey7cXR+XQ1K6vhGskSl6KI+x2cG1NKexnYN1cM=
+github.com/GeoNet/fits v0.0.0-20201023013444-180cd47caee3/go.mod h1:7zAvsqPJZ5PhRH9NMPLcXnyGO06sJdWlbVuMxUyCW+0=
 github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab h1:VZmGIFcIWA88MejKsJnPYyBp8DP2FMa8km9giY3s9PY=
 github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab/go.mod h1:DVxQj3VMLvEdbZeqvKKdTC3sLnmDiTegESfoptv7QHM=
+github.com/GeoNet/kit v0.0.0-20200925000328-10c206971dcd h1:LyH3k7Gx0fUZoom60jNcttDIlLE0ssoG9xLTQAy6Gkc=
+github.com/GeoNet/kit v0.0.0-20200925000328-10c206971dcd/go.mod h1:DVxQj3VMLvEdbZeqvKKdTC3sLnmDiTegESfoptv7QHM=
 github.com/aws/aws-sdk-go v1.25.35 h1:fe2tJnqty/v/50pyngKdNk/NP8PFphYDA1Z7N3EiiiE=
 github.com/aws/aws-sdk-go v1.25.35/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

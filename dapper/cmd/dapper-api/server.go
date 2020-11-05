@@ -55,6 +55,9 @@ func init() {
 	handleFunc("/soh/summary", weft.MakeHandler(summary, weft.TextError))
 	handleFunc("/data/", weft.MakeHandler(dataHandler, weft.TextError))
 	handleFunc("/meta/", weft.MakeHandler(metaHandler, weft.TextError))
+	handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandler(apidocsHandler, weft.HTMLError)))
+	handleFunc("/assets/", weft.MakeHandler(weft.AssetHandler, weft.TextError))
+
 }
 
 func main() {

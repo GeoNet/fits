@@ -1,0 +1,615 @@
+{{define "base"}}<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Dapper API</title>
+    {{subResource "/assets/css/bootstrap.min.css"}}
+    {{subResource "/assets/css/apidocs.css"}}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+
+    <ol class="breadcrumb">
+        <li><a href="/api-docs">Index</a></li>
+        <li>Endpoint</li>
+        <li class="active">Meta</li>
+    </ol>
+    <h2 class="page-header">Meta</h2>
+    <p class="lead">Look up metadata.</p>
+    <h4>Query Index:</h4>
+    <ul>
+        <li><a href="#entries">Entries</a> - Metadata entry as JSON</li>
+    </ul>
+    <ul>
+        <li><a href="#list">List</a> - Metadata list as JSON</li>
+    </ul>
+
+    <a id="entries" class="anchor"></a>
+    <h3 class="page-header">Entries</h3>
+    <p class="lead">Look up metadata as JSON in a domain</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/meta/(domain)/entries?key=(key)&amp;query=(query)&amp;aggregate=(aggregate)&amp;tags=(tags)</dd>
+                <dt>Accept</dt>
+                <dd>application/json</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+        <dt>domain</dt>
+        <dd>Currently <code>fdmp</code> for RIMU (Remote Infrastructure Monitoring Utility).</dd>
+        <dt>key</dt>
+        <dd>The key of the metadata associated to. e.g., <code>rfap5g-soundstage</code>.</dd>
+        <dt>query</dt>
+        <dd>Look up for records having metadata contains a specific field's value, in the form of <code>key=value</code>. e.g., <code>ipaddr=192.168.1.10</code>,<code>hostname=avcrt-1</code> </dd>
+        <dt>aggregate</dt>
+        <dd>Return the latest N records. e.g., <code>2</code></dd>
+        <dt>tags</dt>
+        <dd>Filter return values after (inclusive) a timestamp (RFC3339 format). e.g., <code>2020-12-31T12:34:56Z</code> or <code>2020-12-31T12:34:56+12:00</code>.</dd>
+    </dl>
+    
+    <h4>Example Query and Response</h4>
+    <h5>List all metadata available</h5>
+    <div class="panel panel-success">
+        <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries</div>
+        <div class="panel-body"><small>Note: results truncated</small></div>
+        <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "avcrt01",
+            "moment": 1604546566,
+            "metadata": {
+              "hostname": "avcrt01",
+              "ipaddr": "10.100.59.237",
+              "locality": "avalon",
+              "model": "MikroTik CHR RouterOS"
+            },
+            "tags": [
+              "c6",
+              "a1",
+              "x1"
+            ],
+            "location": {
+              "latitude": -41.19599,
+              "longitude": 174.93257
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "avprt01",
+            "moment": 1604546566,
+            "metadata": {
+              "hostname": "avprt01",
+              "ipaddr": "10.100.59.243",
+              "locality": "avalon",
+              "model": "MikroTik CHR RouterOS"
+            },
+            "tags": [
+              "voda",
+              "a1",
+              "c6",
+              "x1"
+            ],
+            "location": {
+              "latitude": -41.19599,
+              "longitude": 174.93257
+            }
+          }
+        ]
+    }       
+</pre>
+</div>
+</div>
+<h5>Look up a certain key</h5>
+    <div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries?key=wansw-westridgecafe</div>
+    <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "wansw-westridgecafe",
+            "moment": 1604547206,
+            "metadata": {
+              "hostname": "wansw-westridgecafe",
+              "ipaddr": "10.222.64.36",
+              "locality": "westridgecafe",
+              "model": "Moxa Managed Switch"
+            },
+            "tags": [
+              "x3",
+              "mains12"
+            ],
+            "location": {
+              "latitude": -39.25449,
+              "longitude": 175.5567
+            }
+          }
+        ]
+    }
+</pre>
+        </div>
+    </div>
+<h5>Look up a certain (key,value) pair in metadata</h5>
+    <div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries?query=ipaddr=192.168.71.194</div>
+    <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "wansw-wairauvalleygps",
+            "moment": 1604547905,
+            "metadata": {
+              "hostname": "wansw-wairauvalleygps",
+              "ipaddr": "192.168.71.194",
+              "locality": "wairauvalleygps",
+              "model": "MikroTik RouterOS"
+            },
+            "tags": [
+              "solar12",
+              "x2"
+            ],
+            "location": {
+              "latitude": -41.59497,
+              "longitude": 173.58614
+            }
+          }
+        ]
+    }    
+</pre>
+</div>
+</div>
+<h5>Look up a certain (key,value) pair in metadata</h5>
+<div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries?query=locality=kahutaragps</div>
+    <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "gps-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "gps-kahutaragps",
+              "ipaddr": "192.168.247.120",
+              "locality": "kahutaragps",
+              "model": "Trimble Alloy",
+              "sitecode": "KAIK"
+            },
+            "tags": [
+              "gnss",
+              "gnss.rt",
+              "linz",
+              "solar12",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "rf2kahutara-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "rf2kahutara-kahutaragps",
+              "ipaddr": "10.247.112.25",
+              "locality": "kahutaragps",
+              "model": "MikroTik Routerboard"
+            },
+            "tags": [
+              "2G",
+              "solar12",
+              "wifi",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            },
+            "relations": [
+              {
+                "from_key": "rf2kahutara-kahutaragps",
+                "to_key": "rf2kahutaragps-kahutara",
+                "rel_type": "2G"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "wancr-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "wancr-kahutaragps",
+              "ipaddr": "10.247.112.1",
+              "locality": "kahutaragps",
+              "model": "MikroTik Cell RouterOS"
+            },
+            "tags": [
+              "LAN",
+              "solar12",
+              "vfcell",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "wancr-kahutaragps-wan-10.100.8.161",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "wancr-kahutaragps",
+              "ipaddr": "10.100.8.161",
+              "locality": "kahutaragps",
+              "model": "MikroTik Cell RouterOS"
+            },
+            "tags": [
+              "solar12",
+              "WAN",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          }
+        ]
+    }
+</pre>
+</div>
+</div>
+<h5>Look up metadata which contains a tag</h5>
+<div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries?tags=solar12</div>
+    <div class="panel-body"><small>Note: results truncated</small></div>
+    <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "gps-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "gps-kahutaragps",
+              "ipaddr": "192.168.247.120",
+              "locality": "kahutaragps",
+              "model": "Trimble Alloy",
+              "sitecode": "KAIK"
+            },
+            "tags": [
+              "gnss",
+              "gnss.rt",
+              "linz",
+              "solar12",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "rf2kahutara-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "rf2kahutara-kahutaragps",
+              "ipaddr": "10.247.112.25",
+              "locality": "kahutaragps",
+              "model": "MikroTik Routerboard"
+            },
+            "tags": [
+              "2G",
+              "solar12",
+              "wifi",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            },
+            "relations": [
+              {
+                "from_key": "rf2kahutara-kahutaragps",
+                "to_key": "rf2kahutaragps-kahutara",
+                "rel_type": "2G"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "wancr-kahutaragps",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "wancr-kahutaragps",
+              "ipaddr": "10.247.112.1",
+              "locality": "kahutaragps",
+              "model": "MikroTik Cell RouterOS"
+            },
+            "tags": [
+              "LAN",
+              "solar12",
+              "vfcell",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "wancr-kahutaragps-wan-10.100.8.161",
+            "moment": 1604547527,
+            "metadata": {
+              "hostname": "wancr-kahutaragps",
+              "ipaddr": "10.100.8.161",
+              "locality": "kahutaragps",
+              "model": "MikroTik Cell RouterOS"
+            },
+            "tags": [
+              "solar12",
+              "WAN",
+              "x1"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            }
+          }
+        ]
+    }
+</pre>
+</div>
+</div>
+<h5>Aggregate by a metadata key</h5>
+<div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/entries?aggregate=locality</div>
+    <div class="panel-body"><small>Note: results truncated</small></div>
+    <div class="panel-body panel-height">
+<pre>
+    {
+        "metadata": [
+          {
+            "domain": "fdmp",
+            "key": "locality:tekuitihighschool",
+            "moment": 1604547390,
+            "metadata": {
+              "locality": "tekuitihighschool"
+            },
+            "tags": [
+              "vfcell",
+              "x3",
+              "LAN",
+              "mains12",
+              "cellular",
+              "WAN",
+              "strong",
+              "sm",
+              "timing"
+            ],
+            "location": {
+              "latitude": -38.33281,
+              "longitude": 175.15555
+            }
+          },
+          {
+            "domain": "fdmp",
+            "key": "locality:kahutaragps",
+            "moment": 1604547390,
+            "metadata": {
+              "locality": "kahutaragps",
+              "sitecode": "KAIK"
+            },
+            "tags": [
+              "x1",
+              "gnss",
+              "linz",
+              "gnss.rt",
+              "solar12",
+              "2G",
+              "wifi",
+              "LAN",
+              "vfcell",
+              "WAN"
+            ],
+            "location": {
+              "latitude": -42.42547,
+              "longitude": 173.53366
+            },
+            "relations": [
+              {
+                "from_key": "locality:kahutaragps",
+                "to_key": "locality:kahutara",
+                "rel_type": "2G"
+              }
+            ]
+          }
+        ]
+    }
+</pre>
+</div>
+</div>
+<a id="list" class="anchor"></a>
+<h3 class="page-header">List</h3>
+<p class="lead">List all metadata as JSON in a domain</p>
+
+<div class="panel panel-primary">
+    <div class="panel-heading">Method: GET</div>
+    <div class="panel-body">
+        <dl class="dl-horizontal">
+            <dt>URI</dt>
+            <dd>/meta/(domain)/list</dd>
+            <dt>Accept</dt>
+            <dd>application/json</dd>
+        </dl>
+    </div>
+</div>
+<h4>Query Parameters</h4>
+<h5>Required:</h5>
+<dl class="dl-horizontal">
+    <dt>domain</dt>
+    <dd>Currently <code>fdmp</code> for RIMU (Remote Infrastructure Monitoring Utility).</dd>
+</dl>
+
+<h4>Example Query and Response</h4>
+<h5>List every value in the metadata set</h5>
+<div class="panel panel-success">
+    <div class="panel-heading">https://dapper-api.geonet.org.nz/meta/fdmp/list</div>
+    <div class="panel-body"><small>Note: results truncated</small></div>
+    <div class="panel-body panel-height">
+<pre>
+{
+    "domain": "fdmp",
+    "keys": [
+      "avprt01",
+      "avprt02",
+      "avsrt01",
+      "avsrt02",
+      "building-christchurchcpit",
+      "cellular-huntsbury-wan-10.100.8.9",
+      "gps-bluffhill"
+    ],
+    "metadata": {
+      "hostname": {
+        "name": "hostname",
+        "values": [
+          "avprt01",
+          "avprt02",
+          "avsrt01",
+          "avsrt02",
+          "building-christchurchcpit",
+          "cellular-huntsbury-wan-10.100.8.9",
+          "gps-bluffhill"
+        ]
+      },
+      "ipaddr": {
+        "name": "ipaddr",
+        "values": [
+          "10.100.16.1",
+          "10.100.16.10",
+          "10.100.16.101",
+          "10.100.16.102",
+          "10.100.16.103"
+        ]
+      },
+      "locality": {
+        "name": "locality",
+        "values": [
+          "ahititi",
+          "akaroaharbour",
+          "akitio",
+          "allenroadcliffs",
+          "amberley",
+          "anaurabay"
+        ]
+      },
+      "model": {
+        "name": "model",
+        "values": [
+          "Campbell CR6",
+          "CSI Cusp3C3",
+          "CSI Cusp 3D"
+        ]
+      },
+      "sitecode": {
+        "name": "sitecode",
+        "values": [
+          "2406",
+          "ABAZ",
+          "ADCS",
+          "AHTI",
+          "AKCZ"
+        ]
+      }    
+    },
+    "tags": [
+      "12v",
+      "24v",
+      "2G",
+      "400M",
+      "5G",
+      "900M"
+    ]
+}             
+</pre>
+    </div>
+</div>
+
+    <div id="footer" class="footer">
+        <div class="row">
+            <div class="col-sm-3 hidden-xs">
+                <ul id="logo">
+                    <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+                </ul>
+            </div>
+
+            <div class="col-sm-6">
+                <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake
+                        Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                <p><a target="_blank" href="http://info.geonet.org.nz/x/loYh">about</a> | <a target="_blank"
+                                                                                             href="http://info.geonet.org.nz/x/JYAO">contact</a>
+                    | <a target="_blank" href="http://info.geonet.org.nz/x/RYAo">privacy</a> | <a target="_blank"
+                                                                                                  href="http://info.geonet.org.nz/x/EIIW">disclaimer</a>
+                </p>
+                <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is
+                    licensed under a <a rel="license" target="_blank"
+                                        href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons
+                        Attribution 3.0 New Zealand License</a></p>
+            </div>
+
+            <div class="col-sm-2 hidden-xs">
+                <ul id="logo">
+                    <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz"><span>EQC</span></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-1 hidden-xs">
+                <ul id="logo">
+                    <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-5 hidden-xs">
+                <ul id="logo">
+                    <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>{{end}}
+	
+	
