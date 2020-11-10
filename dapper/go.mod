@@ -3,7 +3,8 @@ module github.com/GeoNet/fits/dapper
 go 1.13
 
 require (
-	github.com/GeoNet/kit v0.0.0-20200106002431-e839eed250ab
+	github.com/GeoNet/fits v0.0.0-20201023013444-180cd47caee3
+	github.com/GeoNet/kit v0.0.0-20200925000328-10c206971dcd
 	github.com/aws/aws-sdk-go v1.25.35
 	github.com/golang/protobuf v1.3.2
 	github.com/lib/pq v1.3.0

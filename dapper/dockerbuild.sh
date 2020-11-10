@@ -9,23 +9,31 @@ eval $(aws ecr get-login --no-include-email --region ap-southeast-2)
 
 for i in "$@"
 do
-    rm -f docker-build-temp
+    rm -rf docker-build-tmp
+    mkdir docker-build-tmp
 
-    echo "FROM golang:1.12-alpine as build" >> docker-build-temp
-    echo "WORKDIR /go/src/github.com/GeoNet/fits/dapper" >> docker-build-temp
-    echo "COPY ./cmd/${i} ./cmd/${i}" >> docker-build-temp
-    echo "COPY ./dapperlib ./dapperlib" >> docker-build-temp
-    echo "COPY ./internal ./internal" >> docker-build-temp
-    echo "COPY ./vendor ./vendor" >> docker-build-temp
-    echo "RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags \"-X main.Prefix=/usr/local -extldflags -static\" -installsuffix cgo -o ${i} cmd/${i}/*.go">> docker-build-temp
-    echo "RUN apk --update add ca-certificates" >> docker-build-temp
+    echo "FROM golang:1.12-alpine as build" >> docker-build-tmp/Dockerfile
+    echo "WORKDIR /go/src/github.com/GeoNet/fits/dapper" >> docker-build-tmp/Dockerfile
+    echo "COPY ./cmd/${i} ./cmd/${i}" >> docker-build-tmp/Dockerfile
+    echo "COPY ./dapperlib ./dapperlib" >> docker-build-tmp/Dockerfile
+    echo "COPY ./internal ./internal" >> docker-build-tmp/Dockerfile
+    echo "COPY ./vendor ./vendor" >> docker-build-tmp/Dockerfile
+    echo "RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags \"-X main.Prefix=/usr/local -extldflags -static\" -installsuffix cgo -o ${i} cmd/${i}/*.go">> docker-build-tmp/Dockerfile
+    echo "RUN apk --update add ca-certificates" >> docker-build-tmp/Dockerfile
 
-    echo "FROM scratch" >> docker-build-temp
-    echo "COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt" >> docker-build-temp
-    echo "COPY --from=build /go/src/github.com/GeoNet/fits/dapper/${i} ./${i}" >> docker-build-temp
-    echo "CMD [\"./${i}\"]" >> docker-build-temp
+    echo "FROM scratch" >> docker-build-tmp/Dockerfile
+    echo "COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt" >> docker-build-tmp/Dockerfile
+    echo "COPY --from=build /go/src/github.com/GeoNet/fits/dapper/${i} ./${i}" >> docker-build-tmp/Dockerfile
+    if [[ "${i}" == "dapper-api" ]]
+    then
+        mkdir -p docker-build-tmp/assets
+        rsync --archive --quiet --ignore-missing-args cmd/${i}/assets docker-build-tmp/
+        echo "COPY ./cmd/dapper-api/assets ./assets/"  >> docker-build-tmp/Dockerfile
+    fi 
+    
+    echo "CMD [\"./${i}\"]" >> docker-build-tmp/Dockerfile
 
-    docker build -t ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest -f docker-build-temp . # Or we use the project generic Dockerfile (which is passed the cmd as a build arg if the build needs it)
+    docker build -t ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest -f docker-build-tmp/Dockerfile .
 
     #TODO: We need some quay.io logic in here
 

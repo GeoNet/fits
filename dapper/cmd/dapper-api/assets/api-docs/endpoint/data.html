@@ -1,0 +1,600 @@
+{{define "base"}}<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Dapper API</title>
+    {{subResource "/assets/css/bootstrap.min.css"}}
+    {{subResource "/assets/css/apidocs.css"}}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+
+    <ol class="breadcrumb">
+        <li><a href="/api-docs">Index</a></li>
+        <li>Endpoint</li>
+        <li class="active">Data</li>
+    </ol>
+    <h2 class="page-header">Data</h2>
+    <p class="lead">Look up data.</p>
+    <h4>Query Index:</h4>
+
+    <ul>
+        <li><a href="#data">Data</a> - Data as JSON</li>
+    </ul>
+
+    <a id="data" class="anchor"></a>
+    <h3 class="page-header">Data</h3>
+    <p class="lead">Data as JSON</p>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Method: GET</div>
+        <div class="panel-body">
+            <dl class="dl-horizontal">
+                <dt>URI</dt>
+                <dd>/data/(domain)?key=(key)&amp;(latest=(latest)|([starttime=(starttime)]&amp;[endtime=(endtime)]))&amp;[fields=(fields)]&amp;[aggregate=(aggregate)]</dd>
+                <dt>Accept</dt>
+                <dd>application/json</dd>
+            </dl>
+        </div>
+    </div>
+    <h4>Query Parameters</h4>
+
+    <h5>Required:</h5>
+    <dl class="dl-horizontal">
+        <dt>domain</dt>
+        <dd>Currently <code>fdmp</code> for RIMU (Remote Infrastructure Monitoring Utility).</dd>
+        <dt>key</dt>
+        <dd>The key of the data associated to. e.g., <code>rfap5g-soundstage</code>, or the special keyword <code>all</code>.<br>
+        <br>Querying with <code>key=all</code> returns a snapshot of the latest value for every live metadata (has value within last 14 days) in the domain, and all other parameters will be ignored.<br>
+        <strong>*(The <code>all</code> snapshot is a cached query, refreshes every 5 minutes)</strong>
+        </dd>
+        <dd><br></dd>
+        <dd><strong>Notes below: either <code>latest</code> or <code>starttime</code>/<code>endtime</code> must present in the query except when querying with <code>key=all</code>.</strong></dd>
+        <dt>latest</dt>
+        <dd>Return the latest N records. e.g., <code>2</code></dd>
+        <dt>starttime</dt>
+        <dd>Filter return values after (inclusive) a timestamp (RFC3339 format). e.g., <code>2020-12-31T12:34:56Z</code> or <code>2020-12-31T12:34:56+12:00</code>.</dd>
+        <dt>endtime</dt>
+        <dd>Filter return values before (inclusive) a timestamp (RFC3339 format). e.g., <code>2020-12-31T12:34:56Z</code> or <code>2020-12-31T12:34:56+12:00</code>.</dd>
+    </dl>
+
+
+    <h5>Optional:</h5>
+    <dl class="dl-horizontal">
+        <dt>fields</dt>
+        <dd>Filter return values for only certain fields. Comma seperate multiple fields. . e.g., <code>temperature</code> or </code><code>singla,voltage</code></dd>
+        <dt>aggregate</dt>
+        <dd>Method to aggregate return values. Skipping this parameter or empty value means to skip aggregation. e.g., <code>avg</code>,<code>min</code>,<code>max</code>.
+            <br>Note the interval to aggregate is based on the count and span of returned results:
+            <br><ul>
+                <li>aggregate for number of records > 300 and more than 1 day</li>
+                <li>1 - 7 <small>(inclusive)</small> days: aggregate by 30 minutes</li>
+                <li>7 - 30 <small>(inclusive)</small> days: 1 hour</li>
+                <li>30 - 60 <small>(inclusive)</small> days: 2 hours</li>
+                <li>60 - 90 <small>(inclusive)</small> days: 4 hours</li>
+                <li>> 90 days: 1 day</li>
+            </ul>
+        </dd>
+   </dl>
+    <h4>Example Query and Response</h4>
+    <div class="panel panel-success">
+        <div class="panel-heading">https://dapper-api.geonet.org.nz/data/fdmp?key=rfap5g-soundstage&latest=1</div>
+        <div class="panel-body panel-height">
+<pre>
+    {
+        "results": [
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "packet_loss",
+            "records": [
+              {
+                "timestamp": 1604540117,
+                "value": "100"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "rtt",
+            "records": [
+              {
+                "timestamp": 1604540117,
+                "value": "-1"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "signal",
+            "records": [
+              {
+                "timestamp": 1604539360,
+                "value": "-63"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "voltage",
+            "records": [
+              {
+                "timestamp": 1604539360,
+                "value": "13800"
+              }
+            ]
+          }
+        ]
+      }           
+</pre>
+        </div>
+    </div>
+
+    <div class="panel panel-success">
+        <div class="panel-heading">https://dapper-api.geonet.org.nz/data/fdmp?key=all</div>
+        <div class="panel-body"><small>Note: results truncated</small></div>
+        <div class="panel-body panel-height">
+<pre>
+    {
+        "results": [
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "packet_loss",
+            "records": [
+              {
+                "timestamp": 1604540117,
+                "value": "100"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "rtt",
+            "records": [
+              {
+                "timestamp": 1604540117,
+                "value": "-1"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "signal",
+            "records": [
+              {
+                "timestamp": 1604539360,
+                "value": "-63"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "voltage",
+            "records": [
+              {
+                "timestamp": 1604539360,
+                "value": "13800"
+              }
+            ]
+          }
+        ]
+      }           
+</pre>
+        </div>
+    </div>
+
+    <div class="panel panel-success">
+        <div class="panel-heading">https://dapper-api.geonet.org.nz/data/fdmp?key=rfap5g-soundstage&fields=voltage,signal&starttime=2020-10-31T00:00:00Z&endtime=2020-11-01T00:00:00Z</div>
+        <div class="panel-body panel-height">
+<pre>
+    {
+        "results": [
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "voltage",
+            "records": [
+              {
+                "timestamp": 1604102733,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604107062,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604109158,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604110642,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604113355,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604115411,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604117887,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604123480,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604125181,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604126178,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604129045,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604131442,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604132127,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604133170,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604135290,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604135749,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604137619,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604141372,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604142567,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604146609,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604148908,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604154705,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604155652,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604158358,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604159555,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604161974,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604165591,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604167643,
+                "value": "14200"
+              },
+              {
+                "timestamp": 1604168194,
+                "value": "14100"
+              },
+              {
+                "timestamp": 1604170111,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604173876,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604174651,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604175342,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604176308,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604177190,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604178046,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604179875,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604181124,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604182120,
+                "value": "14000"
+              },
+              {
+                "timestamp": 1604186491,
+                "value": "13900"
+              }
+            ]
+          },
+          {
+            "domain": "fdmp",
+            "key": "rfap5g-soundstage",
+            "field": "signal",
+            "records": [
+              {
+                "timestamp": 1604102733,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604107062,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604108093,
+                "value": "-56"
+              },
+              {
+                "timestamp": 1604109158,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604110642,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604113355,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604115411,
+                "value": "-59"
+              },
+              {
+                "timestamp": 1604117887,
+                "value": "-59"
+              },
+              {
+                "timestamp": 1604123480,
+                "value": "-56"
+              },
+              {
+                "timestamp": 1604125181,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604126178,
+                "value": "-61"
+              },
+              {
+                "timestamp": 1604129045,
+                "value": "-60"
+              },
+              {
+                "timestamp": 1604131442,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604132127,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604133170,
+                "value": "-56"
+              },
+              {
+                "timestamp": 1604135290,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604135749,
+                "value": "-56"
+              },
+              {
+                "timestamp": 1604137619,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604141372,
+                "value": "-55"
+              },
+              {
+                "timestamp": 1604142567,
+                "value": "-67"
+              },
+              {
+                "timestamp": 1604146609,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604148908,
+                "value": "-72"
+              },
+              {
+                "timestamp": 1604154705,
+                "value": "-54"
+              },
+              {
+                "timestamp": 1604155652,
+                "value": "-54"
+              },
+              {
+                "timestamp": 1604158358,
+                "value": "-69"
+              },
+              {
+                "timestamp": 1604159555,
+                "value": "-65"
+              },
+              {
+                "timestamp": 1604161974,
+                "value": "-66"
+              },
+              {
+                "timestamp": 1604165591,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604167643,
+                "value": "-55"
+              },
+              {
+                "timestamp": 1604168194,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604170111,
+                "value": "-59"
+              },
+              {
+                "timestamp": 1604173876,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604174651,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604175342,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604176308,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604177190,
+                "value": "-59"
+              },
+              {
+                "timestamp": 1604178046,
+                "value": "-62"
+              },
+              {
+                "timestamp": 1604179875,
+                "value": "-57"
+              },
+              {
+                "timestamp": 1604181124,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604182120,
+                "value": "-58"
+              },
+              {
+                "timestamp": 1604186491,
+                "value": "-60"
+              }
+            ]
+          }
+        ]
+      }            
+</pre>
+        </div>
+    </div>
+
+    <div id="footer" class="footer">
+        <div class="row">
+            <div class="col-sm-3 hidden-xs">
+                <ul id="logo">
+                    <li id="geonet"><a target="_blank" href="http://www.geonet.org.nz"><span>GeoNet</span></a></li>
+                </ul>
+            </div>
+
+            <div class="col-sm-6">
+                <p>GeoNet is a collaboration between the <a target="_blank" href="http://www.eqc.govt.nz">Earthquake
+                        Commission</a> and <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a>.</p>
+                <p><a target="_blank" href="https://www.geonet.org.nz/about">about</a> | <a target="_blank"
+                                                                                             href="https://www.geonet.org.nz/contact">contact</a>
+                    | <a target="_blank" href="https://www.geonet.org.nz/privacy">privacy</a> | <a target="_blank"
+                                                                                                  href="https://www.geonet.org.nz/disclaimer">disclaimer</a>
+                </p>
+                <p>GeoNet content is copyright <a target="_blank" href="http://www.gns.cri.nz/">GNS Science</a> and is
+                    licensed under a <a rel="license" target="_blank"
+                                        href="http://creativecommons.org/licenses/by/3.0/nz/">Creative Commons
+                        Attribution 3.0 New Zealand License</a></p>
+            </div>
+
+            <div class="col-sm-2 hidden-xs">
+                <ul id="logo">
+                    <li id="eqc"><a target="_blank" href="http://www.eqc.govt.nz"><span>EQC</span></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-1 hidden-xs">
+                <ul id="logo">
+                    <li id="gns"><a target="_blank" href="http://www.gns.cri.nz"><span>GNS Science</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-1 col-sm-offset-5 hidden-xs">
+                <ul id="logo">
+                    <li id="ccby"><a href="http://creativecommons.org/licenses/by/3.0/nz/"><span>CC-BY</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>{{end}}
+	
+	
