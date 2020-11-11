@@ -9,6 +9,11 @@ import (
 
 var mux = http.NewServeMux()
 
+var customCsp = map[string]string{
+	"style-src":  "'self' 'unsafe-inline'",
+	"object-src": "'self'",
+}
+
 func init() {
 	mux.HandleFunc("/spark", weft.MakeHandler(spark, weft.TextError))
 	mux.HandleFunc("/map/site", weft.MakeHandler(siteMapHandler, weft.TextError))
@@ -19,11 +24,11 @@ func init() {
 	mux.HandleFunc("/plot", weft.MakeHandler(plotHandler, weft.TextError))
 	mux.HandleFunc("/observation", weft.MakeHandler(observationHandler, weft.TextError))
 	mux.HandleFunc("/site", weft.MakeHandler(siteHandler, weft.TextError))
-	mux.HandleFunc("/", weft.MakeHandler(charts, weft.HTMLError))
-	mux.HandleFunc("/charts", weft.MakeHandler(charts, weft.HTMLError))
+	mux.HandleFunc("/", weft.MakeHandlerWithCsp(charts, weft.HTMLError, customCsp))
+	mux.HandleFunc("/charts", weft.MakeHandlerWithCsp(charts, weft.HTMLError, customCsp))
 
 	// TODO the api docs are served as static html pages. convert to markdown.
-	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandler(apidocsHandler, weft.HTMLError)))
+	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandlerWithCsp(apidocsHandler, weft.HTMLError, customCsp)))
 
 	mux.HandleFunc("/assets/", weft.MakeHandler(weft.AssetHandler, weft.TextError))
 
