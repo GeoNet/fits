@@ -48,7 +48,7 @@ deploy:
      skip_cleanup: true
      script: ./build-push.sh fits-api dapper-api dapper-db-meta-ingest dapper-db-ingest dapper-db-archive
      on: 
-       branch: master
+       branch: main
 
 env:
     global:
