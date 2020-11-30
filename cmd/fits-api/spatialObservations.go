@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -92,7 +93,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	case within == "" && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
-		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		ST_X(ST_Transform(location::geometry, $4::Integer)), ST_Y(ST_Transform(location::geometry, $4::Integer)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
 		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) AND 
@@ -100,16 +101,17 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	case within != "" && methodID == "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
-		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		ST_X(ST_Transform(location::geometry, $4::Integer)), ST_Y(ST_Transform(location::geometry, $4::Integer)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
 		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
 		AND  ST_Within(location::geometry, ST_GeomFromText($5, 4326))
 		AND time >= $2 and time < $3 order by siteid asc`, typeID, start, end, srid, within)
+
 	case within == "" && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
-		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		ST_X(ST_Transform(location::geometry, $4::Integer)), ST_Y(ST_Transform(location::geometry, $4::Integer)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
 		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
@@ -118,7 +120,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	case within != "" && methodID != "":
 		rows, err = db.Query(
 			`SELECT format('%s,%s,%s,%s,%s,%s,%s,%s', siteid,
-		ST_X(ST_Transform(location::geometry, $4)), ST_Y(ST_Transform(location::geometry, $4)),
+		ST_X(ST_Transform(location::geometry, $4::Integer)), ST_Y(ST_Transform(location::geometry, $4::Integer)),
 		height,ground_relationship, to_char(time, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), value, error) 
 		as csv FROM fits.observation join fits.site using (sitepk)
 		WHERE typepk = (SELECT typepk FROM fits.type WHERE typeid = $1) 
@@ -130,6 +132,7 @@ func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		// not sure what a transformation error would look like.
 		// Return any errors as a 404.  Could improve this by inspecting
 		// the error type to check for net dial errors that should 503.
+		log.Println("## error execute query", err)
 		return weft.StatusError{Code: http.StatusNotFound}
 	}
 	defer rows.Close()

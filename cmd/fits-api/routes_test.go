@@ -41,6 +41,7 @@ var routes = wt.Requests{
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&methodID=m1"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))"},
+	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2000-01-05T00:00:00Z&days=2&srsName=EPSG:27200"},
 	{ID: wt.L(), Accept: v1CSV, Content: v1CSV, URL: "/observation?typeID=t1&start=2010-11-24T00:00:00Z&days=2&within=POLYGON((170.18+-37.52,177.19+-47.52,177.20+-37.53,170.18+-37.52))&methodID=m1"},
 	{ID: wt.L(), Accept: v1JSON, Content: v1JSON, URL: "/type"},
 	{ID: wt.L(), Accept: v1JSON, Content: v1JSON, URL: "/method?typeID=t1"},
