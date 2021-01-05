@@ -24,17 +24,16 @@ VERSION='git-'$(git rev-parse --short HEAD)
 ACCOUNT=$(aws sts get-caller-identity --output text --query 'Account')
 
 for i in "$@"; do
- 
-  mkdir -p cmd/$i/assets
-  dockerfile="Dockerfile"
-  if test -f "cmd/${i}/Dockerfile"; then
-    dockerfile="cmd/${i}/Dockerfile"
-  fi
-
   if [[ "${i}" == "fits-api" ]]; then
-    SOURCEPATH="./"
+    SOURCEPATH="."
   else
     SOURCEPATH="./dapper"
+  fi
+ 
+  mkdir -p "${SOURCEPATH}/cmd/${i}/assets"
+  dockerfile="Dockerfile"
+  if test -f "${SOURCEPATH}/cmd/${i}/Dockerfile"; then
+    dockerfile="${SOURCEPATH}/cmd/${i}/Dockerfile"
   fi
 
   docker build \
@@ -42,7 +41,7 @@ for i in "$@"; do
     --build-arg=RUNNER_IMAGE="$RUNNER_IMAGE" \
     --build-arg=BUILDER_IMAGE="$BUILDER_IMAGE" \
     --build-arg=GIT_COMMIT_SHA="$VERSION" \
-    --build-arg=ASSET_DIR="./cmd/$i/assets" \
+    --build-arg=ASSET_DIR="${SOURCEPATH}/cmd/$i/assets" \
     --build-arg=SOURCEPATH="$SOURCEPATH" \
     -t "${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:$VERSION" \
     -f $dockerfile .
