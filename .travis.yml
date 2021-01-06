@@ -1,5 +1,3 @@
-sudo: required
-
 language: go
 go:
 - 1.13.1
@@ -13,12 +11,6 @@ addons:
       packages:
          - postgresql-12-postgis-3
 
-before_deploy:
-  - docker --version
-  - pip install --user awscli
-  - export PATH=$PATH:$HOME/.local/bin
-  - eval $(aws ecr get-login --no-include-email --region ap-southeast-2) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
-
 # trying to fix postgis bug which comes on the travis infrastructure that has sudo.
 before_install:
  - export DEBIAN_FRONTEND=noninteractive;
@@ -29,6 +21,10 @@ before_install:
 
 install:
   - export GOFLAGS=-mod=vendor
+  - docker --version
+  - pip install --user awscli
+  - export PATH=$PATH:$HOME/.local/bin
+  - eval $(aws ecr get-login --no-include-email --region ap-southeast-2) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
 
 
 before_script:
@@ -42,11 +38,12 @@ script:
   - go vet ./...
   - ./all.sh
   - golangci-lint run -E gosec # default linters + gosec
+  - ./build.sh fits-api dapper-api dapper-db-meta-ingest dapper-db-ingest dapper-db-archive
 
 deploy:
    - provider: script
      skip_cleanup: true
-     script: ./build-push.sh fits-api dapper-api dapper-db-meta-ingest dapper-db-ingest dapper-db-archive
+     script: ./push.sh fits-api dapper-api dapper-db-meta-ingest dapper-db-ingest dapper-db-archive
      on: 
        branch: main
 
