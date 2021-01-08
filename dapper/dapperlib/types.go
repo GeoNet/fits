@@ -437,7 +437,7 @@ func (t Table) Trim(start, end time.Time) Table {
 	rec := t.ToRecords(false)
 	out := NewTable(t.Domain, t.Key)
 	for _, r := range rec {
-		if r.Time.After(start) && r.Time.Before(end) {
+		if !r.Time.Before(start) && !r.Time.After(end) {
 			out.Append(r)
 		}
 	}
