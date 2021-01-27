@@ -52,4 +52,3 @@ COPY ${ASSET_DIR} /assets
 ARG RUN_USER=nobody
 USER ${RUN_USER}
 # Requires a CMD ["/${BUILD}"] appended by build.sh
-CMD ["/fits-api"]

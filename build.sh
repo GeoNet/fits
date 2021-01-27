@@ -34,6 +34,9 @@ for i in "$@"; do
   dockerfile="Dockerfile"
   if test -f "${SOURCEPATH}/cmd/${i}/Dockerfile"; then
     dockerfile="${SOURCEPATH}/cmd/${i}/Dockerfile"
+  else
+    cat Dockerfile_template > $dockerfile
+    echo "CMD [\"/${i}\"]" >> $dockerfile
   fi
 
   docker build \
