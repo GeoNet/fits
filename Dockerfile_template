@@ -1,5 +1,5 @@
 ARG BUILDER_IMAGE=quay.io/geonet/golang:1.13-alpine
-ARG RUNNER_IMAGE=quay.io/geonet/alpine:3.10
+ARG RUNNER_IMAGE=quay.io/geonet/go-scratch
 ARG RUN_USER=nobody
 # Only support image based on AlpineLinux
 FROM ${BUILDER_IMAGE} as builder
@@ -35,9 +35,6 @@ ARG EXPOSE_PORT=8080
 EXPOSE $EXPOSE_PORT
 # Asset directory to copy to /assets
 # Add common resource for ssl and timezones from the build container
-ADD ./ /
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /passwd /etc/passwd
 # Same ARG as before
 ARG BUILD
