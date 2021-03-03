@@ -18,7 +18,7 @@ fi
 
 # code will be compiled in this container
 BUILDER_IMAGE='quay.io/geonet/golang:1.13.1-alpine'
-RUNNER_IMAGE='quay.io/geonet/alpine:3.10'
+RUNNER_IMAGE='quay.io/geonet/go-scratch'
 
 VERSION='git-'$(git rev-parse --short HEAD)
 ACCOUNT=$(aws sts get-caller-identity --output text --query 'Account')
