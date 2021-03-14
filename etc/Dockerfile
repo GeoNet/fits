@@ -1,5 +1,5 @@
 ## https://github.com/postgis/docker-postgis/blob/master/12-3.0/Dockerfile
-FROM postgis/postgis:12-master
+FROM quay.io/geonet/postgis:12-master
 
 RUN mkdir -p /docker-entrypoint-initdb.d
 #COPY ./scripts/initdb-postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
