@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -100,6 +101,18 @@ type envConfig struct {
 	//  AWS_CA_BUNDLE=$HOME/my_custom_ca_bundle
 	CustomCABundle string
 
+	// Sets the TLC client certificate that should be used by the SDK's HTTP transport
+	// when making requests. The certificate must be paired with a TLS client key file.
+	//
+	//  AWS_SDK_GO_CLIENT_TLS_CERT=$HOME/my_client_cert
+	ClientTLSCert string
+
+	// Sets the TLC client key that should be used by the SDK's HTTP transport
+	// when making requests. The key must be paired with a TLS client certificate file.
+	//
+	//  AWS_SDK_GO_CLIENT_TLS_KEY=$HOME/my_client_key
+	ClientTLSKey string
+
 	csmEnabled  string
 	CSMEnabled  *bool
 	CSMPort     string
@@ -141,6 +154,17 @@ type envConfig struct {
 	// AWS_S3_US_EAST_1_REGIONAL_ENDPOINT=regional
 	// This can take value as `regional` or `legacy`
 	S3UsEast1RegionalEndpoint endpoints.S3UsEast1RegionalEndpoint
+
+	// Specifies if the S3 service should allow ARNs to direct the region
+	// the client's requests are sent to.
+	//
+	// AWS_S3_USE_ARN_REGION=true
+	S3UseARNRegion bool
+
+	// Specifies the alternative endpoint to use for EC2 IMDS.
+	//
+	// AWS_EC2_METADATA_SERVICE_ENDPOINT=http://[::1]
+	EC2IMDSEndpoint string
 }
 
 var (
@@ -200,6 +224,21 @@ var (
 	}
 	s3UsEast1RegionalEndpoint = []string{
 		"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT",
+	}
+	s3UseARNRegionEnvKey = []string{
+		"AWS_S3_USE_ARN_REGION",
+	}
+	ec2IMDSEndpointEnvKey = []string{
+		"AWS_EC2_METADATA_SERVICE_ENDPOINT",
+	}
+	useCABundleKey = []string{
+		"AWS_CA_BUNDLE",
+	}
+	useClientTLSCert = []string{
+		"AWS_SDK_GO_CLIENT_TLS_CERT",
+	}
+	useClientTLSKey = []string{
+		"AWS_SDK_GO_CLIENT_TLS_KEY",
 	}
 )
 
@@ -284,7 +323,9 @@ func envConfigLoad(enableSharedConfig bool) (envConfig, error) {
 		cfg.SharedConfigFile = defaults.SharedConfigFilename()
 	}
 
-	cfg.CustomCABundle = os.Getenv("AWS_CA_BUNDLE")
+	setFromEnvVal(&cfg.CustomCABundle, useCABundleKey)
+	setFromEnvVal(&cfg.ClientTLSCert, useClientTLSCert)
+	setFromEnvVal(&cfg.ClientTLSKey, useClientTLSKey)
 
 	var err error
 	// STS Regional Endpoint variable
@@ -306,6 +347,23 @@ func envConfigLoad(enableSharedConfig bool) (envConfig, error) {
 			}
 		}
 	}
+
+	var s3UseARNRegion string
+	setFromEnvVal(&s3UseARNRegion, s3UseARNRegionEnvKey)
+	if len(s3UseARNRegion) != 0 {
+		switch {
+		case strings.EqualFold(s3UseARNRegion, "false"):
+			cfg.S3UseARNRegion = false
+		case strings.EqualFold(s3UseARNRegion, "true"):
+			cfg.S3UseARNRegion = true
+		default:
+			return envConfig{}, fmt.Errorf(
+				"invalid value for environment variable, %s=%s, need true or false",
+				s3UseARNRegionEnvKey[0], s3UseARNRegion)
+		}
+	}
+
+	setFromEnvVal(&cfg.EC2IMDSEndpoint, ec2IMDSEndpointEnvKey)
 
 	return cfg, nil
 }
