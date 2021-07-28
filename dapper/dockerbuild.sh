@@ -12,7 +12,7 @@ do
     rm -rf docker-build-tmp
     mkdir docker-build-tmp
 
-    echo "FROM golang:1.12-alpine as build" >> docker-build-tmp/Dockerfile
+    echo "FROM golang:1.15-alpine as build" >> docker-build-tmp/Dockerfile
     echo "WORKDIR /go/src/github.com/GeoNet/fits/dapper" >> docker-build-tmp/Dockerfile
     echo "COPY ./cmd/${i} ./cmd/${i}" >> docker-build-tmp/Dockerfile
     echo "COPY ./dapperlib ./dapperlib" >> docker-build-tmp/Dockerfile

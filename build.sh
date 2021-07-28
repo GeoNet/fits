@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # code will be compiled in this container
-BUILDER_IMAGE='quay.io/geonet/golang:1.13.1-alpine'
+BUILDER_IMAGE='quay.io/geonet/golang:1.15-alpine'
 RUNNER_IMAGE='quay.io/geonet/go-scratch'
 
 VERSION='git-'$(git rev-parse --short HEAD)
