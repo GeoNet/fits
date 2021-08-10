@@ -1,9 +1,11 @@
-# github.com/GeoNet/kit v0.0.0-20210610214455-dafd8e077cdc
+# github.com/GeoNet/kit v0.0.0-20210809233201-69bdd1cf9894
+## explicit
 github.com/GeoNet/kit/cfg
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/weft
 github.com/GeoNet/kit/weft/wefttest
 # github.com/aws/aws-sdk-go v1.39.4
+## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
@@ -55,17 +57,18 @@ github.com/aws/aws-sdk-go/service/sso
 github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/golang/protobuf v1.5.2
-github.com/golang/protobuf/proto
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
 # github.com/lib/pq v1.10.2
+## explicit
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
 # github.com/pkg/errors v0.9.1
+## explicit
 github.com/pkg/errors
 # google.golang.org/protobuf v1.27.1
+## explicit
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -87,9 +90,7 @@ google.golang.org/protobuf/internal/set
 google.golang.org/protobuf/internal/strs
 google.golang.org/protobuf/internal/version
 google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protodesc
 google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb

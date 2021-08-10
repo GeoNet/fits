@@ -3,7 +3,7 @@ syntax = "proto3";
 // protoc --go_out=dapperlib dapper.proto
 
 package dapper;
-option go_package = "dapperlib";
+option go_package = "./dapperlib";
 
 // DATA MESSAGES
 

@@ -1,11 +1,7 @@
-github.com/GeoNet/kit v0.0.0-20210610214455-dafd8e077cdc h1:mVAmgPFHzewOQr4T+wt3Zy4/PSQPZNdmeBX2ij+A5n8=
-github.com/GeoNet/kit v0.0.0-20210610214455-dafd8e077cdc/go.mod h1:DVxQj3VMLvEdbZeqvKKdTC3sLnmDiTegESfoptv7QHM=
-github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 h1:5ZkaAPbicIKTF2I64qf5Fh8Aa83Q/dnOafMYV0OMwjA=
-github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
+github.com/GeoNet/kit v0.0.0-20210809233201-69bdd1cf9894 h1:7zgDTkuUHDwC2Rm6rxvY9eHwXD3izghx9f7o4X58GkU=
+github.com/GeoNet/kit v0.0.0-20210809233201-69bdd1cf9894/go.mod h1:MQoI7hPvxXRWkc0QjGVMAVGFhD9mltsYcaoZ5XKpHmE=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
-github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=
-github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
 github.com/golang/protobuf v1.5.2 h1:ROPKBNFfQgOUMifHyP+KYbvpjbdoFNs+aK7DXlji0Tw=
 github.com/golang/protobuf v1.5.2/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
