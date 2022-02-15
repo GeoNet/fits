@@ -158,6 +158,22 @@ func (s *S3) ListObjects(bucket, prefix string) ([]*s3.Object, error) {
 	return out.Contents, nil
 }
 
+//Returns only the first object in bucket/prefix
+func (s *S3) FirstObject(bucket, prefix string) ([]*s3.Object, error) {
+	input := &s3.ListObjectsInput{
+		Bucket:  aws.String(bucket),
+		Prefix:  aws.String(prefix),
+		MaxKeys: aws.Int64(1),
+	}
+
+	out, err := s.client.ListObjects(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return out.Contents, nil
+}
+
 func (s *S3) Delete(bucket, key string) error {
 	input := s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),

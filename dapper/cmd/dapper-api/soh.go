@@ -7,6 +7,7 @@ import (
 	"html"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"time"
 )
 
@@ -37,7 +38,10 @@ func summary(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	for k, v := range domainMap {
 		var msg string
 		var class string
-		o, err := s3Client.ListObjects(v.s3bucket, v.s3prefix)
+		// we check if at least one archive (data older than 14 days) exists
+		d := time.Now().Truncate(24 * time.Hour).Add(-14 * 24 * time.Hour)
+		pfx := filepath.Join(v.s3prefix, d.Format("2006/january"))
+		o, err := s3Client.FirstObject(v.s3bucket, pfx)
 		if err != nil {
 			class = " class = \"tr error\""
 			msg = err.Error()
