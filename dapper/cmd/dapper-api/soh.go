@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/GeoNet/kit/weft"
 	"html"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"time"
+
+	"github.com/GeoNet/kit/weft"
 )
 
 const head = `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>GeoNet - SOH</title><style type="text/css">
@@ -41,12 +42,12 @@ func summary(r *http.Request, h http.Header, b *bytes.Buffer) error {
 		// we check if at least one archive (data older than 14 days) exists
 		d := time.Now().Truncate(24 * time.Hour).Add(-14 * 24 * time.Hour)
 		pfx := filepath.Join(v.s3prefix, d.Format("2006/january"))
-		o, err := s3Client.FirstObject(v.s3bucket, pfx)
+		exists, err := s3Client.PrefixExists(v.s3bucket, pfx)
 		if err != nil {
 			class = " class = \"tr error\""
 			msg = err.Error()
 		} else {
-			if len(o) == 0 {
+			if !exists {
 				class = " class = \"tr error\""
 				msg = "not found"
 			} else {
