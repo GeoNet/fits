@@ -5,16 +5,17 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"fmt"
-	"github.com/GeoNet/fits/dapper/dapperlib"
-	"github.com/GeoNet/fits/dapper/internal/platform/s3"
-	"github.com/GeoNet/kit/cfg"
-	"github.com/GeoNet/kit/metrics"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/GeoNet/fits/dapper/dapperlib"
+	"github.com/GeoNet/kit/aws/s3"
+	"github.com/GeoNet/kit/cfg"
+	"github.com/GeoNet/kit/metrics"
+	_ "github.com/lib/pq"
 )
 
 const sqlSelectArchive = `SELECT record_domain, record_key, field, time, value, modtime FROM dapper.records WHERE record_domain=$1 AND archived=FALSE ORDER BY record_key;`

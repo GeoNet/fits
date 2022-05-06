@@ -1,50 +1,62 @@
 package dapperlib
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/firehose"
+	"os"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/firehose"
+	"github.com/aws/aws-sdk-go-v2/service/firehose/types"
 )
 
 const RECORDS_PER_BATCH = 500 // AWS Firehose limit
 
 type SendClient struct {
-	firehose *firehose.Firehose
+	firehose *firehose.Client
 	fhStream string
 }
 
+// NewSendClient returns a SendClient struct that wraps a Firehose client using the default AWS credentials chain.
+// This consults (in order) environment vars, config files, EC2 and ECS roles.
+// It is an error if the AWS_REGION environment variable is not set.
+// Requests with recoverable errors will be retried with the default retrier.
 func NewSendClient(fhStream string) (*SendClient, error) {
-	sc := &SendClient{}
-
-	sc.fhStream = fhStream
-
-	sess, err := session.NewSession()
+	cfg, err := getConfig()
 	if err != nil {
-		return sc, fmt.Errorf("failed to create AWS session: %v", err)
+		return &SendClient{}, err
 	}
-	sc.firehose = firehose.New(sess)
-
-	return sc, nil
+	return &SendClient{firehose: firehose.NewFromConfig(cfg), fhStream: fhStream}, nil
 }
 
-func NewSendClientWithSession(fhStream string, sess *session.Session) (*SendClient, error) {
-	sc := &SendClient{}
-
-	sc.fhStream = fhStream
-
-	sc.firehose = firehose.New(sess)
-
-	return sc, nil
+// NewSendClientWithConfig returns a SendClient struct that wraps a Firehose client using
+// a provided AWS Config.
+func NewSendClientWithConfig(fhStream string, cfg aws.Config) *SendClient {
+	return &SendClient{firehose: firehose.NewFromConfig(cfg), fhStream: fhStream}
 }
 
+// getConfig returns the default AWS Config struct.
+func getConfig() (aws.Config, error) {
+	if os.Getenv("AWS_REGION") == "" {
+		return aws.Config{}, errors.New("AWS_REGION is not set")
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return aws.Config{}, err
+	}
+	return cfg, nil
+}
+
+// Send sends a list of Dapper Records to the AWS Firehose.
 func (sc SendClient) Send(data []Record) error {
-	recordsBatchInput := &firehose.PutRecordBatchInput{}
-	recordsBatchInput = recordsBatchInput.SetDeliveryStreamName(sc.fhStream)
-	records := []*firehose.Record{}
+
+	records := make([]types.Record, 0)
 
 	for _, result := range data {
 		d := RecordToCSV(result)
-		records = append(records, &firehose.Record{Data: []byte(d)})
+		records = append(records, types.Record{Data: []byte(d)})
 	}
 
 	// PutRecordBatch has a maximum number per batch so we'll split them
@@ -54,13 +66,16 @@ func (sc SendClient) Send(data []Record) error {
 			break
 		}
 
-		if pos+RECORDS_PER_BATCH >= len(records) {
-			recordsBatchInput.SetRecords(records[pos:])
-		} else {
-			recordsBatchInput.SetRecords(records[pos:(pos + RECORDS_PER_BATCH)])
+		recordsBatchInput := firehose.PutRecordBatchInput{
+			DeliveryStreamName: &sc.fhStream,
 		}
 
-		_, err := sc.firehose.PutRecordBatch(recordsBatchInput)
+		if pos+RECORDS_PER_BATCH >= len(records) {
+			recordsBatchInput.Records = records[pos:]
+		} else {
+			recordsBatchInput.Records = records[pos:(pos + RECORDS_PER_BATCH)]
+		}
+		_, err := sc.firehose.PutRecordBatch(context.TODO(), &recordsBatchInput)
 		if err != nil {
 			return fmt.Errorf("failed to put records: %v", err)
 		}

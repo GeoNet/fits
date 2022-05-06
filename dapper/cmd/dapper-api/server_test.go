@@ -3,14 +3,15 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/GeoNet/fits/dapper/internal/platform/s3"
-	"github.com/GeoNet/kit/cfg"
-	wt "github.com/GeoNet/kit/weft/wefttest"
-	"github.com/lib/pq"
 	"log"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/GeoNet/kit/aws/s3"
+	"github.com/GeoNet/kit/cfg"
+	wt "github.com/GeoNet/kit/weft/wefttest"
+	"github.com/lib/pq"
 )
 
 var (

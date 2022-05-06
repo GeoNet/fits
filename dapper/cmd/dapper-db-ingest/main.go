@@ -6,15 +6,16 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/GeoNet/fits/dapper/dapperlib"
-	"github.com/GeoNet/fits/dapper/internal/platform/s3"
-	"github.com/GeoNet/fits/dapper/internal/platform/sqs"
-	"github.com/GeoNet/kit/cfg"
-	"github.com/GeoNet/kit/metrics"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"time"
+
+	"github.com/GeoNet/fits/dapper/dapperlib"
+	"github.com/GeoNet/kit/aws/s3"
+	"github.com/GeoNet/kit/aws/sqs"
+	"github.com/GeoNet/kit/cfg"
+	"github.com/GeoNet/kit/metrics"
+	_ "github.com/lib/pq"
 )
 
 const sqlInsert = `INSERT INTO dapper.records (record_domain, record_key, field, time, value, archived, modtime) VALUES ($1, $2, $3, $4, $5, FALSE, NOW());`

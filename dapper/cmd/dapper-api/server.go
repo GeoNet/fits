@@ -6,17 +6,18 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/GeoNet/fits/dapper/dapperlib"
-	"github.com/GeoNet/fits/dapper/internal/platform/s3"
-	"github.com/GeoNet/fits/dapper/internal/valid"
-	"github.com/GeoNet/kit/cfg"
-	"github.com/GeoNet/kit/weft"
-	_ "github.com/lib/pq"
-	"google.golang.org/protobuf/proto"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/GeoNet/fits/dapper/dapperlib"
+	"github.com/GeoNet/fits/dapper/internal/valid"
+	"github.com/GeoNet/kit/aws/s3"
+	"github.com/GeoNet/kit/cfg"
+	"github.com/GeoNet/kit/weft"
+	_ "github.com/lib/pq"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
