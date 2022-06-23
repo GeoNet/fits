@@ -54,5 +54,23 @@ func main() {
 	}
 
 	log.Print("starting server")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
+}
+
+func inbound(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			// Enable CORS
+			w.Header().Set("Access-Control-Allow-Methods", "GET")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+		// Routing is based on Accept query parameters
+		// e.g., version=1 in application/json;version=1
+		// so caching must Vary based on Accept.
+		w.Header().Set("Vary", "Accept")
+		w.Header().Set("Surrogate-Control", "max-age=10")
+
+		h.ServeHTTP(w, r)
+	})
 }
