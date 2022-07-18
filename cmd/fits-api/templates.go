@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/GeoNet/fits/internal/valid"
-	"github.com/GeoNet/kit/weft"
 	"html/template"
 	"net/http"
+
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 )
 
 var (
@@ -13,16 +14,16 @@ var (
 		"subResource": weft.CreateSubResourceTag,
 	}
 
-	chartsTemplate           = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/charts.html"))
-	apidocsTemplate          = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/index.html"))
-	mapTemplate              = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/map.html"))
-	methodTemplate           = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/method.html"))
-	observationTemplate      = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/observation.html"))
-	observationStatsTemplate = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/observation_stats.html"))
-	plotTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/plot.html"))
-	siteTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/site.html"))
-	sparkTemplate            = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/spark.html"))
-	typeTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/endpoint/type.html"))
+	chartsTemplate           = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/charts.html"))
+	apidocsTemplate          = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/index.html"))
+	mapTemplate              = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/map.html"))
+	methodTemplate           = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/method.html"))
+	observationTemplate      = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/observation.html"))
+	observationStatsTemplate = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/observation_stats.html"))
+	plotTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/plot.html"))
+	siteTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/site.html"))
+	sparkTemplate            = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/spark.html"))
+	typeTemplate             = template.Must(template.New("t").Funcs(funcMap).ParseFiles("assets/api-docs/footer.html", "assets/api-docs/endpoint/type.html"))
 )
 
 func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {

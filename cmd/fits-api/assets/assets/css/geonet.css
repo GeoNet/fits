@@ -430,11 +430,11 @@ a
 {
     float: left;
     display:block;
-    height: 90px;
+    height: 70px;
     width: 54px;
 }
 
-#gns{left:-20px;height:90px;width:54px;}
+#gns{left:-10px;height:79px;width:54px;}
 #gns{background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -0px;}
 
 #eqc li, #eqc a
@@ -444,8 +444,8 @@ a
     width: 132px;
 }
 
-#eqc{right:0px;height:79px;width:132px;}
-#eqc{background:url('//static.geonet.org.nz/geonet-2.0.2/images/logos.png') -0px -312px;}
+#eqc{right:0px;height:79px;width:80px;}
+#eqc{background:url('/assets/images/eqc_logo_80.png') -0px -0px;}
 
 #ccby li, #ccby a
 {
