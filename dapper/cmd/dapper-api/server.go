@@ -100,7 +100,13 @@ func main() {
 	}()
 
 	log.Println("starting server")
-	log.Fatal(http.ListenAndServe(":8080", inbound(mux)))
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      inbound(mux),
+		ReadTimeout:  1 * time.Minute,
+		WriteTimeout: 5 * time.Minute,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 func inbound(h http.Handler) http.Handler {
