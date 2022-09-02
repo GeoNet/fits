@@ -1,6 +1,6 @@
 module github.com/GeoNet/fits/dapper
 
-go 1.15
+go 1.16
 
 require (
 	github.com/GeoNet/kit v0.0.0-20220426041627-a3dae121bf4a
