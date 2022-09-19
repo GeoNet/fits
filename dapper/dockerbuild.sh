@@ -12,7 +12,7 @@ do
     rm -rf docker-build-tmp
     mkdir docker-build-tmp
 
-    echo "FROM golang:1.15-alpine as build" >> docker-build-tmp/Dockerfile
+    echo "FROM golang:1.16-alpine as build" >> docker-build-tmp/Dockerfile
     echo "WORKDIR /go/src/github.com/GeoNet/fits/dapper" >> docker-build-tmp/Dockerfile
     echo "COPY ./cmd/${i} ./cmd/${i}" >> docker-build-tmp/Dockerfile
     echo "COPY ./dapperlib ./dapperlib" >> docker-build-tmp/Dockerfile
@@ -29,8 +29,8 @@ do
         mkdir -p docker-build-tmp/assets
         rsync --archive --quiet --ignore-missing-args cmd/${i}/assets docker-build-tmp/
         echo "COPY ./cmd/dapper-api/assets ./assets/"  >> docker-build-tmp/Dockerfile
-    fi 
-    
+    fi
+
     echo "CMD [\"./${i}\"]" >> docker-build-tmp/Dockerfile
 
     docker build -t ${ACCOUNT}.dkr.ecr.ap-southeast-2.amazonaws.com/${i}:latest -f docker-build-tmp/Dockerfile .

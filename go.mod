@@ -1,6 +1,6 @@
 module github.com/GeoNet/fits
 
-go 1.15
+go 1.16
 
 require (
 	github.com/GeoNet/kit v0.0.0-20210809233201-69bdd1cf9894
