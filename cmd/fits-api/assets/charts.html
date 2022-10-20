@@ -1,103 +1,63 @@
 {{define "base"}}
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>GeoNet Time Series Chart</title>
-    <meta content="Apache Tapestry Framework (version 5.3.1)" name="generator"/>
-    <meta content="IE=EmulateIE7; IE=EmulateIE9" http-equiv="X-UA-Compatible"/>
-    <meta content="GNS Science" name="copyright"/>
-    <meta content="The GeoNet Project - Monitoring geological hazards in New Zealand" name="description"/>
+<div class="container">
+    <div class="mt-5"><h1>GeoNet Time Series Chart </h1></div>
+    <div class="row">
+        <div class="col-md-6"><br clear="none"/>
 
-    <link href="http://geonet.org.nz/" rel="home"/>
-    <link type="image/x-icon" href="https://www.geonet.org.nz/favicon.ico" rel="shortcut icon"/>
+            <p>Plots of GeoNet Field Time Series observation results, select a parameter to show
+                sites on the map and listbox,
+                select site(s) in the list box and click on "Show Charts" to show interactive charts of the selected sites
+            </p>
+            <p>
+                Plot data are from the <a href="api-docs" >FITS API </a>, which provides access to the observations and associated meta data in the Field Time Series database.
+                Observation results for multiple sites are daily average values.
 
-    {{subResource "/assets/css/bootstrap.v5.min.css"}}
-    {{subResource "/assets/css/geonet.css"}}
-    {{subResource "/assets/css/leaflet.css"}}
-    {{subResource "/assets/css/ldr-charts.css"}}
-</head>
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-        <div class="page-header"><h1>GeoNet Time Series Chart </h1></div>
-        <div class="row">
-            <div class="col-md-6"><br clear="none"/>
-
-                <p>Plots of GeoNet Field Time Series observation results, select a parameter to show
-                    sites on the map and listbox,
-                    select site(s) in the list box and click on "Show Charts" to show interactive charts of the selected sites
-                </p>
-                <p>
-                    Plot data are from the <a href="api-docs" >FITS API </a>, which provides access to the observations and associated meta data in the Field Time Series database.
-                    Observation results for multiple sites are daily average values.
-
-                </p>
-                <br clear="none"/>
-
-                <div class="form-horizontal" id="regionForm">
-                    <div class="t-invisible">
-                        <input name="t:formdata" type="hidden"> </input>
-                    </div>
-                    <div class="form-group">
-                        <label for="selparam" class="control-label  col-md-4">Select parameters </label>
-
-                        <div class="col-md-8">
-                            <select type="text" id="selparam" name="selparam" class="col-md-10"> </select>
-                        </div>
-                    </div>
-                    <div class="form-group"  style="display: none" id="divSites">
-                        <label for="selSites" class="control-label  col-md-4">Select Sites</label>
-
-                        <div class="col-md-8">
-                            <select multiple="multiple" id="selSites" size="8" class="col-md-10"> </select>
-                        </div>
-                    </div>
-                    <div class="form-group"  style="display: none" id="divChart">
-                        <div class="col-md-4">
-                            <input class="pull-right" value="Show Charts" id="btnChart" type="button" class="btn"> </input>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- leaflet map -->
-            <div class="col-md-4 col-md-5-offset-1">
-                <div id="mapContainer">
-                    <div style="width: 320px; height: 320px" id="ldr-map"></div>
-                </div>
-                <div>
-                    <a shape="rect" href="#" rel="popover"
-                       data-content="&lt;p&gt;Background map data copyright &lt;a href='http://www.openstreetmap.org/' target='_blank' &gt;OpenStreetMap&lt;/a&gt; contributors, &lt;a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank' &gt;CC-BY-SA&lt;/a&gt;."
-                       data-original-title="Copyright">Copyright.</a></div>
-            </div>
-        </div>
-        <br clear="none"/><br clear="none"/><!-- dygraphs chart -->
-        <div id="container-chart"  style="display: none">
+            </p>
             <br clear="none"/>
-            <div id="chart-header"></div>
-            <div class="graphdiv" id="graphdiv"></div>
+
+            <form class="form-horizontal" id="regionForm">
+                <div class="t-invisible">
+                    <input name="t:formdata" type="hidden"> </input>
+                </div>
+                <div class="form-group">
+                    <label for="selparam" class="control-label  col-md-4">Select parameters </label>
+
+                    <div class="col-md-8">
+                        <select type="text" id="selparam" name="selparam" class="col-md-10"> </select>
+                    </div>
+                </div>
+                <div class="form-group"  style="display: none" id="divSites">
+                    <label for="selSites" class="control-label  col-md-4">Select Sites</label>
+
+                    <div class="col-md-8">
+                        <select multiple="multiple" id="selSites" size="8" class="col-md-10"> </select>
+                    </div>
+                </div>
+                <div class="form-group"  style="display: none" id="divChart">
+                    <div class="col-md-4">
+                        <input class="pull-right" value="Show Charts" id="btnChart" type="button" class="btn"> </input>
+                    </div>
+                </div>
+            </form>
         </div>
-        <br clear="none"/><br clear="none"/>
-
-        {{template "footer" .}}
+        <!-- leaflet map -->
+        <div class="col-md-4 col-md-5-offset-1">
+            <div id="mapContainer">
+                <div style="width: 320px; height: 320px" id="ldr-map"></div>
+            </div>
+            <div>
+                <a shape="rect" href="#" rel="popover"
+                    data-content="&lt;p&gt;Background map data copyright &lt;a href='http://www.openstreetmap.org/' target='_blank' &gt;OpenStreetMap&lt;/a&gt; contributors, &lt;a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank' &gt;CC-BY-SA&lt;/a&gt;."
+                    data-original-title="Copyright">Copyright.</a></div>
+        </div>
     </div>
+    <br clear="none"/><br clear="none"/><!-- dygraphs chart -->
+    <div id="container-chart"  style="display: none">
+        <br clear="none"/>
+        <div id="chart-header"></div>
+        <div class="graphdiv" id="graphdiv"></div>
+    </div>
+    <br clear="none"/><br clear="none"/>
 
-
-    {{subResource "/assets/js/jquery-1.7.1.min.js"}}
-    {{subResource "/assets/js/bootstrap.v5.bundle.min.js"}}
-    {{subResource "/assets/js/bootstrap-2.0.0-init.popover.js"}}
-    {{subResource "/assets/js/dygraph-combined.js"}}
-    {{subResource "/assets/js/leaflet.js"}}
-    {{subResource "/assets/js/leaflet-patch180.js"}}
-    {{subResource "/assets/js/ldr-map-charts.js"}}
-
-    {{subResource "/assets/js/charts.js"}}
-
-</body>
-</html>
+</div>
 {{end}}

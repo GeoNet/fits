@@ -5,13 +5,14 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"github.com/GeoNet/kit/metrics"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/GeoNet/kit/metrics"
 )
 
 var bufferPool = sync.Pool{
@@ -58,29 +59,15 @@ var compressibleMimes = map[string]bool{
 
 var defaultCsp = map[string]string{
 	"default-src":     "'none'",
-	"img-src":         "'self' *.geonet.org.nz data: https://www.google-analytics.com https://stats.g.doubleclick.net",
+	"img-src":         "'self' *.geonet.org.nz data: https://*.google-analytics.com https://*.googletagmanager.com",
 	"font-src":        "'self' https://fonts.gstatic.com",
 	"style-src":       "'self'",
 	"script-src":      "'self'",
-	"connect-src":     "'self' https://*.geonet.org.nz https://www.google-analytics.com https://stats.g.doubleclick.net",
+	"connect-src":     "'self' https://*.geonet.org.nz https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
 	"frame-src":       "'self' https://www.youtube.com https://www.google.com",
-	"form-action":     "'self'",
+	"form-action":     "'self' https://*.geonet.org.nz",
 	"base-uri":        "'none'",
 	"frame-ancestors": "'self'",
-	"object-src":      "'none'",
-}
-
-var strictCsp = map[string]string{
-	"default-src":     "'none'",
-	"img-src":         "'self'",
-	"font-src":        "'none'",
-	"style-src":       "'none'",
-	"script-src":      "'none'",
-	"connect-src":     "'none'",
-	"frame-src":       "'none'",
-	"form-action":     "'none'",
-	"base-uri":        "'none'",
-	"frame-ancestors": "'none'",
 	"object-src":      "'none'",
 }
 
@@ -112,25 +99,42 @@ func MakeDirectHandler(rh DirectRequestHandler, eh ErrorHandler) http.HandlerFun
 	return func(w http.ResponseWriter, r *http.Request) {
 		b := bufferPool.Get().(*bytes.Buffer)
 		defer bufferPool.Put(b)
+
+		name := name(rh)
+
 		b.Reset()
+
+		// run the RequestHandler with timing.  If this returns an error then use the
+		// ErrorHandler to set the error content and header.
+		t := metrics.Start()
+		// note: the ending `writeResponseAndLogMetrics` calls t.Track which will stop the metric timer, too
+
+		//run request handler
 		n, err := rh(r, w)
 		if err == nil { //all good, return
 			metrics.StatusOK()
+			metrics.Request()
 			metrics.Written(n)
+
+			if er := t.Track(name + "." + r.Method); er != nil {
+				logger.Printf("error tracking metric : %s", er.Error())
+			}
+
 			return
 		}
 
+		//everything below are for error responses
 		//set csp headers
 		setBestPracticeHeaders(w, r, nil, "")
 		logRequest(r)
+		t.Stop()
+
 		//run error handler
 		e := eh(err, w.Header(), b)
 		if e != nil {
 			logger.Printf("setting error: %s", e.Error())
 		}
-
 		//write error response and log metrics
-		name := name(rh)
 		writeResponseAndLogMetrics(err, w, r, b, name, nil)
 	}
 }
@@ -161,8 +165,7 @@ func MakeHandlerWithCsp(rh RequestHandler, eh ErrorHandler, customCsp map[string
 			if e != nil {
 				logger.Printf("2 error from error handler: %s", e.Error())
 			}
-			//set strict csp for error page
-			setBestPracticeHeaders(w, r, strictCsp, "")
+			setBestPracticeHeaders(w, r, defaultCsp, "")
 		} else {
 			setBestPracticeHeaders(w, r, customCsp, "")
 		}
@@ -211,8 +214,7 @@ func MakeHandlerWithCspNonce(rh RequestHandlerWithNonce, eh ErrorHandler, custom
 			if e != nil {
 				logger.Printf("2 error from error handler: %s", e.Error())
 			}
-			//set strict csp for error page
-			setBestPracticeHeaders(w, r, strictCsp, nonce)
+			setBestPracticeHeaders(w, r, defaultCsp, nonce)
 		} else {
 			setBestPracticeHeaders(w, r, customCsp, nonce)
 		}
@@ -545,4 +547,14 @@ func Soh(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	b.Write([]byte("<html><head></head><body>ok</body></html>"))
 
 	return nil
+}
+
+// ReturnDefaultCSP returns the default Content Security Policy used
+// by handlers. This is a copy of the map, so can be changed safely if needed.
+func ReturnDefaultCSP() map[string]string {
+	copy := make(map[string]string)
+	for k, v := range defaultCsp {
+		copy[k] = v
+	}
+	return copy
 }

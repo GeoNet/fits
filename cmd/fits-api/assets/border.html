@@ -1,0 +1,51 @@
+{{define "border"}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="shortcut icon" href="https://static.geonet.org.nz/favicon.ico"/>
+
+    {{subResource "/assets/css/bootstrap.v5.min.css"}}
+    {{subResource "/assets/font/css/font-awesome-6.1.1.min.css"}}
+    {{subResource "/assets/css/geonet.css"}}
+
+    {{if .Chart}}
+    {{subResource "/assets/css/leaflet.css"}}
+    {{subResource "/assets/css/ldr-charts.css"}}
+    {{end}}
+
+    <title>{{.Title}}</title>
+</head>
+<body>
+
+    {{.Header}}
+
+<div class="container-xl">
+
+    {{template "base" .}}
+
+</div>
+<div class="container">
+
+        {{.Footer}}
+
+</div>
+
+    {{subResource "/assets/js/bootstrap.v5.bundle.min.js" }}
+    {{subResource "/assets/js/footer.js"}}
+
+    {{if .Chart}}
+    {{subResource "/assets/js/jquery-1.7.1.min.js"}}
+    {{subResource "/assets/js/bootstrap-2.0.0-init.popover.js"}}
+    {{subResource "/assets/js/dygraph-combined.js"}}
+    {{subResource "/assets/js/leaflet.js"}}
+    {{subResource "/assets/js/leaflet-patch180.js"}}
+    {{subResource "/assets/js/ldr-map-charts.js"}}
+    {{subResource "/assets/js/charts.js"}}
+    {{end}}
+
+</body>
+</html>
+{{end}}

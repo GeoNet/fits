@@ -1,30 +1,15 @@
-{{define "base"}}<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.v5.min.css"}}
-    {{subResource "/assets/css/apidocs.css"}}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
-
+{{define "base"}}
 <div class="container-fluid">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+            <li class="breadcrumb-item">Endpoint</li>
+            <li class="breadcrumb-item active" aria-current="page">Observation</li>
+        </ol>
+    </nav>
 
-    <ol class="breadcrumb">
-        <li><a href="/api-docs">Index</a></li>
-        <li>Endpoint</li>
-        <li class="active">Observation</li>
-    </ol>
-    <h2 class="page-header">Observation</h2>
+    <h2 class="mt-5">Observation</h2>
     <p class="lead">Look up observations.</p>
     <h4>Query Index:</h4>
 
@@ -3710,8 +3695,6 @@ WI057,2880313.1990341116,6400420.4708205648,0.00000000000000000,-999.89999999999
     </div>
 
 
-    {{template "footer" .}}
 </div>
-</body>
-</html>{{end}}
+{{end}}
 

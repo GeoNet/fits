@@ -1,31 +1,16 @@
 {{define "base"}}
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.v5.min.css"}}
-    {{subResource "/assets/css/apidocs.css"}}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
 
 <div class="container-fluid">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+            <li class="breadcrumb-item">Endpoint</li>
+            <li class="breadcrumb-item active" aria-current="page">Maps</li>
+        </ol>
+    </nav>
 
-    <ol class="breadcrumb">
-        <li><a href="/api-docs">Index</a></li>
-        <li>Endpoint</li>
-        <li class="active">Maps</li>
-    </ol>
-    <h2 class="page-header">Maps</h2>
+    <h2 class="mt-5">Maps</h2>
     <p class="lead">Simple maps of sites.</p>
     <h4>Query Index:</h4>
 
@@ -268,10 +253,6 @@
         <h4>Response Properties</h4>
         <dl class="dl-horizontal">
 
-
-            {{template "footer" .}}
         </dl>
 </div>
-</body>
-</html>
 {{end}}
