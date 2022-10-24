@@ -487,3 +487,11 @@ a.anchor {
     }
 }
 /* END */
+
+.form-control {
+    color: #191919 !important;
+    font-size: 16px;
+    appearance:auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}

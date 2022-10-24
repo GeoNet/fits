@@ -19,23 +19,23 @@
                 <div class="t-invisible">
                     <input name="t:formdata" type="hidden"> </input>
                 </div>
-                <div class="form-group">
-                    <label for="selparam" class="control-label  col-md-4">Select parameters </label>
+                <div class="row">
+                    <label for="selparam" class="col-md-4 text-end mt-1 fw-bold">Select parameters </label>
 
                     <div class="col-md-8">
-                        <select type="text" id="selparam" name="selparam" class="col-md-10"> </select>
+                        <select type="text" id="selparam" name="selparam" class="form-control"> </select>
                     </div>
                 </div>
-                <div class="form-group"  style="display: none" id="divSites">
-                    <label for="selSites" class="control-label  col-md-4">Select Sites</label>
+                <div class="row d-none" id="divSites">
+                    <label for="selSites" class="col-md-4 text-end mt-1 fw-bold">Select Sites</label>
 
                     <div class="col-md-8">
-                        <select multiple="multiple" id="selSites" size="8" class="col-md-10"> </select>
+                        <select multiple="multiple" id="selSites" size="8" class="form-control"> </select>
                     </div>
                 </div>
-                <div class="form-group"  style="display: none" id="divChart">
-                    <div class="col-md-4">
-                        <input class="pull-right" value="Show Charts" id="btnChart" type="button" class="btn"> </input>
+                <div class="row d-none" id="divChart">
+                    <div class="col-md-4 d-flex flex-row-reverse">
+                        <input class="btn btn-sm btn-outline-primary" value="Show Charts" id="btnChart" type="button" class="btn"> </input>
                     </div>
                 </div>
             </form>

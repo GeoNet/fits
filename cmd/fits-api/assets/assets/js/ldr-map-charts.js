@@ -282,11 +282,7 @@ var ldrChartClient = {
                 ldrChartClient.siteNetworkData[feature.properties.siteID] = feature.properties.networkID;
             }
             //show listbox
-            //$('#selSites').css({'overflow':'visible','width':'auto'});
-            $('#divSites').css({
-                'display':'block',
-                'overflow-x':'auto'
-            });
+            $('#divSites').removeClass("d-none");
         }
     },
 
@@ -324,10 +320,7 @@ var ldrChartClient = {
         );
 
         $('#selSites').change(function () {
-            $('#divChart').css({
-                'display': 'block',
-                'overflow-x': 'auto'
-            });
+            $('#divChart').removeClass("d-none");
             //open site popup            
             ldrChartClient.showSitePopup($(this).val());
         }
