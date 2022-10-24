@@ -43,13 +43,13 @@ type Page struct {
 func (p Page) Header() template.HTML {
 	links := []header.HeaderBasicLink{
 		{
-			Title:      "API Documentation",
-			URL:        "/api-docs",
+			Title:      "Data Discovery",
+			URL:        "/",
 			IsExternal: false,
 		},
 		{
-			Title:      "Data Discovery",
-			URL:        "/",
+			Title:      "API Documentation",
+			URL:        "/api-docs",
 			IsExternal: false,
 		},
 	}
