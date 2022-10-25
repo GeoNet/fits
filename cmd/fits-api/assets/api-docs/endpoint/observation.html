@@ -10,6 +10,8 @@
     </nav>
 
     <h2 class="mt-5">Observation</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Look up observations.</p>
     <h4>Query Index:</h4>
 
@@ -24,65 +26,59 @@
 
     <a id="observation" class="anchor"></a>
     <h3 class="page-header">Observation</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Observations as CSV</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/observation?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
-                <dt>Accept</dt>
-                <dd>text/csv;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/observation?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10">text/csv;version=1</dd>
             </dl>
         </div>
     </div>
     <h4>Query Parameters</h4>
 
     <h5>Required:</h5>
-    <dl class="dl-horizontal">
-
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
-
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
-
+    <dl class="row">
+        <dt class="col-md-2 text-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
     </dl>
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>days</dt>
-        <dd>The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
+        <dt class="col-md-2 text-end">days</dt>
+        <dd class="col-md-10">The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
 
-        <dt>methodID</dt>
-        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        <dt class="col-md-2 text-end">methodID</dt>
+        <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
         </dd>
 
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
-
-        <dt>column 1</dt>
-        <dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
+    <dl class="row">
+        <dt class="col-md-2 text-end">column 1</dt>
+        <dd class="col-md-10">The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
             time zone.
         </dd>
-
-        <dt>column 2</dt>
-        <dd>The observation value.</dd>
-
-        <dt>column 3</dt>
-        <dd>The observation error. 0 is used for an unknown error.</dd>
-
-
+        <dt class="col-md-2 text-end">column 2</dt>
+        <dd class="col-md-10">The observation value.</dd>
+        <dt class="col-md-2 text-end">column 3</dt>
+        <dd class="col-md-10">The observation error. 0 is used for an unknown error.</dd>
     </dl>
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=e&amp;siteID=HOLD</div>
-        <div class="panel-body panel-height"><pre>date-time, e (mm), error (mm)
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/observation?typeID=e&amp;siteID=HOLD</div>
+        <div class="card-body panel-height"><pre>date-time, e (mm), error (mm)
 2007-03-16T11:59:00.000Z,93.850000,4.750000
 2007-03-17T11:59:00.000Z,79.190000,4.490000
 2007-03-18T11:59:00.000Z,105.490000,2.390000
@@ -3545,45 +3541,46 @@
 
     <a id="spatialobservation" class="anchor"></a>
     <h3 class="page-header">Spatial Observation</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Spatial observations as CSV</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/observation?typeID=(typeID)&amp;start=(ISO8601 date time)&amp;days=(int)&amp;[srsName=(CRS)]&amp;[within=POLYGON((...))]&amp;[methodID=(methodID)]</dd>
-                <dt>Accept</dt>
-                <dd>text/csv;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/observation?typeID=(typeID)&amp;start=(ISO8601 date time)&amp;days=(int)&amp;[srsName=(CRS)]&amp;[within=POLYGON((...))]&amp;[methodID=(methodID)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10">text/csv;version=1</dd>
             </dl>
         </div>
     </div>
     <h4>Query Parameters</h4>
 
     <h5>Required:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">days</dt>
+        <dd class="col-md-10">The number of days of data to select from the start e.g., <code>1</code>. Range is 1-7.</dd>
 
-        <dt>days</dt>
-        <dd>The number of days of data to select from the start e.g., <code>1</code>. Range is 1-7.</dd>
-
-        <dt>start</dt>
-        <dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
+        <dt class="col-md-2 text-end">start</dt>
+        <dd class="col-md-10">the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
         </dd>
 
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
     </dl>
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>methodID</dt>
-        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
+        <dt class="col-md-2 text-end">methodID</dt>
+        <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
 
-        <dt>srsName</dt>
-        <dd>Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial
+        <dt class="col-md-2 text-end">srsName</dt>
+        <dd class="col-md-10">Default EPSG:4326. Specify the <a href="http://en.wikipedia.org/wiki/Spatial_reference_system">spatial
                 reference system</a> to project site coordinates to e.g., <code>EPSG:27200</code>
             (<a href="http://spatialreference.org/ref/epsg/nzgd49-new-zealand-map-grid/">New Zealand Map Grid</a>).
             Site locations are stored as a geography. For projection they are cast to a geometry and then projected
@@ -3595,8 +3592,8 @@
                 SPATIAL_REF_SYS Table and Spatial Reference Systems</a>.
         </dd>
 
-        <dt>within</dt>
-        <dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
+        <dt class="col-md-2 text-end">within</dt>
+        <dd class="col-md-10">Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
             The polygon is
             defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
             (WGS84). The polygon must be topologically closed. Spaces can be replaced with <code>+</code> or <a
@@ -3607,40 +3604,39 @@
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>column 1</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+        <dt class="col-md-2 text-end">column 1</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
-        <dt>column 2</dt>
-        <dd>The longitude (X) of the observation site.</dd>
+        <dt class="col-md-2 text-end">column 2</dt>
+        <dd class="col-md-10">The longitude (X) of the observation site.</dd>
 
-        <dt>column 3</dt>
-        <dd>The latitude (Y) of the observation site.</dd>
+        <dt class="col-md-2 text-end">column 3</dt>
+        <dd class="col-md-10">The latitude (Y) of the observation site.</dd>
 
-        <dt>column 4</dt>
-        <dd>Site height (m).</dd>
+        <dt class="col-md-2 text-end">column 4</dt>
+        <dd class="col-md-10">Site height (m).</dd>
 
-        <dt>column 5</dt>
-        <dd>Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
+        <dt class="col-md-2 text-end">column 5</dt>
+        <dd class="col-md-10">Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
 
-        <dt>column 6</dt>
-        <dd>The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
+        <dt class="col-md-2 text-end">column 6</dt>
+        <dd class="col-md-10">The date-time of the observation in <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, UTC
             time zone.
         </dd>
 
-        <dt>column 7</dt>
-        <dd>The observation value.</dd>
+        <dt class="col-md-2 text-end">column 7</dt>
+        <dd class="col-md-10">The observation value.</dd>
 
-        <dt>column 8</dt>
-        <dd>The observation error. 0 is used for an unknown error.</dd>
-
+        <dt class="col-md-2 text-end">column 8</dt>
+        <dd class="col-md-10">The observation error. 0 is used for an unknown error.</dd>
 
     </dl>
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/observation?typeID=CO2-flux-e&amp;start=2010-11-24T00:00:00Z&amp;days=2&amp;srsName=EPSG:27200&amp;within=POLYGON((177.18&#43;-37.52,177.19&#43;-37.52,177.20&#43;-37.53,177.18&#43;-37.52))</div>
-        <div class="panel-body panel-height"><pre>siteID, X (EPSG:27200), Y (EPSG:27200), height, groundRelationship, date-time, CO2-flux-e (g-m^2/d), error (g-m^2/d)
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/observation?typeID=CO2-flux-e&amp;start=2010-11-24T00:00:00Z&amp;days=2&amp;srsName=EPSG:27200&amp;within=POLYGON((177.18&#43;-37.52,177.19&#43;-37.52,177.20&#43;-37.53,177.18&#43;-37.52))</div>
+        <div class="card-body panel-height"><pre>siteID, X (EPSG:27200), Y (EPSG:27200), height, groundRelationship, date-time, CO2-flux-e (g-m^2/d), error (g-m^2/d)
 WI002,2880696.2067666408,6399922.4737455994,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,17.89999999999999858,0.00000000000000000
 WI003,2880559.2049611052,6399937.472421702,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,128.49000000000000909,0.00000000000000000
 WI005,2880594.2052533114,6399959.4728093203,0.00000000000000000,-999.89999999999997726,2010-11-24T00:00:00.000Z,864.89999999999997726,0.00000000000000000

@@ -10,6 +10,8 @@
     </nav>
 
     <h2 class="mt-5">Method</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Look up method information.</p>
     <h4>Query Index:</h4>
 
@@ -20,16 +22,18 @@
 
     <a id="method" class="anchor"></a>
     <h3 class="page-header">Method</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Look up method information.</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/method?[typeID=(typeID)]</dd>
-                <dt>Accept</dt>
-                <dd>application/json;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/method?[typeID=(typeID)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10">application/json;version=1</dd>
             </dl>
         </div>
     </div>
@@ -37,34 +41,32 @@
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">description</dt>
+        <dd class="col-md-10">A description of the method e.g., <code>Bernese v5.0 GNS processing software</code>.</dd>
 
-        <dt>description</dt>
-        <dd>A description of the method e.g., <code>Bernese v5.0 GNS processing software</code>.</dd>
+        <dt class="col-md-2 text-end">methodID</dt>
+        <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
 
-        <dt>methodID</dt>
-        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>.</dd>
+        <dt class="col-md-2 text-end">name</dt>
+        <dd class="col-md-10">The method name e.g., <code>Bernese v5.0</code>.</dd>
 
-        <dt>name</dt>
-        <dd>The method name e.g., <code>Bernese v5.0</code>.</dd>
-
-        <dt>reference</dt>
-        <dd>A link to further information about the method.</dd>
-
-
+        <dt class="col-md-2 text-end">reference</dt>
+        <dd class="col-md-10"> class="col-md-10"A link to further information about the method.</dd>
     </dl>
+
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/method?typeID=e</div>
-        <div class="panel-body panel-height"><pre>{
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/method?typeID=e</div>
+        <div class="card-body panel-height"><pre>{
      &#34;method&#34;: [
        {
          &#34;description&#34;: &#34;Bernese v5.0 GNS processing software&#34;,

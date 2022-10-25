@@ -10,6 +10,8 @@
     </nav>
 
     <h2 class="mt-5">Observation Statistics</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Get observation statistics.</p>
     <h4>Query Index:</h4>
 
@@ -20,75 +22,71 @@
 
     <a id="observationstatistics" class="anchor"></a>
     <h3 class="page-header">Observation Statistics</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Observations statistics as JSON</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
-                <dt>Accept</dt>
-                <dd>application/json;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/observation/stats?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[methodID=(methodID)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10"> class="col-md-10"application/json;version=1</dd>
             </dl>
         </div>
     </div>
     <h4>Query Parameters</h4>
 
     <h5>Required:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
-
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
-
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
     </dl>
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">days</dt>
+        <dd class="col-md-10">The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
 
-        <dt>days</dt>
-        <dd>The number of days of data to select before now e.g., <code>250</code>. Maximum value is 365000.</dd>
-
-        <dt>methodID</dt>
-        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        <dt class="col-md-2 text-end">methodID</dt>
+        <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
         </dd>
 
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">First</dt>
+        <dd class="col-md-10">The date time, value, and error for the first observation.</dd>
 
-        <dt>First</dt>
-        <dd>The date time, value, and error for the first observation.</dd>
+        <dt class="col-md-2 text-end">Last</dt>
+        <dd class="col-md-10">The date time, value, and error for the last observation.</dd>
 
-        <dt>Last</dt>
-        <dd>The date time, value, and error for the last observation.</dd>
+        <dt class="col-md-2 text-end">Mean</dt>
+        <dd class="col-md-10">The statistical average of the observations.</dd>
 
-        <dt>Mean</dt>
-        <dd>The statistical average of the observations.</dd>
+        <dt class="col-md-2 text-end">Minimum</dt>
+        <dd class="col-md-10">The date time, value, and error for the minimum observation.</dd>
 
-        <dt>Minimum</dt>
-        <dd>The date time, value, and error for the minimum observation.</dd>
+        <dt class="col-md-2 text-end">StddevPopulation</dt>
+        <dd class="col-md-10">The population standard deviation of the observations.</dd>
 
-        <dt>StddevPopulation</dt>
-        <dd>The population standard deviation of the observations.</dd>
+        <dt class="col-md-2 text-end">Unit</dt>
+        <dd class="col-md-10">The unit of the observations.</dd>
 
-        <dt>Unit</dt>
-        <dd>The unit of the observations.</dd>
-
-        <dt>maximum</dt>
-        <dd>The date time, value, and error for the maximum observation.</dd>
-
-
+        <dt class="col-md-2 text-end">maximum</dt>
+        <dd class="col-md-10">The date time, value, and error for the maximum observation.</dd>
     </dl>
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;</div>
-        <div class="panel-body panel-height"><pre>{
+    <div class="card">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/observation/stats?typeID=e&amp;siteID=HOLD&amp;</div>
+        <div class="cord-body panel-height"><pre>{
      &#34;First&#34;: {
        &#34;DateTime&#34;: &#34;2007-03-16T11:59:00Z&#34;,
        &#34;Error&#34;: 4.75,

@@ -9,7 +9,9 @@
     </ol>
   </nav>
 
-    <h2 class="mt-5">Type</h2>
+    <h2 class="mt-3">Type</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Look up observation type information.</p>
     <h4>Query Index:</h4>
 
@@ -20,16 +22,18 @@
 
     <a id="type" class="anchor"></a>
     <h3 class="page-header">Type</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">List all observation types.</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/type</dd>
-                <dt>Accept</dt>
-                <dd>application/json;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/type</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10">application/json;version=1</dd>
             </dl>
         </div>
     </div>
@@ -37,26 +41,25 @@
 
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>description</dt>
-        <dd>Type description e.g., <code>displacement from initial position</code></dd>
+        <dt class="col-md-2 text-end">description</dt>
+        <dd class="col-md-10">Type description e.g., <code>displacement from initial position</code></dd>
 
-        <dt>name</dt>
-        <dd>Type name e.g., <code>east</code></dd>
+        <dt class="col-md-2 text-end">name</dt>
+        <dd class="col-md-10">Type name e.g., <code>east</code></dd>
 
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
-        <dt>unit</dt>
-        <dd>Type unit e.g., <code>mm</code>.</dd>
-
-
+        <dt class="col-md-2 text-end">unit</dt>
+        <dd class="col-md-10">Type unit e.g., <code>mm</code>.</dd>
     </dl>
+
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/type</div>
-        <div class="panel-body panel-height"><pre>{
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/type</div>
+        <div class="card-body panel-height"><pre>{
      &#34;type&#34;: [
        {
          &#34;description&#34;: &#34;displacement from initial position&#34;,

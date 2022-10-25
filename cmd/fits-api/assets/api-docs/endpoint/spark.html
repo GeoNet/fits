@@ -10,6 +10,8 @@
     </nav>
 
     <h2 class="mt-5">Spark Lines</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Simple spark lines of recent observations.</p>
     <h4>Query Index:</h4>
 
@@ -21,6 +23,8 @@
 
     <a id="sparklinessvg" class="anchor"></a>
     <h3 class="page-header">Sparklines SVG</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Sparklines of observations as Scalable Vector Graphic (SVG)</p>
     <p><a href="http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001OR">Sparklines</a> of observations.</p>
     <p><b><i>Caution:</i></b> these spark line plots should be used with caution
@@ -164,13 +168,13 @@
     </table>
     </p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/spark?typeID=(typeID)&amp;siteID=(siteID)&amp;[yrange=float64]&amp;[type=(line|scatter)]</dd>
-                <dt>Accept</dt>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/spark?typeID=(typeID)&amp;siteID=(siteID)&amp;[yrange=float64]&amp;[type=(line|scatter)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
                 <dd></dd>
             </dl>
         </div>
@@ -178,38 +182,36 @@
     <h4>Query Parameters</h4>
 
     <h5>Required:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
+        <dt class="col-md-2 text-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
-
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
-
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
     </dl>
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>days</dt>
-        <dd>The number of days of data to display before now e.g., <code>250</code>. Sets the range of the
+        <dt class="col-md-2 text-end">days</dt>
+        <dd class="col-md-10">The number of days of data to display before now e.g., <code>250</code>. Sets the range of the
             x-axis which may not be the same as the data. Maximum value is 365000.
         </dd>
 
-        <dt>label</dt>
-        <dd><code>all</code> (default) <code>none</code> <code>latest</code></dd>
+        <dt class="col-md-2 text-end">label</dt>
+        <dd class="col-md-10"><code>all</code> (default) <code>none</code> <code>latest</code></dd>
 
-        <dt>stddev</dt>
-        <dd>Show standard deviation for the time window selected for the plot. Allowable value is <code>pop</code> for
+        <dt class="col-md-2 text-end">stddev</dt>
+        <dd class="col-md-10">Show standard deviation for the time window selected for the plot. Allowable value is <code>pop</code> for
             population standard deviation.
         </dd>
 
-        <dt>type</dt>
-        <dd>Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
+        <dt class="col-md-2 text-end">type</dt>
+        <dd class="col-md-10">Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
 
-        <dt>yrange</dt>
-        <dd>Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and max
+        <dt class="col-md-2 text-end">yrange</dt>
+        <dd class="col-md-10">Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and max
             e.g., <code>-15,50</code>.
             A single value sets the positive and negative range about the mid point of the minimum and maximum
             data values. For example if the minimum and maximum y values in the data selection are 10 and 30 and the
@@ -222,12 +224,10 @@
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>SVG</dt>
-        <dd>This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.</dd>
-
-
+        <dt class="col-md-2 text-end">SVG</dt>
+        <dd class="col-md-10">This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.</dd>
     </dl>
 </div>
 {{end}}
