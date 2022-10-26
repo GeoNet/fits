@@ -1,5 +1,5 @@
-github.com/GeoNet/kit v0.0.0-20221017033040-f5c207f51630 h1:NDWMvkKPxpuEydC2dLuKwuGPYk3kzL/xhK0D+sDcX3U=
-github.com/GeoNet/kit v0.0.0-20221017033040-f5c207f51630/go.mod h1:CEeHtsvlk0/DvdUX06xVyzUZGOQ2kJhKdfJ3EBIwxtU=
+github.com/GeoNet/kit v0.0.0-20221025231347-caa9da5b6f2f h1:mV+hZHP0QWovxPYD2M3j4lj+hx19CoDQYxomFGTLFcU=
+github.com/GeoNet/kit v0.0.0-20221025231347-caa9da5b6f2f/go.mod h1:CEeHtsvlk0/DvdUX06xVyzUZGOQ2kJhKdfJ3EBIwxtU=
 github.com/aws/aws-sdk-go-v2 v1.16.2/go.mod h1:ytwTPBG6fXTZLxxeeCCWj2/EMYp/xDUgX+OET6TLNNU=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1/go.mod h1:n8Bs1ElDD2wJ9kCRTczA83gYbBmjSwZp3umc6zF4EeM=
 github.com/aws/aws-sdk-go-v2/config v1.15.3/go.mod h1:9YL3v07Xc/ohTsxFXzan9ZpFpdTOFl4X65BAKYaz8jg=
