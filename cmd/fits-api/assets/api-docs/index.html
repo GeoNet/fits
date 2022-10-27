@@ -1,28 +1,15 @@
 {{define "base"}}
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.min.css"}}
-    {{subResource "/assets/css/style.css"}}
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
 
 <div class="container-fluid">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+        </ol>
+    </nav>
 
-    <ol class="breadcrumb">
-        <li class="active"><a href="/api-docs">Index</a></li>
-    </ol>
-    <h1 class="page-header">GeoNet API</h1>
+    <h1 class="mt-5">GeoNet API</h1>
+    <hr class="text-secondary"/>
     <p class="lead">Welcome to the FITS API.</p>
 
     <p>The GeoNet project makes all its data and images freely available.
@@ -35,6 +22,7 @@
         <a href="http://info.geonet.org.nz/x/DYAO">full range of data</a> available from GeoNet. </p>
 
     <h3 class="page-header">Endpoints</h3>
+    <hr class="text-secondary"/>
 
     <p>The following endpoints are available:</p>
     <ul class=>
@@ -58,7 +46,7 @@
     </ul>
 
     <h3 class="page-header">Versioning</h3>
-
+    <hr class="text-secondary"/>
 
     <p>API queries may be versioned via the Accept header.
         Please specify the <code>Accept</code> header for your request exactly as specified for the endpoint query you
@@ -78,13 +66,14 @@
 
 
     <h3 class="page-header">Compression</h3>
+    <hr class="text-secondary"/>
 
     <p>The response for a query can be compressed. If your client can handle a compressed response then the
         reduced download size is a great benifit. Gzip compression is supported. You can request a compressed response
         by including <code>gzip</code> in your <code>Accept-Encoding</code> header.</p>
 
     <h3 class="page-header">Bugs</h3>
-
+    <hr class="text-secondary"/>
 
     <p>The code that provide these services is available at <a href="https://github.com/GeoNet/fits">https://github.com/GeoNet/fits</a>
         If you believe
@@ -92,9 +81,6 @@
         Alternatively <a href="http://info.geonet.org.nz/x/JYAO">contact us</a> detailing the issue.</p>
 
 
-    {{template "footer" .}}
 </div>
-</body>
-</html>
 {{end}}
-	
+

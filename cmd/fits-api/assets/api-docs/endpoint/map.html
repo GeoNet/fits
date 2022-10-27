@@ -1,32 +1,20 @@
 {{define "base"}}
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.min.css"}}
-    {{subResource "/assets/css/apidocs.css"}}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
 
 <div class="container-fluid">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+            <li class="breadcrumb-item">Endpoint</li>
+            <li class="breadcrumb-item active" aria-current="page">Maps</li>
+        </ol>
+    </nav>
 
-    <ol class="breadcrumb">
-        <li><a href="/api-docs">Index</a></li>
-        <li>Endpoint</li>
-        <li class="active">Maps</li>
-    </ol>
-    <h2 class="page-header">Maps</h2>
+    <h2 class="mt-3">Maps</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Simple maps of sites.</p>
+
     <h4>Query Index:</h4>
 
     <ul>
@@ -42,6 +30,8 @@
 
     <a id="sitemaps" class="anchor"></a>
     <h3 class="page-header">Site Maps</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Maps of specific sites</p>
     <p>A minimal query specifies a single site by <code>siteID</code>. The map bounds
         are calculated to suit the selected site and keep New Zealand in the map. The site is marked with a red triangle
@@ -100,14 +90,14 @@
         Creative Commons Attribution 3.0 New Zealand licence</a>.
     </p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/map/site?siteID=(string)|&amp;sites=(siteID,...))[&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
-                <dt>Accept</dt>
-                <dd></dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10">/map/site?siteID=(string)|&amp;sites=(siteID,...))[&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10"></dd>
             </dl>
         </div>
     </div>
@@ -115,10 +105,10 @@
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>bbox</dt>
-        <dd>If bbox is not specified is it calculated from the sites. The bounding box for the map defining the lower
+        <dt class="col-md-2 text-end">bbox</dt>
+        <dd class="col-md-10">If bbox is not specified is it calculated from the sites. The bounding box for the map defining the lower
             left and upper right longitude
             latitude (EPSG:4327) corners e.g., <code>165,-48,179,-34</code>. Latitude must be in the range -85 to 85.
             Maps can be 180 centric and bbox
@@ -134,31 +124,32 @@
                 <li><code>NewZealandRegion</code></li>
                 <li><code>RaoulIsland</code></li>
                 <li><code>WhiteIsland</code></li>
-                <ul>
+            <ul>
         </dd>
 
-        <dt>insetBbox</dt>
-        <dd> If specified then is used to draw a small inset map in the upper left corner. Useful for
+        <dt class="col-md-2 text-end">insetBbox</dt>
+        <dd class="col-md-10"> If specified then is used to draw a small inset map in the upper left corner. Useful for
             giving context to zoomed in regions. Same specification options as <code>bbox</code>.
         </dd>
 
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+        <dt class="col-md-2 text-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
-        <dt>sites</dt>
-        <dd>A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
+        <dt class="col-md-2 text-end">sites</dt>
+        <dd class="col-md-10">A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
 
-        <dt>width</dt>
-        <dd>Default <code>130</code>. The width of the returned image in px.</dd>
+        <dt class="col-md-2 text-end">width</dt>
+        <dd class="col-md-10">Default <code>130</code>. The width of the returned image in px.</dd>
 
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
-
+    <dl class="row">
 
         <a id="sitetypemaps" class="anchor"></a>
         <h3 class="page-header">Site Type Maps</h3>
+        <hr class="text-secondary"/>
+
         <p class="lead">Maps of sites filtered by observation type, method, and location.</p>
         <p>Maps of site type have the same <code>width</code> and <code>bbox</code> query parameters as
             maps for individual sites. The type of site displayed can be filtered by <code>typeID</code>,
@@ -201,14 +192,14 @@
                 type="image/svg+xml">&lt;/object></code><br/><br/>
         </p>
 
-        <div class="panel panel-primary">
-            <div class="panel-heading">Method: GET</div>
-            <div class="panel-body">
-                <dl class="dl-horizontal">
-                    <dt>URI</dt>
-                    <dd>/map/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))][&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
-                    <dt>Accept</dt>
-                    <dd></dd>
+        <div class="card p-0">
+            <div class="card-header">Method: GET</div>
+            <div class="card-body pb-0">
+                <dl class="row">
+                    <dt class="col-md-2 text-end">URI</dt>
+                    <dd class="col-md-10">/map/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))][&amp;bbox=(float,float,float,float)|string][&amp;width=(int)]</dd>
+                    <dt class="col-md-2 text-end">Accept</dt>
+                    <dd class="col-md-10"></dd>
                 </dl>
             </div>
         </div>
@@ -216,10 +207,9 @@
 
 
         <h5>Optional:</h5>
-        <dl class="dl-horizontal">
-
-            <dt>bbox</dt>
-            <dd>If bbox is not specified is it calculated from the sites. The bounding box for the map defining the
+        <dl class="row">
+            <dt class="col-md-2 text-end">bbox</dt>
+            <dd class="col-md-10">If bbox is not specified is it calculated from the sites. The bounding box for the map defining the
                 lower left and upper right longitude
                 latitude (EPSG:4327) corners e.g., <code>165,-48,179,-34</code>. Latitude must be in the range -85 to
                 85. Maps can be 180 centric and bbox
@@ -238,41 +228,34 @@
                     <ul>
             </dd>
 
-            <dt>insetBbox</dt>
-            <dd> If specified then is used to draw a small inset map in the upper left corner. Useful for
+            <dt class="col-md-2 text-end">insetBbox</dt>
+            <dd class="col-md-10"> If specified then is used to draw a small inset map in the upper left corner. Useful for
                 giving context to zoomed in regions. Same specification options as <code>bbox</code>.
             </dd>
 
-            <dt>methodID</dt>
-            <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as
+            <dt class="col-md-2 text-end">methodID</dt>
+            <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as
                 well.
             </dd>
 
-            <dt>typeID</dt>
-            <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+            <dt class="col-md-2 text-end">typeID</dt>
+            <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
-            <dt>width</dt>
-            <dd>Default <code>130</code>. The width of the returned image in px.</dd>
+            <dt class="col-md-2 text-end">width</dt>
+            <dd class="col-md-10">Default <code>130</code>. The width of the returned image in px.</dd>
 
-            <dt>within</dt>
-            <dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
+            <dt class="col-md-2 text-end">within</dt>
+            <dd class="col-md-10">Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
                 The polygon is
                 defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
                 (WGS84). The polygon must be topologically closed. Spaces can be replaced with <code>+</code> or <a
                         href="http://en.wikipedia.org/wiki/Percent-encoding">URL encoded</a> as <code>%20</code> e.g.,
                 <code>POLYGON((177.18+-37.52,177.19+-37.52,177.20+-37.53,177.18+-37.52))</code>.
             </dd>
-
         </dl>
 
         <h4>Response Properties</h4>
-        <dl class="dl-horizontal">
-
-
-            {{template "footer" .}}
+        <dl class="row">
         </dl>
 </div>
-</body>
-</html>
 {{end}}
-	

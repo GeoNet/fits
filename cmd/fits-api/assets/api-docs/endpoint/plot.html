@@ -1,30 +1,17 @@
-{{define "base"}}<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.min.css"}}
-    {{subResource "/assets/css/apidocs.css"}}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
-
+{{define "base"}}
 <div class="container-fluid">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+            <li class="breadcrumb-item">Endpoint</li>
+            <li class="breadcrumb-item active" aria-current="page">Plot</li>
+        </ol>
+    </nav>
 
-    <ol class="breadcrumb">
-        <li><a href="/api-docs">Index</a></li>
-        <li>Endpoint</li>
-        <li class="active">Plot</li>
-    </ol>
-    <h2 class="page-header">Plot</h2>
+    <h2 class="mt-5">Plot</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Simple plots of observations.</p>
     <h4>Query Index:</h4>
 
@@ -42,6 +29,8 @@
 
     <a id="singlesite" class="anchor"></a>
     <h3 class="page-header">Single Site</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Plot observations for a single site as Scalable Vector Graphic (SVG)</p>
     <p><b><i>Caution:</i></b> these plots should be used with caution
         and some understanding of the underlying data. FITS data is often unevenly sampled. The requested data range may
@@ -119,13 +108,13 @@
     <code>&lt;img src="http://fits.geonet.org.nz/plot?siteID=WI000&typeID=SO2-flux-a&type=scatter&yrange=400"/></code>
     </p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
-                <dt>Accept</dt>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 test-end">URI</dt>
+                <dd class="col-md-10">/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
+                <dt class="col-md-2 test-end">Accept</dt>
                 <dd></dd>
             </dl>
         </div>
@@ -133,46 +122,46 @@
     <h4>Query Parameters</h4>
 
     <h5>Required:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+        <dt class="col-md-2 test-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+        <dt class="col-md-2 test-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
     </dl>
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>days</dt>
-        <dd>The number of days of data to display e.g., <code>250</code>. If <code>start</code> is not specified then
+        <dt class="col-md-2 test-end">days</dt>
+        <dd class="col-md-10">The number of days of data to display e.g., <code>250</code>. If <code>start</code> is not specified then
             the number of days
             before now is displayed. If <code>start</code> is specified then the number of days after <code>start</code>
             is displayed. Maximum value is 365000.
         </dd>
 
-        <dt>showMethod</dt>
-        <dd>If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
+        <dt class="col-md-2 test-end">showMethod</dt>
+        <dd class="col-md-10">If the plot type is <code>scatter</code> setting showMethod <code>true</code> will colour the data
             markers based on methodID.
         </dd>
 
-        <dt>start</dt>
-        <dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
+        <dt class="col-md-2 test-end">start</dt>
+        <dd class="col-md-10">the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
         </dd>
 
-        <dt>stddev</dt>
-        <dd>Show standard deviation for the time window selected for the plot. Allowable value is <code>pop</code> for
+        <dt class="col-md-2 test-end">stddev</dt>
+        <dd class="col-md-10">Show standard deviation for the time window selected for the plot. Allowable value is <code>pop</code> for
             population standard deviation.
         </dd>
 
-        <dt>type</dt>
-        <dd>Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
+        <dt class="col-md-2 test-end">type</dt>
+        <dd class="col-md-10">Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
 
-        <dt>yrange</dt>
-        <dd>Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and max
+        <dt class="col-md-2 test-end">yrange</dt>
+        <dd class="col-md-10">Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and max
             e.g., <code>-15,50</code>.
             A single value sets the positive and negative range about the mid point of the minimum and maximum
             data values. For example if the minimum and maximum y values in the data selection are 10 and 30 and the
@@ -182,22 +171,25 @@
             colour of the plot is changed.
         </dd>
 
-        <dt>scheme</dt>
-        <dd>Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and <code>projector</code>.
+        <dt class="col-md-2 test-end">scheme</dt>
+        <dd class="col-md-10">Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and <code>projector</code>.
             The default value is <code>web</code>.
         </dd>
 
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>SVG</dt>
-        <dd>This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.</dd>
+        <dt class="col-md-2 test-end">SVG</dt>
+        <dd class="col-md-10">This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.</dd>
 
 
         <a id="multiplesites" class="anchor"></a>
-        <h3 class="page-header">Multiple Sites</h3>
+
+        <h3 class="mt-3">Multiple Sites</h3>
+        <hr class="text-secondary"/>
+
         <p class="lead">Plot observations for multiple sites as Scalable Vector Graphic (SVG)</p>
         <p>Plots are similar to those for a single site. Multiple sites can be specified using the <code>sites</code>
             query parameter e.g.,
@@ -206,50 +198,51 @@
             <code>&lt;img
                 src="http://fits.geonet.org.nz/plot?sites=LI.GISB,CG.CNST&typeID=e&days=400&type=scatter"/></code><br/>
         </p>
-        <div class="panel panel-primary">
-            <div class="panel-heading">Method: GET</div>
-            <div class="panel-body">
-                <dl class="dl-horizontal">
-                    <dt>URI</dt>
-                    <dd>/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
-                    <dt>Accept</dt>
+        <div class="card p-0">
+            <div class="card-header">Method: GET</div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-md-2 test-end">URI</dt>
+                    <dd class="col-md-10">/plot?typeID=(typeID)&amp;siteID=(siteID)&amp;[days=int]&amp;[yrange=float64]&amp;[type=(line|scatter)&amp;[showMethod=true]&amp;[stddev=pop]&amp;[scheme=web]]</dd>
+                    <dt class="col-md-2 test-end">Accept</dt>
                     <dd></dd>
                 </dl>
             </div>
         </div>
-        <h4>Query Parameters</h4>
+
+        <h4 class="mt-2">Query Parameters</h4>
 
         <h5>Required:</h5>
-        <dl class="dl-horizontal">
+        <dl class="row">
 
-            <dt>sites</dt>
-            <dd>A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
+            <dt class="col-md-2 test-end">sites</dt>
+            <dd class="col-md-10">A comma separated list of sites specified by <code>siteID</code> e.g., <code>GISB,TAUP</code>.</dd>
 
-            <dt>typeID</dt>
-            <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+            <dt class="col-md-2 test-end">typeID</dt>
+            <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
         </dl>
 
 
         <h5>Optional:</h5>
-        <dl class="dl-horizontal">
+        <dl class="row">
 
-            <dt>days</dt>
-            <dd>The number of days of data to display e.g., <code>250</code>. If <code>start</code> is not specified
+            <dt class="col-md-2 test-end">days</dt>
+            <dd class="col-md-10">The number of days of data to display e.g., <code>250</code>. If <code>start</code> is not specified
                 then the number of days
                 before now is displayed. If <code>start</code> is specified then the number of days after
                 <code>start</code> is displayed. Maximum value is 365000.
             </dd>
 
-            <dt>start</dt>
-            <dd>the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
+            <dt class="col-md-2 test-end">start</dt>
+            <dd class="col-md-10">the date time in ISO8601 format for the start of the time window for the request e.g., <code>2014-01-08T12:00:00Z</code>.
             </dd>
 
-            <dt>type</dt>
-            <dd>Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
+            <dt class="col-md-2 test-end">type</dt>
+            <dd class="col-md-10">Plot type. Default <code>line</code>. Either <code>line</code> or <code>scatter</code>.</dd>
 
-            <dt>yrange</dt>
-            <dd>Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and
+            <dt class="col-md-2 test-end">yrange</dt>
+            <dd class="col-md-10">Defines the y-axis range as a fixed or dynamic range. A comma separated pair of values fix the min and
                 max e.g., <code>-15,50</code>.
                 A single value sets the positive and negative range about the mid point of the minimum and maximum
                 data values. For example if the minimum and maximum y values in the data selection are 10 and 30 and the
@@ -259,25 +252,22 @@
                 colour of the plot is changed.
             </dd>
 
-            <dt>scheme</dt>
-            <dd>Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and
+            <dt class="col-md-2 test-end">scheme</dt>
+            <dd class="col-md-10">Change colour scheme for drawing scatter plots. Currently available schemes are: <code>web</code> and
                 <code>projector</code>. The default value is <code>web</code>.
             </dd>
 
         </dl>
 
         <h4>Response Properties</h4>
-        <dl class="dl-horizontal">
+        <dl class="row">
 
-            <dt>SVG</dt>
-            <dd>This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.
+            <dt class="col-md-2 test-end">SVG</dt>
+            <dd class="col-md-10">This query returns an <a href="http://en.wikipedia.org/wiki/Scalable_Vector_Graphics">SVG</a> image.
             </dd>
 
 
-            {{template "footer" .}}
         </dl>
 </div>
-</body>
-</html>{{end}}
-	
-	
+{{end}}
+

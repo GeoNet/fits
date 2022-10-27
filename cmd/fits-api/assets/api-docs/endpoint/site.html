@@ -1,30 +1,17 @@
-{{define "base"}}<html>
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>FITS API</title>
-    {{subResource "/assets/css/bootstrap.min.css"}}
-    {{subResource "/assets/css/apidocs.css"}}
-</head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="http://geonet.org.nz">GeoNet</a>
-        </div>
-    </div>
-</div>
-
+{{define "base"}}
 <div class="container-fluid">
 
-
+  <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li><a href="/api-docs">Index</a></li>
-        <li>Endpoint</li>
-        <li class="active">Site</li>
+        <li class="breadcrumb-item"><a href="/api-docs">Index</a></li>
+        <li class="breadcrumb-item">Endpoint</li>
+        <li class="breadcrumb-item active" aria-current="page">Site</li>
     </ol>
-    <h2 class="page-header">Site</h2>
+  </nav>
+
+    <h2 class="mt-3">Site</h2>
+    <hr class="text-secondary"/>
+
     <p class="lead">Look up site information.</p>
     <h4>Query Index:</h4>
 
@@ -39,16 +26,18 @@
 
     <a id="sites" class="anchor"></a>
     <h3 class="page-header">Sites</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Filter sites by observation type, method, and location.</p>
 
-    <div class="panel panel-primary">
-        <div class="panel-heading">Method: GET</div>
-        <div class="panel-body">
-            <dl class="dl-horizontal">
-                <dt>URI</dt>
-                <dd>/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))]</dd>
-                <dt>Accept</dt>
-                <dd>application/vnd.geo&#43;json;version=1</dd>
+    <div class="card p-0">
+        <div class="card-header">Method: GET</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-2 text-end">URI</dt>
+                <dd class="col-md-10"> class="col-md-10"/site?[typeID=(typeID)]&amp;[methodID=(methodID)]&amp;[within=POLYGON((...))]</dd>
+                <dt class="col-md-2 text-end">Accept</dt>
+                <dd class="col-md-10">application/vnd.geo&#43;json;version=1</dd>
             </dl>
         </div>
     </div>
@@ -56,17 +45,17 @@
 
 
     <h5>Optional:</h5>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>methodID</dt>
-        <dd>A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
+        <dt class="col-md-2 text-end">methodID</dt>
+        <dd class="col-md-10">A valid method identifier for observation type e.g., <code>doas-s</code>. typeID must be specified as well.
         </dd>
 
-        <dt>typeID</dt>
-        <dd>A type identifier for observations e.g., <code>e</code>.</dd>
+        <dt class="col-md-2 text-end">typeID</dt>
+        <dd class="col-md-10">A type identifier for observations e.g., <code>e</code>.</dd>
 
-        <dt>within</dt>
-        <dd>Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
+        <dt class="col-md-2 text-end">within</dt>
+        <dd class="col-md-10">Only return sites that fall within the polygon (uses <a href="http://postgis.net/docs/ST_Within.html">ST_Within</a>).
             The polygon is
             defined in <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> format
             (WGS84). The polygon must be topologically closed. Spaces can be replaced with <code>+</code> or <a
@@ -77,26 +66,26 @@
     </dl>
 
     <h4>Response Properties</h4>
-    <dl class="dl-horizontal">
+    <dl class="row">
 
-        <dt>groundRelationship</dt>
-        <dd>Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
+        <dt class="col-md-2 text-end">groundRelationship</dt>
+        <dd class="col-md-10">Site ground relationship (m). Sites above ground level have a negative ground relationship.</dd>
 
-        <dt>height</dt>
-        <dd>Site height (m).</dd>
+        <dt class="col-md-2 text-end">height</dt>
+        <dd class="col-md-10">Site height (m).</dd>
 
-        <dt>name</dt>
-        <dd>Site name e.g, <code>White Island Volcano</code>.</dd>
+        <dt class="col-md-2 text-end">name</dt>
+        <dd class="col-md-10">Site name e.g, <code>White Island Volcano</code>.</dd>
 
-        <dt>siteID</dt>
-        <dd>Site identifier e.g., <code>WI000</code>.</dd>
+        <dt class="col-md-2 text-end">siteID</dt>
+        <dd class="col-md-10">Site identifier e.g., <code>WI000</code>.</dd>
 
 
     </dl>
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/site?typeID=e</div>
-        <div class="panel-body panel-height"><pre>{
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/site?typeID=e</div>
+        <div class="card-body panel-height"><pre>{
      &#34;features&#34;: [
        {
          &#34;geometry&#34;: {
@@ -3460,6 +3449,8 @@
 
     <a id="site" class="anchor"></a>
     <h3 class="page-header">Site</h3>
+    <hr class="text-secondary"/>
+
     <p class="lead">Find information for individual sites.</p>
 
     <div class="panel panel-primary">
@@ -3502,9 +3493,9 @@
 
     </dl>
     <h4>Example Query and Response</h4>
-    <div class="panel panel-success">
-        <div class="panel-heading">http://fits.geonet.org.nz/site?siteID=HOLD</div>
-        <div class="panel-body panel-height"><pre>{
+    <div class="card p-0">
+        <div class="card-header bg-success">http://fits.geonet.org.nz/site?siteID=HOLD</div>
+        <div class="card-body panel-height"><pre>{
      &#34;features&#34;: [
        {
          &#34;geometry&#34;: {
@@ -3529,9 +3520,7 @@
     </div>
 
 
-  {{template "footer" .}}
 </div>
-</body>
-</html>{{end}}
+{{end}}
 
-	
+

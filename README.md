@@ -11,7 +11,7 @@ There are scripts `build.sh` and `build-push.sh` for building Docker containers.
 There is a Docker file which can be used to create a DB image with the DB schema ready to use:
 
 ```
-docker build --rm=true -t 615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12 -f etc/Dockerfile database
+docker build --rm=true -t 615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12 .
 docker push 615890063537.dkr.ecr.ap-southeast-2.amazonaws.com/fits-db:12
 ```
 
@@ -47,7 +47,7 @@ Deployment on AWS Elastic Beanstalk (EB) using Docker containers.
 #### fits-api
 
 There are files for EB - both to deploy the application and also set
-up logging from the container (application) to CloudWatch Logs.  Create a zip file and then upload the 
+up logging from the container (application) to CloudWatch Logs.  Create a zip file and then upload the
 zip to EB.
 
 ```

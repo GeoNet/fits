@@ -1,7 +1,9 @@
-# github.com/GeoNet/kit v0.0.0-20210809233201-69bdd1cf9894
+# github.com/GeoNet/kit v0.0.0-20221025231347-caa9da5b6f2f
 ## explicit
 github.com/GeoNet/kit/map180
 github.com/GeoNet/kit/metrics
+github.com/GeoNet/kit/ui/geonet_footer
+github.com/GeoNet/kit/ui/geonet_header_basic
 github.com/GeoNet/kit/weft
 github.com/GeoNet/kit/weft/wefttest
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
