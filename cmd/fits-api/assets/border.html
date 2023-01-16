@@ -33,17 +33,17 @@
 
 </div>
 
-    {{subResource "/assets/js/bootstrap.v5.bundle.min.js" }}
-    {{subResource "/assets/js/footer.js"}}
+    {{subResource "/assets/js/bootstrap.v5.bundle.min.js" .Nonce}}
+    {{subResource "/assets/js/footer.js" .Nonce}}
 
     {{if .Chart}}
-    {{subResource "/assets/js/jquery-1.7.1.min.js"}}
-    {{subResource "/assets/js/bootstrap-2.0.0-init.popover.js"}}
-    {{subResource "/assets/js/dygraph-combined.js"}}
-    {{subResource "/assets/js/leaflet.js"}}
-    {{subResource "/assets/js/leaflet-patch180.js"}}
-    {{subResource "/assets/js/ldr-map-charts.js"}}
-    {{subResource "/assets/js/charts.js"}}
+    {{subResource "/assets/js/jquery-3.5.1.min.js" .Nonce}}
+    {{subResource "/assets/js/bootstrap-2.0.0-init.popover.js" .Nonce}}
+    {{subResource "/assets/js/dygraph-combined.js" .Nonce}}
+    {{subResource "/assets/js/leaflet.js" .Nonce}}
+    {{subResource "/assets/js/leaflet-patch180.js" .Nonce}}
+    {{subResource "/assets/js/ldr-map-charts.js" .Nonce}}
+    {{subResource "/assets/js/charts.js" .Nonce}}
     {{end}}
 
 </body>

@@ -513,3 +513,8 @@ pre{
 .popover-header {
     margin-top: 0px;
 }
+
+.small-map{
+   width: 320px;
+   height: 320px
+}
