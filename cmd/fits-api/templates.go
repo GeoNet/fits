@@ -36,6 +36,7 @@ var logo template.HTML
 type Page struct {
 	Title string
 	Chart bool
+	Nonce string
 }
 
 // Header gets HTML for the GeoNet navigation header.
@@ -79,7 +80,7 @@ func (p Page) Footer() template.HTML {
 	return f
 }
 
-func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
+func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer, nonce string) error {
 	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
 		return err
@@ -87,6 +88,7 @@ func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 	var t *template.Template
 	var p Page
+	p.Nonce = nonce
 	p.Title = "FITS API"
 
 	switch r.URL.String() {
@@ -127,13 +129,14 @@ func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	return nil
 }
 
-func charts(r *http.Request, h http.Header, b *bytes.Buffer) error {
+func charts(r *http.Request, h http.Header, b *bytes.Buffer, nonce string) error {
 	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
 		return err
 	}
 
 	var p Page
+	p.Nonce = nonce
 	p.Title = "FITS Chart"
 	p.Chart = true
 

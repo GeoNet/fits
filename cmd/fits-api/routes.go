@@ -2,15 +2,19 @@ package main
 
 import (
 	"bytes"
+	"net/http"
+
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"net/http"
 )
 
 var mux = http.NewServeMux()
 
-var customCsp = map[string]string{
-	"style-src":  "'self' 'unsafe-inline'",
+var chartCsp = map[string]string{
+	"style-src": "'self' 'unsafe-inline'",
+}
+
+var docsCsp = map[string]string{
 	"object-src": "'self'",
 }
 
@@ -24,11 +28,11 @@ func init() {
 	mux.HandleFunc("/plot", weft.MakeHandler(plotHandler, weft.TextError))
 	mux.HandleFunc("/observation", weft.MakeHandler(observationHandler, weft.TextError))
 	mux.HandleFunc("/site", weft.MakeHandler(siteHandler, weft.TextError))
-	mux.HandleFunc("/", weft.MakeHandlerWithCsp(charts, weft.HTMLError, customCsp))
-	mux.HandleFunc("/charts", weft.MakeHandlerWithCsp(charts, weft.HTMLError, customCsp))
+	mux.HandleFunc("/", weft.MakeHandlerWithCspNonce(charts, weft.HTMLError, chartCsp))
+	mux.HandleFunc("/charts", weft.MakeHandlerWithCspNonce(charts, weft.HTMLError, chartCsp))
 
 	// TODO the api docs are served as static html pages. convert to markdown.
-	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandlerWithCsp(apidocsHandler, weft.HTMLError, customCsp)))
+	mux.Handle("/api-docs/", http.StripPrefix("/api-docs/", weft.MakeHandlerWithCspNonce(apidocsHandler, weft.HTMLError, docsCsp)))
 
 	mux.HandleFunc("/assets/", weft.MakeHandler(weft.AssetHandler, weft.TextError))
 
