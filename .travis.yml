@@ -53,3 +53,12 @@ env:
          - PGVERSION=12
          - secure: "RfKhktSoKtY/PZkzWu8ul4dayQ2IhFU2KL7TDdNptfAJlA1E0r+LQD3EStIph13eWI1MZsTYvXO3DXVGbp43VIQoVDBXmz3GxIU/6BT8p6Q3epX+fUn0Lod19PWwL2n/2mAYbE7LdVvzmEQr4YGs61TdpR8atQTP2WXCXn7beRw="
          - secure: "w9nrZfBdKV4pB7EqkowpF1Vp6YuphPKFrQ3ZYJPHWGWoDZQA3ID0Uk6zJaCxomtlVnj5TM1gjgRDwICYqkROPGquwwZ03Uj0IaMHeFljHPdo8H4VYjYWDpK5MlYo2P0fRFJGC9H3z9hc5qhqdS8yrHQgCzBT7paT/hhlINXY1UE="
+
+notifications:
+  email: false
+  slack:
+    if: branch in (main, staging, production)
+    on_success: never
+    on_failure: always
+    on_pull_requests: false
+    secure: lFw7u+njZug/RtrEvcy8frQPI/Vw+HMC5zAroSsHrblVHgCW3F3+EO+m0kzTf8hU8iGPoHlgWG0pkD3rAj2oSrNlDte7/3DkAsx8V00sw/npnTxBczyNEGv6VfpfIqPH86tEH5hVRqqAH6ky5gQp5g05pNt+PG3Zytlo7cBD/MQ=
