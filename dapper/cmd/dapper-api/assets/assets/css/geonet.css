@@ -1,6 +1,5 @@
 body {
     background-color:#FBFBFB;
-    padding-top: 40px;
 }
 
 /* fixes the quake map display problem*/
@@ -406,17 +405,7 @@ a
     color:gray;
 }
 
-/* footer */
 
-.footer {
-  margin-top: 20px;
-  padding: 20px 0 20px;
-  border-top: 1px solid #e5e5e5;
-}
-
-.footer p {
-    text-align: center;
-}
 
 #logo{position:relative;}
 #logo li{margin:0;padding:0;list-style:none;position:absolute;top:0;}
