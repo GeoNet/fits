@@ -8,12 +8,12 @@
     <link rel="shortcut icon" href="https://static.geonet.org.nz/favicon.ico"/>
 
     {{subResource "/assets/css/bootstrap.v5.min.css"}}
-    {{subResource "/assets/font/css/font-awesome-6.1.1.min.css"}}
+    {{subResource "/assets/dependencies/@fortawesome/fontawesome-free/css/all.min.css" }}
     {{subResource "/assets/css/geonet.css"}}
 
     {{if .Chart}}
-    {{subResource "/assets/css/leaflet.css"}}
-    {{subResource "/assets/css/ldr-charts.css"}}
+        {{subResource "/assets/dependencies/leaflet/leaflet.css"}}
+        {{subResource "/assets/css/ldr-charts.css"}}
     {{end}}
 
     <title>{{.Title}}</title>
@@ -33,17 +33,16 @@
 
 </div>
 
-    {{subResource "/assets/js/bootstrap.v5.bundle.min.js" .Nonce}}
+    {{subResource "/assets/dependencies/bootstrap/bootstrap.bundle.min.js" .Nonce}}
     {{subResource "/assets/js/footer.js" .Nonce}}
 
     {{if .Chart}}
-    {{subResource "/assets/js/jquery-3.5.1.min.js" .Nonce}}
-    {{subResource "/assets/js/bootstrap-2.0.0-init.popover.js" .Nonce}}
-    {{subResource "/assets/js/dygraph-combined.js" .Nonce}}
-    {{subResource "/assets/js/leaflet.js" .Nonce}}
-    {{subResource "/assets/js/leaflet-patch180.js" .Nonce}}
-    {{subResource "/assets/js/ldr-map-charts.js" .Nonce}}
-    {{subResource "/assets/js/charts.js" .Nonce}}
+        {{subResource "/assets/dependencies/jquery/jquery.min.js" .Nonce}}
+        {{subResource "/assets/dependencies/dygraphs/dygraph-combined.js" .Nonce}}
+        {{subResource "/assets/dependencies/leaflet/leaflet.js" .Nonce}}
+        {{subResource "/assets/js/leaflet-patch180.js" .Nonce}}
+        {{subResource "/assets/js/ldr-map-charts.js" .Nonce}}
+        {{subResource "/assets/js/charts.js" .Nonce}}
     {{end}}
 
 </body>
