@@ -5,9 +5,6 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"fmt"
-	"github.com/GeoNet/fits/dapper/dapperlib"
-	"github.com/GeoNet/fits/dapper/internal/valid"
-	"github.com/GeoNet/kit/weft"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +13,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/GeoNet/fits/dapper/dapperlib"
+	"github.com/GeoNet/fits/dapper/internal/valid"
+	"github.com/GeoNet/kit/metrics"
+	"github.com/GeoNet/kit/weft"
 )
 
 const CACHE_EXPIRE = time.Minute * 5
@@ -98,16 +100,35 @@ func init() {
 		log.Fatal("size mismatch for DOMAINS, DOMAIN_BUCKET, or DOMAIN_PREFIXES.")
 	}
 
+	hasFdmp := false
 	for i, v := range domains {
 		domainMap[v] = DomainConfig{
 			s3bucket: domainBuckets[i],
 			s3prefix: domainPrefixes[i],
 			aggrtime: dapperlib.MONTH, // Currently we hard coded to MONTH
 		}
+
+		if v == "fdmp" {
+			hasFdmp = true
+		}
 	}
 
 	log.Printf("domainMap:\n%+v", domainMap)
 	allLatestTables = make(map[string]latestTables)
+
+	// periodically refresh latest cache for "fdmp" domain
+	if hasFdmp {
+		go func() {
+			ticker := time.NewTicker(5 * time.Minute)
+			for range ticker.C {
+				_, verr := hitCache("fdmp")
+				if verr.Err != nil {
+					log.Println("error refreshing FDMP cache:", verr.Err)
+					metrics.MsgErr()
+				}
+			}
+		}()
+	}
 }
 
 /*
