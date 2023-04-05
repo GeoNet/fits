@@ -2,6 +2,16 @@
 
 Field Time Series data.
 
+### Node modules
+
+To install external node module dependencies for the web application, and copy the required files to be available to the frontend, run:
+
+```
+cmd/fits-api/assets/dependencies/install.sh
+```
+
+To add a new dependency, add it to the `package.json` file (with a fixed version) and run `npm install`. This will add it to the `node_modules` folder (this should **not** be source controlled). Choose which files you need from the module's folder, and add them to the `install.sh` script so that they're copied over when the script is run (these files **are** source controlled).
+
 ### Compilation
 
 There are scripts `build.sh` and `build-push.sh` for building Docker containers.
