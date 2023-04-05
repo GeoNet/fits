@@ -1,9 +1,11 @@
-# github.com/GeoNet/kit v0.0.0-20220426041627-a3dae121bf4a
+# github.com/GeoNet/kit v0.0.0-20230308221206-4d918e455bd4
 ## explicit
 github.com/GeoNet/kit/aws/s3
 github.com/GeoNet/kit/aws/sqs
 github.com/GeoNet/kit/cfg
 github.com/GeoNet/kit/metrics
+github.com/GeoNet/kit/ui/geonet_footer
+github.com/GeoNet/kit/ui/geonet_header_basic
 github.com/GeoNet/kit/weft
 github.com/GeoNet/kit/weft/wefttest
 # github.com/aws/aws-sdk-go-v2 v1.16.2

@@ -1,0 +1,18 @@
+{
+    "name": "fits-api",
+    "version": "1.0.0",
+    "description": "API to access Field Time Series data.",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "GeoNet",
+    "license": "UNLICENSED",
+    "private": true,
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "6.1.1",
+        "bootstrap": "5.1.1",
+        "dygraphs": "1.1.1",
+        "jquery": "3.5.1",
+        "leaflet": "0.7.7"
+    }
+}

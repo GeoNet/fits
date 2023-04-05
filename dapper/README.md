@@ -78,6 +78,16 @@ Full DB init and load a small amount of test data with:
 cd scripts; ./initdb.sh
 ```
 
+### Node modules
+
+To install external node module dependencies for the web application, and copy the required files to be available to the frontend, run:
+
+```
+dapper/cmd/dapper-api/assets/dependencies/install.sh
+```
+
+To add a new dependency, add it to the `package.json` file (with a fixed version) and run `npm install`. This will add it to the `node_modules` folder (this should **not** be source controlled). Choose which files you need from the module's folder, and add them to the `install.sh` script so that they're copied over when the script is run (these files **are** source controlled).
+
 ### TODO
 
 While this is by no means an exhaustive list here is a brain dump of some things that may need to be done to `dapper` to get it production ready:

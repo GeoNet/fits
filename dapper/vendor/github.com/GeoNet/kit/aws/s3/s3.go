@@ -129,7 +129,7 @@ func (s *S3) GetWithLastModified(bucket, key, version string, b *bytes.Buffer) (
 
 	_, err = b.ReadFrom(result.Body)
 
-	return *result.LastModified, err
+	return aws.ToTime(result.LastModified), err
 }
 
 // LastModified returns the time that the specified object was last modified.
@@ -147,7 +147,7 @@ func (s *S3) LastModified(bucket, key, version string) (time.Time, error) {
 	}
 	defer result.Body.Close()
 
-	return *result.LastModified, nil
+	return aws.ToTime(result.LastModified), nil
 }
 
 // GetMeta returns the metadata for an object. Version can be zero.
@@ -170,6 +170,22 @@ func (s *S3) GetMeta(bucket, key, version string) (Meta, error) {
 	}
 
 	return res.Metadata, nil
+}
+
+// GetContentSize returns the content length and last modified time of the specified key
+func (s *S3) GetContentSizeTime(bucket, key string) (int64, time.Time, error) {
+	var size int64
+	var mt time.Time
+	input := s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+
+	o, err := s.client.HeadObject(context.TODO(), &input)
+	if err != nil {
+		return size, mt, err
+	}
+	return o.ContentLength, *o.LastModified, nil
 }
 
 // Put puts the object in bucket using specified key.
@@ -236,7 +252,7 @@ func (s *S3) List(bucket, prefix string, max int32) ([]string, error) {
 
 	result := make([]string, 0)
 	for _, o := range out.Contents {
-		result = append(result, *o.Key)
+		result = append(result, aws.ToString(o.Key))
 	}
 	return result, nil
 }
@@ -261,7 +277,7 @@ func (s *S3) ListAll(bucket, prefix string) ([]string, error) {
 			return nil, err
 		}
 		for _, o := range out.Contents {
-			result = append(result, *o.Key)
+			result = append(result, aws.ToString(o.Key))
 		}
 		// When result is not truncated, it means all matching keys have been found.
 		if !out.IsTruncated {
@@ -289,9 +305,9 @@ func (s *S3) PrefixExists(bucket, prefix string) (bool, error) {
 }
 
 // ListCommonPrefixes returns a list of ALL common prefixes (no 1000 limit).
-func (s *S3) ListCommonPrefixes(bucket, prefix, delimiter string) ([]types.CommonPrefix, error) {
+func (s *S3) ListCommonPrefixes(bucket, prefix, delimiter string) ([]string, error) {
 
-	result := make([]types.CommonPrefix, 0)
+	result := make([]string, 0)
 
 	var continuationToken *string
 
@@ -307,9 +323,9 @@ func (s *S3) ListCommonPrefixes(bucket, prefix, delimiter string) ([]types.Commo
 		if err != nil {
 			return nil, err
 		}
-
-		result = append(result, out.CommonPrefixes...)
-
+		for _, o := range out.CommonPrefixes {
+			result = append(result, aws.ToString(o.Prefix))
+		}
 		// When result is not truncated, it means all common prefixes have been found.
 		if !out.IsTruncated {
 			return result, nil
@@ -352,6 +368,24 @@ func (s *S3) PutStream(bucket, key string, reader io.ReadCloser) error {
 	return nil
 }
 
+// Download uses the downloader to download file from bucket.
+// File is split up into parts and downloaded concurrently into an os.File,
+// so is useful for getting large files. Returns number of bytes downloaded.
+func (s *S3) Download(bucket, key string, f *os.File) (int64, error) {
+	if s.downloader == nil {
+		return 0, errors.New("error downloading from S3, downloader not initialised")
+	}
+	input := s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+	numBytes, err := s.downloader.Download(context.TODO(), f, &input)
+	if err != nil {
+		return 0, err
+	}
+	return numBytes, nil
+}
+
 // Delete deletes an object from a bucket.
 func (s *S3) Delete(bucket, key string) error {
 	input := s3.DeleteObjectInput{
@@ -360,5 +394,18 @@ func (s *S3) Delete(bucket, key string) error {
 	}
 
 	_, err := s.client.DeleteObject(context.TODO(), &input)
+	return err
+}
+
+// Copy copies from the source to the bucket with key as the new name.
+// source should include the bucket name eg: "mybucket/objectkey.pdf"
+func (s *S3) Copy(bucket, key, source string) error {
+	input := s3.CopyObjectInput{
+		Bucket:     aws.String(bucket),
+		Key:        aws.String(key),
+		CopySource: aws.String(source),
+	}
+	_, err := s.client.CopyObject(context.TODO(), &input)
+
 	return err
 }
