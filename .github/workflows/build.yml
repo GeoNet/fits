@@ -71,6 +71,8 @@ jobs:
       aws-role-duration-seconds: "3600"
   go-build:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    strategy:
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
     with:
       paths: ${{ inputs.paths }}
