@@ -1,11 +1,10 @@
-ARG BUILDER_IMAGE=quay.io/geonet/golang:1.16-alpine
-ARG RUNNER_IMAGE=quay.io/geonet/go-scratch
+ARG BUILDER_IMAGE=ghcr.io/geonet/base-images/go:1.16
+ARG RUNNER_IMAGE=ghcr.io/geonet/base-images/static:latest
 ARG RUN_USER=nobody
 # Only support image based on AlpineLinux
 FROM ${BUILDER_IMAGE} as builder
 
 # Obtain ca-cert and tzdata, which we will add to the container
-RUN apk add --update ca-certificates tzdata
 
 # Project to build
 ARG BUILD
@@ -26,7 +25,6 @@ ENV GOOS linux
 ENV GOARCH amd64
 ENV CGO_ENABLED 0
 
-RUN echo 'nobody:x:65534:65534:Nobody:/:\' > /passwd
 RUN go install -a -installsuffix cgo -ldflags "-X main.Prefix=${BUILD}/${GIT_COMMIT_SHA}" /repo/cmd/${BUILD}
 
 FROM ${RUNNER_IMAGE}
@@ -35,7 +33,6 @@ ARG EXPOSE_PORT=8080
 EXPOSE $EXPOSE_PORT
 # Asset directory to copy to /assets
 # Add common resource for ssl and timezones from the build container
-COPY --from=builder /passwd /etc/passwd
 # Same ARG as before
 ARG BUILD
 # Need to make this an env for it to be interpolated by the shell
