@@ -1,27 +1,25 @@
 // +build devtest
 
-package main
+package dapperlib
 
 import (
 	"fmt"
-	"github.com/GeoNet/fits/dapper/dapperlib"
-	"log"
-	"os"
+	"testing"
 	"time"
 )
 
-var fhStream = os.Getenv("DAPPER_FH_STREAM")
+func TestSend(t *testing.T) {
+	var fhStream = "tf-dev-dapper-ingest-firehose"
 
-func main() {
-	sc, err := dapperlib.NewSendClient(fhStream)
+	sc, err := NewSendClient(fhStream)
 
 	if err != nil {
-		log.Fatalf("failed to create dapper SendClient: %v", err)
+		t.Fatalf("failed to create dapper SendClient: %v", err)
 	}
 
 	now := time.Now().Truncate(time.Minute)
 
-	vals := make([]dapperlib.Record, 0)
+	vals := make([]Record, 0)
 
 	dmns := []string{
 		"datalogger",
@@ -48,7 +46,7 @@ func main() {
 				for i := 0; i <= 60; i++ {
 					t := now.Add(-time.Minute * time.Duration(i))
 
-					vals = append(vals, dapperlib.Record{
+					vals = append(vals, Record{
 						Domain: d,
 						Key:    k,
 						Field:  f,
@@ -62,6 +60,6 @@ func main() {
 
 	err = sc.Send(vals)
 	if err != nil {
-		log.Fatalf("failed to send: %v", err)
+		t.Fatalf("failed to send: %v", err)
 	}
 }
