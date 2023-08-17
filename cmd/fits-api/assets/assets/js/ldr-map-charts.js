@@ -21,6 +21,7 @@ var ldrChartClient = {
     selectedParamName:null,
     selectedSites:null,
 
+    baseURL: '',
     chartStaticPlotPath :'/plot',
     chartWidth : 896,
     chartHeight : 512,
@@ -72,14 +73,14 @@ var ldrChartClient = {
         var osmUrl = '//{s}.geonet.org.nz/osm/v2/{z}/{x}/{y}.png',
         osmLayer = new L.TileLayer(osmUrl, {
             minZoom : 1,
-            maxZoom : 16,
+            maxZoom : 15,
             errorTileUrl: '//static.geonet.org.nz/osm/images/logo_geonet.png',
             subdomains : [ 'static1', 'static2', 'static3', 'static4', 'static5' ]
         });
 
         this.lftMap = L.map('ldr-map', {
             attributionControl: false,
-            zoom : 18,
+            zoom: 15,
             layers : [osmLayer]
         });
 
@@ -190,7 +191,7 @@ var ldrChartClient = {
       * query params from http
       * ***/
     queryParams: function() {
-        var _url = "/type"
+        var _url = `${this.baseURL}/type`
         jQuery.getJSON(_url, function (data) {
             //console.log(JSON.stringify(data));
             ldrChartClient.paramsData = data;
@@ -230,7 +231,7 @@ var ldrChartClient = {
             this.showSitesDataOnMap(sitesData);
             this.showSitesDataSelection(sitesData);
         }else{
-            var url = "/site?typeID=" + this.selectedParam;
+            var url = `${this.baseURL}/site?typeID=${this.selectedParam}`;
             //console.log("show sites " + " url " + url);
 
             jQuery.getJSON( url, function (data) {
@@ -252,7 +253,7 @@ var ldrChartClient = {
             this.showSitesDataSelection(sitesData);
         }else{
             //console.log("show sites " + " regionGeometry " + regionGeometry);
-            var url = "/site?typeID=" + this.selectedParam ;
+            var url = `${this.baseURL}/site?typeID=${this.selectedParam}`;
             jQuery.getJSON( url, function (data) {
                 //console.log(JSON.stringify(data));
                 ldrChartClient.allSitesData[ldrChartClient.selectedParam] = data;
@@ -291,7 +292,7 @@ var ldrChartClient = {
 	 * query observation results for selected param and sites from http
 	 * ***/
     queryChartResults:function(){
-        var url = "observation_results?typeID=" + this.selectedParam ;
+        var url = `${this.baseURL}/observation_results?typeID=${this.selectedParam}`;
         var sites = null;
         if(this.selectedSites && this.selectedSites.length > 0) {
             url += "&siteID="  + this.selectedSites;
@@ -335,7 +336,7 @@ var ldrChartClient = {
 
             if(ldrChartClient.iev > 0){//ie showStaticChart
                 if(ldrChartClient.selectedSiteNetworks) {
-                    var imgUrl = ldrChartClient.chartStaticPlotPath + "?sites=" + ldrChartClient.selectedSiteNetworks + "&typeID=" + ldrChartClient.selectedParam;
+                    var imgUrl = `${ldrChartClient.baseURL}/${ldrChartClient.chartStaticPlotPath}?sites=${ldrChartClient.selectedSiteNetworks}&typeID=${ldrChartClient.selectedParam}`;
                     ldrChartClient.showStaticChart(imgUrl);
                 }
             }else{
