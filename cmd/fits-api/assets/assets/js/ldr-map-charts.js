@@ -73,14 +73,14 @@ var ldrChartClient = {
         var osmUrl = '//{s}.geonet.org.nz/osm/v2/{z}/{x}/{y}.png',
         osmLayer = new L.TileLayer(osmUrl, {
             minZoom : 1,
-            maxZoom : 16,
+            maxZoom : 15,
             errorTileUrl: '//static.geonet.org.nz/osm/images/logo_geonet.png',
             subdomains : [ 'static1', 'static2', 'static3', 'static4', 'static5' ]
         });
 
         this.lftMap = L.map('ldr-map', {
             attributionControl: false,
-            zoom : 18,
+            zoom: 15,
             layers : [osmLayer]
         });
 
