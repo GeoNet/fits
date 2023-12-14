@@ -3,9 +3,10 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strings"
+
+	"github.com/GeoNet/kit/weft"
 )
 
 type siteQ struct {
@@ -71,7 +72,7 @@ func getSites(s string) ([]siteQ, error) {
 	}
 
 	for _, s := range sites {
-		err := db.QueryRow("select name FROM fits.site where siteid = $1", s.siteID).Scan(&s.name)
+		err := db.QueryRow("select name FROM fits.site where siteid = $1", s.siteID).Scan(&s.name) //nolint G601
 		if err == sql.ErrNoRows {
 			return sites, weft.StatusError{Code: http.StatusNotFound}
 		}
