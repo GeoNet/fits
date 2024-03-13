@@ -8,5 +8,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.15.3
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.14.3
 	github.com/lib/pq v1.10.2
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.33.0
 )
