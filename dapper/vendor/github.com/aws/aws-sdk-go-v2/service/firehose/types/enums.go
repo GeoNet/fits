@@ -2,6 +2,25 @@
 
 package types
 
+type AmazonOpenSearchServerlessS3BackupMode string
+
+// Enum values for AmazonOpenSearchServerlessS3BackupMode
+const (
+	AmazonOpenSearchServerlessS3BackupModeFailedDocumentsOnly AmazonOpenSearchServerlessS3BackupMode = "FailedDocumentsOnly"
+	AmazonOpenSearchServerlessS3BackupModeAllDocuments        AmazonOpenSearchServerlessS3BackupMode = "AllDocuments"
+)
+
+// Values returns all known values for AmazonOpenSearchServerlessS3BackupMode.
+// Note that this can be expanded in the future, and so it is only as up to date as
+// the client. The ordering of this slice is not guaranteed to be stable across
+// updates.
+func (AmazonOpenSearchServerlessS3BackupMode) Values() []AmazonOpenSearchServerlessS3BackupMode {
+	return []AmazonOpenSearchServerlessS3BackupMode{
+		"FailedDocumentsOnly",
+		"AllDocuments",
+	}
+}
+
 type AmazonopensearchserviceIndexRotationPeriod string
 
 // Enum values for AmazonopensearchserviceIndexRotationPeriod
@@ -70,6 +89,24 @@ func (CompressionFormat) Values() []CompressionFormat {
 	}
 }
 
+type Connectivity string
+
+// Enum values for Connectivity
+const (
+	ConnectivityPublic  Connectivity = "PUBLIC"
+	ConnectivityPrivate Connectivity = "PRIVATE"
+)
+
+// Values returns all known values for Connectivity. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (Connectivity) Values() []Connectivity {
+	return []Connectivity{
+		"PUBLIC",
+		"PRIVATE",
+	}
+}
+
 type ContentEncoding string
 
 // Enum values for ContentEncoding
@@ -85,6 +122,24 @@ func (ContentEncoding) Values() []ContentEncoding {
 	return []ContentEncoding{
 		"NONE",
 		"GZIP",
+	}
+}
+
+type DefaultDocumentIdFormat string
+
+// Enum values for DefaultDocumentIdFormat
+const (
+	DefaultDocumentIdFormatFirehoseDefault DefaultDocumentIdFormat = "FIREHOSE_DEFAULT"
+	DefaultDocumentIdFormatNoDocumentId    DefaultDocumentIdFormat = "NO_DOCUMENT_ID"
+)
+
+// Values returns all known values for DefaultDocumentIdFormat. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (DefaultDocumentIdFormat) Values() []DefaultDocumentIdFormat {
+	return []DefaultDocumentIdFormat{
+		"FIREHOSE_DEFAULT",
+		"NO_DOCUMENT_ID",
 	}
 }
 
@@ -189,6 +244,7 @@ type DeliveryStreamType string
 const (
 	DeliveryStreamTypeDirectPut             DeliveryStreamType = "DirectPut"
 	DeliveryStreamTypeKinesisStreamAsSource DeliveryStreamType = "KinesisStreamAsSource"
+	DeliveryStreamTypeMSKAsSource           DeliveryStreamType = "MSKAsSource"
 )
 
 // Values returns all known values for DeliveryStreamType. Note that this can be
@@ -198,6 +254,7 @@ func (DeliveryStreamType) Values() []DeliveryStreamType {
 	return []DeliveryStreamType{
 		"DirectPut",
 		"KinesisStreamAsSource",
+		"MSKAsSource",
 	}
 }
 
@@ -270,9 +327,9 @@ const (
 	HttpEndpointS3BackupModeAllData        HttpEndpointS3BackupMode = "AllData"
 )
 
-// Values returns all known values for HttpEndpointS3BackupMode. Note that this can
-// be expanded in the future, and so it is only as up to date as the client. The
-// ordering of this slice is not guaranteed to be stable across updates.
+// Values returns all known values for HttpEndpointS3BackupMode. Note that this
+// can be expanded in the future, and so it is only as up to date as the client.
+// The ordering of this slice is not guaranteed to be stable across updates.
 func (HttpEndpointS3BackupMode) Values() []HttpEndpointS3BackupMode {
 	return []HttpEndpointS3BackupMode{
 		"FailedDataOnly",
@@ -403,6 +460,8 @@ const (
 	ProcessorParameterNameBufferIntervalInSeconds ProcessorParameterName = "BufferIntervalInSeconds"
 	ProcessorParameterNameSubRecordType           ProcessorParameterName = "SubRecordType"
 	ProcessorParameterNameDelimiter               ProcessorParameterName = "Delimiter"
+	ProcessorParameterNameCompressionFormat       ProcessorParameterName = "CompressionFormat"
+	ProcessorParameterNameDataMessageExtraction   ProcessorParameterName = "DataMessageExtraction"
 )
 
 // Values returns all known values for ProcessorParameterName. Note that this can
@@ -419,6 +478,8 @@ func (ProcessorParameterName) Values() []ProcessorParameterName {
 		"BufferIntervalInSeconds",
 		"SubRecordType",
 		"Delimiter",
+		"CompressionFormat",
+		"DataMessageExtraction",
 	}
 }
 
@@ -427,6 +488,8 @@ type ProcessorType string
 // Enum values for ProcessorType
 const (
 	ProcessorTypeRecordDeAggregation     ProcessorType = "RecordDeAggregation"
+	ProcessorTypeDecompression           ProcessorType = "Decompression"
+	ProcessorTypeCloudWatchLogProcessing ProcessorType = "CloudWatchLogProcessing"
 	ProcessorTypeLambda                  ProcessorType = "Lambda"
 	ProcessorTypeMetadataExtraction      ProcessorType = "MetadataExtraction"
 	ProcessorTypeAppendDelimiterToRecord ProcessorType = "AppendDelimiterToRecord"
@@ -438,6 +501,8 @@ const (
 func (ProcessorType) Values() []ProcessorType {
 	return []ProcessorType{
 		"RecordDeAggregation",
+		"Decompression",
+		"CloudWatchLogProcessing",
 		"Lambda",
 		"MetadataExtraction",
 		"AppendDelimiterToRecord",
@@ -470,13 +535,51 @@ const (
 	S3BackupModeEnabled  S3BackupMode = "Enabled"
 )
 
-// Values returns all known values for S3BackupMode. Note that this can be expanded
-// in the future, and so it is only as up to date as the client. The ordering of
-// this slice is not guaranteed to be stable across updates.
+// Values returns all known values for S3BackupMode. Note that this can be
+// expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
 func (S3BackupMode) Values() []S3BackupMode {
 	return []S3BackupMode{
 		"Disabled",
 		"Enabled",
+	}
+}
+
+type SnowflakeDataLoadingOption string
+
+// Enum values for SnowflakeDataLoadingOption
+const (
+	SnowflakeDataLoadingOptionJsonMapping                      SnowflakeDataLoadingOption = "JSON_MAPPING"
+	SnowflakeDataLoadingOptionVariantContentMapping            SnowflakeDataLoadingOption = "VARIANT_CONTENT_MAPPING"
+	SnowflakeDataLoadingOptionVariantContentAndMetadataMapping SnowflakeDataLoadingOption = "VARIANT_CONTENT_AND_METADATA_MAPPING"
+)
+
+// Values returns all known values for SnowflakeDataLoadingOption. Note that this
+// can be expanded in the future, and so it is only as up to date as the client.
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (SnowflakeDataLoadingOption) Values() []SnowflakeDataLoadingOption {
+	return []SnowflakeDataLoadingOption{
+		"JSON_MAPPING",
+		"VARIANT_CONTENT_MAPPING",
+		"VARIANT_CONTENT_AND_METADATA_MAPPING",
+	}
+}
+
+type SnowflakeS3BackupMode string
+
+// Enum values for SnowflakeS3BackupMode
+const (
+	SnowflakeS3BackupModeFailedDataOnly SnowflakeS3BackupMode = "FailedDataOnly"
+	SnowflakeS3BackupModeAllData        SnowflakeS3BackupMode = "AllData"
+)
+
+// Values returns all known values for SnowflakeS3BackupMode. Note that this can
+// be expanded in the future, and so it is only as up to date as the client. The
+// ordering of this slice is not guaranteed to be stable across updates.
+func (SnowflakeS3BackupMode) Values() []SnowflakeS3BackupMode {
+	return []SnowflakeS3BackupMode{
+		"FailedDataOnly",
+		"AllData",
 	}
 }
 

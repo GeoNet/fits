@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -89,7 +89,7 @@ type DirectRequestHandler func(r *http.Request, w http.ResponseWriter) (int64, e
 
 // ErrorHandler should write the error for err into b and adjust h as required.
 // err can be nil
-type ErrorHandler func(err error, h http.Header, b *bytes.Buffer) error
+type ErrorHandler func(err error, h http.Header, b *bytes.Buffer, nonce string) error
 
 // MakeDirectHandler executes rh.  The caller should write directly to w for success (200) only.
 // In the case of an rh returning an error ErrorHandler is executed and the response written to the client.
@@ -108,7 +108,8 @@ func MakeDirectHandler(rh DirectRequestHandler, eh ErrorHandler) http.HandlerFun
 		// ErrorHandler to set the error content and header.
 		t := metrics.Start()
 		// note: the ending `writeResponseAndLogMetrics` calls t.Track which will stop the metric timer, too
-
+		//set csp headers
+		SetBestPracticeHeaders(w, r, nil, "")
 		//run request handler
 		n, err := rh(r, w)
 		if err == nil { //all good, return
@@ -124,13 +125,11 @@ func MakeDirectHandler(rh DirectRequestHandler, eh ErrorHandler) http.HandlerFun
 		}
 
 		//everything below are for error responses
-		//set csp headers
-		setBestPracticeHeaders(w, r, nil, "")
 		logRequest(r)
 		t.Stop()
 
 		//run error handler
-		e := eh(err, w.Header(), b)
+		e := eh(err, w.Header(), b, "")
 		if e != nil {
 			logger.Printf("setting error: %s", e.Error())
 		}
@@ -161,13 +160,13 @@ func MakeHandlerWithCsp(rh RequestHandler, eh ErrorHandler, customCsp map[string
 		err := rh(r, w.Header(), b)
 		if err != nil {
 			//run error handler
-			e := eh(err, w.Header(), b)
+			e := eh(err, w.Header(), b, "")
 			if e != nil {
 				logger.Printf("2 error from error handler: %s", e.Error())
 			}
-			setBestPracticeHeaders(w, r, defaultCsp, "")
+			SetBestPracticeHeaders(w, r, defaultCsp, "")
 		} else {
-			setBestPracticeHeaders(w, r, customCsp, "")
+			SetBestPracticeHeaders(w, r, customCsp, "")
 		}
 
 		logRequest(r)
@@ -210,13 +209,13 @@ func MakeHandlerWithCspNonce(rh RequestHandlerWithNonce, eh ErrorHandler, custom
 		}
 		if err != nil {
 			//run error handler
-			e := eh(err, w.Header(), b)
+			e := eh(err, w.Header(), b, nonce)
 			if e != nil {
 				logger.Printf("2 error from error handler: %s", e.Error())
 			}
-			setBestPracticeHeaders(w, r, defaultCsp, nonce)
+			SetBestPracticeHeaders(w, r, defaultCsp, nonce)
 		} else {
-			setBestPracticeHeaders(w, r, customCsp, nonce)
+			SetBestPracticeHeaders(w, r, customCsp, nonce)
 		}
 
 		logRequest(r)
@@ -313,7 +312,7 @@ func writeResponseAndLogMetrics(err error, w http.ResponseWriter, r *http.Reques
  * NOTE: customCsp should include the whole set of an item as it override that in defaultCsp
  * @param nonce: string to be added to script CSP, refer: https://csp.withgoogle.com/docs/strict-csp.html
  */
-func setBestPracticeHeaders(w http.ResponseWriter, r *http.Request, customCsp map[string]string, nonce string) {
+func SetBestPracticeHeaders(w http.ResponseWriter, r *http.Request, customCsp map[string]string, nonce string) {
 	var csp strings.Builder
 	for k, v := range defaultCsp {
 		s := v
@@ -346,13 +345,13 @@ func logRequest(r *http.Request) {
 	if logPostBody {
 		switch r.Method {
 		case http.MethodPost, http.MethodPut:
-			body, err := ioutil.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				logger.Printf("Error reading request body") // This error doesn't affect we processing requests
 			} else {
 				logger.Printf("Body:%s", string(body))
 				// put read bytes back so the real handler can use it
-				r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+				r.Body = io.NopCloser(bytes.NewBuffer(body))
 			}
 		}
 	}
@@ -362,7 +361,7 @@ func logRequest(r *http.Request) {
 // Headers are set for intermediate caches.
 //
 // Implements ErrorHandler
-func TextError(e error, h http.Header, b *bytes.Buffer) error {
+func TextError(e error, h http.Header, b *bytes.Buffer, nonce string) error {
 	if b == nil {
 		return errors.New("nil *bytes.Buffer")
 	}
@@ -413,7 +412,7 @@ func TextError(e error, h http.Header, b *bytes.Buffer) error {
 // The content of b is not changed.
 //
 // Implements ErrorHandler
-func UseError(e error, h http.Header, b *bytes.Buffer) error {
+func UseError(e error, h http.Header, b *bytes.Buffer, nonce string) error {
 	switch Status(e) {
 	case http.StatusOK:
 	case http.StatusNoContent:
@@ -444,7 +443,7 @@ func UseError(e error, h http.Header, b *bytes.Buffer) error {
 // Headers are set for intermediate caches.
 //
 // Implements ErrorHandler
-func HTMLError(e error, h http.Header, b *bytes.Buffer) error {
+func HTMLError(e error, h http.Header, b *bytes.Buffer, nonce string) error {
 	if b == nil {
 		return errors.New("nil *bytes.Buffer")
 	}
