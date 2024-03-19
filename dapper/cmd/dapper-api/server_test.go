@@ -98,7 +98,9 @@ func TestRoutes(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	cacheLatest()
+	if err = cacheLatest(); err != nil {
+		log.Printf("error caching latest tables: %v", err)
+	}
 
 	routes := wt.Requests{
 		{ID: wt.L(), Accept: CONTENT_TYPE_JSON, Content: CONTENT_TYPE_JSON, URL: "/meta/test_api/entries"},

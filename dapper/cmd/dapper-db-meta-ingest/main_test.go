@@ -3,17 +3,18 @@ package main
 import (
 	"bytes"
 	"database/sql"
-	"github.com/GeoNet/kit/cfg"
-	"io/ioutil"
 	"log"
+	"os"
 	"testing"
+
+	"github.com/GeoNet/kit/cfg"
 )
 
 func TestImport(t *testing.T) {
 	setup()
 	defer teardown()
 
-	b, err := ioutil.ReadFile("testdata/test.pb")
+	b, err := os.ReadFile("testdata/test.pb")
 	if err != nil {
 		t.Fatal(err)
 	}

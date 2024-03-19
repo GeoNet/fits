@@ -11,7 +11,7 @@ import (
 )
 
 /*
-	These constants define how much (timewise) data to aggregate into a single table
+These constants define how much (timewise) data to aggregate into a single table
 */
 type TimeAggrLevel int
 
@@ -493,7 +493,7 @@ func ParseRecords(in []Record, tAggr TimeAggrLevel) map[string]Table {
 }
 
 func contains(in []string, key string) bool {
-	if in == nil || len(in) == 0 {
+	if len(in) == 0 {
 		return true
 	}
 	for _, i := range in {

@@ -57,6 +57,7 @@ func main() {
 	var r sqs.Raw
 	var n notification
 
+	log.Println("listening for messages on", queueURL)
 	for {
 		// TODO - does this visibility time out make sense?
 		// we don't want the message to become visible again if there is
@@ -116,7 +117,7 @@ func (n *notification) Process(msg []byte) error {
 		log.Println("Processing", v.S3.Bucket.Name+"/"+v.S3.Object.Key)
 		err = s3Client.Get(v.S3.Bucket.Name, v.S3.Object.Key, "", &br)
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("couldn't get specified object: %v", err)
 		}
 
@@ -124,20 +125,20 @@ func (n *notification) Process(msg []byte) error {
 		csvr := csv.NewReader(&br)
 		records, err := csvr.ReadAll()
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("couldn't unpackage as CSV: %v", err)
 		}
 
 		for _, row := range records {
 			rec, err := dapperlib.RecordFromCSV(row)
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				return fmt.Errorf("couldn't parse csv line: %v", err)
 			}
 
 			_, err = stmt.Exec(rec.Domain, rec.Key, rec.Field, rec.Time, rec.Value)
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				return fmt.Errorf("query failed: %v for record %s,%s,%s,%s", err, rec.Domain, rec.Key, rec.Field, rec.Time.Format(time.RFC3339))
 			}
 		}

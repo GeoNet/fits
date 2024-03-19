@@ -80,7 +80,9 @@ func main() {
 
 	weft.SetLogger(log.New(os.Stdout, "dapper-api", -1))
 
-	cacheLatest()
+	if err = cacheLatest(); err != nil {
+		log.Printf("error caching latest tables: %v", err)
+	}
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)

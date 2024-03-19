@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -108,7 +108,7 @@ func TestInputPath(t *testing.T) {
 }
 
 func TestNoDuplicates(t *testing.T) {
-	rawB, err := ioutil.ReadFile("testdata/cellular-balcluthadistrictcouncil.2019.september.csv")
+	rawB, err := os.ReadFile("testdata/cellular-balcluthadistrictcouncil.2019.september.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +207,7 @@ func TestAggregate(t *testing.T) {
 	}
 
 	var src []testStruct
-	b, err := ioutil.ReadFile("testdata/source.json")
+	b, err := os.ReadFile("testdata/source.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -217,7 +217,7 @@ func TestAggregate(t *testing.T) {
 		t.Error(err)
 	}
 	var aggrred []testStruct
-	b, err = ioutil.ReadFile("testdata/aggrred.json")
+	b, err = os.ReadFile("testdata/aggrred.json")
 	if err != nil {
 		t.Error(err)
 	}
