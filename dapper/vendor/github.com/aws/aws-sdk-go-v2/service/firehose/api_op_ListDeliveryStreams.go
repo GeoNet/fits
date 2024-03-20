@@ -4,8 +4,8 @@ package firehose
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/firehose/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -13,7 +13,7 @@ import (
 
 // Lists your delivery streams in alphabetical order of their names. The number of
 // delivery streams might be too large to return using a single call to
-// ListDeliveryStreams. You can limit the number of delivery streams returned,
+// ListDeliveryStreams . You can limit the number of delivery streams returned,
 // using the Limit parameter. To determine whether there are more delivery streams
 // to list, check the value of HasMoreDeliveryStreams in the output. If there are
 // more delivery streams to list, you can request them by calling this operation
@@ -37,21 +37,16 @@ func (c *Client) ListDeliveryStreams(ctx context.Context, params *ListDeliverySt
 type ListDeliveryStreamsInput struct {
 
 	// The delivery stream type. This can be one of the following values:
-	//
-	// * DirectPut:
-	// Provider applications access the delivery stream directly.
-	//
-	// *
-	// KinesisStreamAsSource: The delivery stream uses a Kinesis data stream as a
-	// source.
-	//
-	// This parameter is optional. If this parameter is omitted, delivery
-	// streams of all types are returned.
+	//   - DirectPut : Provider applications access the delivery stream directly.
+	//   - KinesisStreamAsSource : The delivery stream uses a Kinesis data stream as a
+	//   source.
+	// This parameter is optional. If this parameter is omitted, delivery streams of
+	// all types are returned.
 	DeliveryStreamType types.DeliveryStreamType
 
 	// The list of delivery streams returned by this call to ListDeliveryStreams will
 	// start with the delivery stream whose name comes alphabetically immediately after
-	// the name you specify in ExclusiveStartDeliveryStreamName.
+	// the name you specify in ExclusiveStartDeliveryStreamName .
 	ExclusiveStartDeliveryStreamName *string
 
 	// The maximum number of delivery streams to list. The default value is 10.
@@ -79,6 +74,9 @@ type ListDeliveryStreamsOutput struct {
 }
 
 func (c *Client) addOperationListDeliveryStreamsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListDeliveryStreams{}, middleware.After)
 	if err != nil {
 		return err
@@ -87,34 +85,38 @@ func (c *Client) addOperationListDeliveryStreamsMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListDeliveryStreams"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -123,7 +125,13 @@ func (c *Client) addOperationListDeliveryStreamsMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListDeliveryStreams(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -135,6 +143,9 @@ func (c *Client) addOperationListDeliveryStreamsMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -142,7 +153,6 @@ func newServiceMetadataMiddleware_opListDeliveryStreams(region string) *awsmiddl
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "firehose",
 		OperationName: "ListDeliveryStreams",
 	}
 }

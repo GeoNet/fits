@@ -16,7 +16,6 @@ if [ ! -f all.sh ]; then
 	echo 'all.sh must be run from the project root' 1>&2
 	exit 1
 fi
-
 projects=`ls cmd`
 
 for i in ${projects[@]}; do

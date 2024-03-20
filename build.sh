@@ -17,8 +17,8 @@ if [ $# -eq 0 ]; then
 fi
 
 # code will be compiled in this container
-BUILDER_IMAGE='quay.io/geonet/golang:1.16-alpine'
-RUNNER_IMAGE='quay.io/geonet/go-scratch'
+BUILDER_IMAGE='ghcr.io/geonet/base-images/go:1.21'
+RUNNER_IMAGE='ghcr.io/geonet/base-images/static:latest'
 
 VERSION='git-'$(git rev-parse --short HEAD)
 ACCOUNT=$(aws sts get-caller-identity --output text --query 'Account')

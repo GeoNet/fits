@@ -132,7 +132,7 @@ func init() {
 }
 
 /*
-	Handles a path like "/data/{domain}?"
+Handles a path like "/data/{domain}?"
 */
 func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
@@ -216,7 +216,8 @@ func dataHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 			}
 		}
 	} else {
-		starttime, endtime := time.Time{}, time.Now()
+		var starttime time.Time
+		var endtime = time.Now()
 		startS, endS := v.Get("starttime"), v.Get("endtime")
 		if startS != "" {
 			starttime, err = valid.ParseQueryTime(startS)

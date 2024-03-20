@@ -12,6 +12,8 @@ import (
 type ConcurrentModificationException struct {
 	Message *string
 
+	ErrorCodeOverride *string
+
 	noSmithyDocumentSerde
 }
 
@@ -25,13 +27,18 @@ func (e *ConcurrentModificationException) ErrorMessage() string {
 	return *e.Message
 }
 func (e *ConcurrentModificationException) ErrorCode() string {
-	return "ConcurrentModificationException"
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "ConcurrentModificationException"
+	}
+	return *e.ErrorCodeOverride
 }
 func (e *ConcurrentModificationException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The specified input parameter has a value that is not valid.
 type InvalidArgumentException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -45,15 +52,22 @@ func (e *InvalidArgumentException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InvalidArgumentException) ErrorCode() string             { return "InvalidArgumentException" }
+func (e *InvalidArgumentException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "InvalidArgumentException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *InvalidArgumentException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
-// Kinesis Data Firehose throws this exception when an attempt to put records or to
-// start or stop delivery stream encryption fails. This happens when the KMS
-// service throws one of the following exception types: AccessDeniedException,
-// InvalidStateException, DisabledException, or NotFoundException.
+// Firehose throws this exception when an attempt to put records or to start or
+// stop delivery stream encryption fails. This happens when the KMS service throws
+// one of the following exception types: AccessDeniedException ,
+// InvalidStateException , DisabledException , or NotFoundException .
 type InvalidKMSResourceException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	Code *string
 
@@ -69,12 +83,48 @@ func (e *InvalidKMSResourceException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *InvalidKMSResourceException) ErrorCode() string             { return "InvalidKMSResourceException" }
+func (e *InvalidKMSResourceException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "InvalidKMSResourceException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *InvalidKMSResourceException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
+
+// Only requests from CloudWatch Logs are supported when CloudWatch Logs
+// decompression is enabled.
+type InvalidSourceException struct {
+	Message *string
+
+	ErrorCodeOverride *string
+
+	Code *string
+
+	noSmithyDocumentSerde
+}
+
+func (e *InvalidSourceException) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrorCode(), e.ErrorMessage())
+}
+func (e *InvalidSourceException) ErrorMessage() string {
+	if e.Message == nil {
+		return ""
+	}
+	return *e.Message
+}
+func (e *InvalidSourceException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "InvalidSourceException"
+	}
+	return *e.ErrorCodeOverride
+}
+func (e *InvalidSourceException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // You have already reached the limit for a requested resource.
 type LimitExceededException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -88,12 +138,19 @@ func (e *LimitExceededException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *LimitExceededException) ErrorCode() string             { return "LimitExceededException" }
+func (e *LimitExceededException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "LimitExceededException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *LimitExceededException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The resource is already in use and not available for this operation.
 type ResourceInUseException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -107,12 +164,19 @@ func (e *ResourceInUseException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *ResourceInUseException) ErrorCode() string             { return "ResourceInUseException" }
+func (e *ResourceInUseException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "ResourceInUseException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *ResourceInUseException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
 // The specified resource could not be found.
 type ResourceNotFoundException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -126,16 +190,23 @@ func (e *ResourceNotFoundException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *ResourceNotFoundException) ErrorCode() string             { return "ResourceNotFoundException" }
+func (e *ResourceNotFoundException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "ResourceNotFoundException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *ResourceNotFoundException) ErrorFault() smithy.ErrorFault { return smithy.FaultClient }
 
-// The service is unavailable. Back off and retry the operation. If you continue to
-// see the exception, throughput limits for the delivery stream may have been
+// The service is unavailable. Back off and retry the operation. If you continue
+// to see the exception, throughput limits for the delivery stream may have been
 // exceeded. For more information about limits and how to request an increase, see
-// Amazon Kinesis Data Firehose Limits
-// (https://docs.aws.amazon.com/firehose/latest/dev/limits.html).
+// Amazon Firehose Limits (https://docs.aws.amazon.com/firehose/latest/dev/limits.html)
+// .
 type ServiceUnavailableException struct {
 	Message *string
+
+	ErrorCodeOverride *string
 
 	noSmithyDocumentSerde
 }
@@ -149,5 +220,10 @@ func (e *ServiceUnavailableException) ErrorMessage() string {
 	}
 	return *e.Message
 }
-func (e *ServiceUnavailableException) ErrorCode() string             { return "ServiceUnavailableException" }
+func (e *ServiceUnavailableException) ErrorCode() string {
+	if e == nil || e.ErrorCodeOverride == nil {
+		return "ServiceUnavailableException"
+	}
+	return *e.ErrorCodeOverride
+}
 func (e *ServiceUnavailableException) ErrorFault() smithy.ErrorFault { return smithy.FaultServer }

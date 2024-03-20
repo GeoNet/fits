@@ -1,5 +1,5 @@
-# github.com/GeoNet/kit v0.0.0-20221025231347-caa9da5b6f2f
-## explicit
+# github.com/GeoNet/kit v0.0.0-20240319031624-5b5fd9fd5087
+## explicit; go 1.21
 github.com/GeoNet/kit/map180
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/ui/geonet_footer
@@ -7,24 +7,40 @@ github.com/GeoNet/kit/ui/geonet_header_basic
 github.com/GeoNet/kit/weft
 github.com/GeoNet/kit/weft/wefttest
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
+## explicit
 github.com/golang/groupcache
 github.com/golang/groupcache/consistenthash
 github.com/golang/groupcache/groupcachepb
 github.com/golang/groupcache/lru
 github.com/golang/groupcache/singleflight
-# github.com/golang/protobuf v1.5.2
+# github.com/golang/protobuf v1.5.4
+## explicit; go 1.17
 github.com/golang/protobuf/proto
-# github.com/lib/pq v1.10.2
-## explicit
+# github.com/google/go-cmp v0.5.8
+## explicit; go 1.13
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
-# google.golang.org/protobuf v1.27.1
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
+golang.org/x/text/cases
+golang.org/x/text/internal
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
+golang.org/x/text/transform
+golang.org/x/text/unicode/norm
+# google.golang.org/protobuf v1.33.0
+## explicit; go 1.17
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
 google.golang.org/protobuf/internal/descopts
 google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/editiondefaults
 google.golang.org/protobuf/internal/encoding/defval
 google.golang.org/protobuf/internal/encoding/messageset
 google.golang.org/protobuf/internal/encoding/tag
@@ -47,3 +63,4 @@ google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
+google.golang.org/protobuf/types/gofeaturespb
