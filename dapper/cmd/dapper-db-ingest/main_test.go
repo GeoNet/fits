@@ -2,11 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"github.com/GeoNet/kit/cfg"
-	_ "github.com/lib/pq"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/GeoNet/kit/cfg"
+	_ "github.com/lib/pq"
 )
 
 // Note: Must ran dapper/etc/script/initdb-test.sh before running these tests

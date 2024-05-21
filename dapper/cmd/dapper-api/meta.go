@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/weft"
 	"github.com/lib/pq"
 	"google.golang.org/protobuf/proto"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const sqlReverseFindKey = `SELECT DISTINCT(record_key) FROM dapper.metadata WHERE record_domain=$1 AND field=$2 AND value=$3 AND timespan @> $4::TIMESTAMPTZ;`
