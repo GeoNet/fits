@@ -127,8 +127,8 @@ var routes = wt.Requests{
 // Test all routes give the expected response.  Also check with
 // cache busters and extra query parameters.
 func TestRoutes(t *testing.T) {
-	setup()
-	defer teardown()
+	setup(t)
+	defer t.Cleanup(teardown)
 
 	for _, r := range routes {
 		if b, err := r.Do(testServer.URL); err != nil {
