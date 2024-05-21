@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"github.com/GeoNet/fits/internal/valid"
-	"github.com/GeoNet/kit/weft"
 	"net/http"
 	"strings"
+
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 )
 
 const (

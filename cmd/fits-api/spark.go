@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
+	"net/http"
+	"time"
+
 	"github.com/GeoNet/fits/internal/ts"
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"net/http"
-	"time"
 )
 
 func spark(r *http.Request, h http.Header, b *bytes.Buffer) error {

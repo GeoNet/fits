@@ -1,9 +1,10 @@
 package main
 
 import (
-	wt "github.com/GeoNet/kit/weft/wefttest"
 	"net/http"
 	"testing"
+
+	wt "github.com/GeoNet/kit/weft/wefttest"
 )
 
 // networkID is now optional and ignored.  Test existing routes with and without networkID

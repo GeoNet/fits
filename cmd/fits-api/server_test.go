@@ -3,10 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 	"net/http/httptest"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 var (

@@ -82,7 +82,7 @@ func siteHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 
 // soh is for external service probes.
 // writes a service unavailable error to w if the service is not working.
-//func soh(w http.ResponseWriter, r *http.Request) {
+// func soh(w http.ResponseWriter, r *http.Request) {
 func soh(r *http.Request, h http.Header, b *bytes.Buffer) error {
 	_, err := weft.CheckQueryValid(r, []string{"GET"}, []string{}, []string{}, valid.Query)
 	if err != nil {
