@@ -8,3 +8,5 @@ doc/
 dapper/docker-build-tmp
 Dockerfile
 node_modules
+.DS_Store
+.vscode/

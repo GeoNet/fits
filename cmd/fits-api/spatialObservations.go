@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"github.com/GeoNet/fits/internal/valid"
-	"github.com/GeoNet/kit/weft"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 )
 
 func spatialObs(r *http.Request, h http.Header, b *bytes.Buffer) error {

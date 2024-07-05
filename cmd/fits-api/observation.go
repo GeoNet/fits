@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/GeoNet/fits/internal/valid"
-	"github.com/GeoNet/kit/weft"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GeoNet/fits/internal/valid"
+	"github.com/GeoNet/kit/weft"
 )
 
 var eol []byte
@@ -548,8 +549,8 @@ func loadObs(siteID, typeID, methodID string, start time.Time) (values []value, 
 }
 
 /*
- extremes returns the indexes for the min and max values.  hasErrors will be true
- if any of the values have a non zero measurement error.
+extremes returns the indexes for the min and max values.  hasErrors will be true
+if any of the values have a non zero measurement error.
 */
 func extremes(values []value) (min, max int, hasErrors bool) {
 	minV := values[0]

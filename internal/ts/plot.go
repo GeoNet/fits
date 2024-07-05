@@ -57,7 +57,7 @@ type Point struct {
 }
 
 /*
- pt is for points with labels in svg space.
+pt is for points with labels in svg space.
 */
 type pt struct {
 	X, Y, E int

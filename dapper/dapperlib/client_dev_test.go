@@ -1,3 +1,4 @@
+//go:build devtest
 // +build devtest
 
 package dapperlib

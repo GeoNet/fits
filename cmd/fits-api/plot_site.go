@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/GeoNet/fits/internal/ts"
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"net/http"
-	"time"
 )
 
 type plt struct {

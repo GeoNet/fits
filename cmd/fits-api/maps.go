@@ -3,11 +3,12 @@ package main
 import (
 	"bytes"
 	"errors"
+	"net/http"
+	"strings"
+
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/map180"
 	"github.com/GeoNet/kit/weft"
-	"net/http"
-	"strings"
 )
 
 type st struct {

@@ -61,24 +61,24 @@ var valid = map[string]validator{
 	"insetBbox":  bbox,
 }
 
-//bbox
-//days
-//insetBbox
-//label
-//methodID
-//networkID
-//scheme
-//showMethod
-//siteID
-//sites
-//start
-//stddev
-//srsName
-//typeID
-//width
-//within
-//yrange
-//type
+// bbox
+// days
+// insetBbox
+// label
+// methodID
+// networkID
+// scheme
+// showMethod
+// siteID
+// sites
+// start
+// stddev
+// srsName
+// typeID
+// width
+// within
+// yrange
+// type
 //
 // Implements weft.QueryValidator
 func Query(values url.Values) error {

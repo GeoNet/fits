@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"net/http"
+
 	"github.com/GeoNet/fits/internal/valid"
 	"github.com/GeoNet/kit/weft"
-	"net/http"
 )
 
 func types(r *http.Request, h http.Header, b *bytes.Buffer) error {
