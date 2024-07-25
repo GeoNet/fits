@@ -59,8 +59,8 @@ func apidocsHandler(r *http.Request, h http.Header, b *bytes.Buffer) error {
 // Header gets HTML for the GeoNet navigation header.
 // Returns a blank string if error encountered.
 func (p Page) Header() template.HTML {
-	links := []header.HeaderBasicLink{
-		{
+	items := []header.HeaderBasicItem{
+		header.HeaderBasicLink{
 			Title:      "API Documentation",
 			URL:        "/api-docs",
 			IsExternal: false,
@@ -68,7 +68,7 @@ func (p Page) Header() template.HTML {
 	}
 	config := header.HeaderBasicConfig{
 		Logo:  logo,
-		Links: links,
+		Items: items,
 	}
 	h, err := header.ReturnGeoNetHeaderBasic(config)
 	if err != nil {
