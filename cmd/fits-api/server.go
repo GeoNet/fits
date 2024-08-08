@@ -23,6 +23,7 @@ const (
 	v1JSON    = "application/json;version=1"
 	v1CSV     = "text/csv;version=1"
 	svg       = "image/svg+xml"
+	maxAge10  = "max-age=10"
 )
 
 // main connects to the database, sets up request routing, and starts the http server.
@@ -68,16 +69,22 @@ func main() {
 func inbound(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-		case "GET":
+		case "GET", "OPTIONS":
 			// Enable CORS
-			w.Header().Set("Access-Control-Allow-Methods", "GET")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Cache -Control", maxAge10)
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 		}
 		// Routing is based on Accept query parameters
 		// e.g., version=1 in application/json;version=1
 		// so caching must Vary based on Accept.
 		w.Header().Set("Vary", "Accept")
-		w.Header().Set("Surrogate-Control", "max-age=10")
+		w.Header().Set("Surrogate-Control", maxAge10)
 
 		h.ServeHTTP(w, r)
 	})
