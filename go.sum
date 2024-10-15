@@ -1,5 +1,5 @@
-github.com/GeoNet/kit v0.0.0-20240725020248-e1152c7a8fce h1:iE5XbPeq0dqS7adY0Cq+RFJT3vJzv0tsQhZpLAzio9Y=
-github.com/GeoNet/kit v0.0.0-20240725020248-e1152c7a8fce/go.mod h1:O5T12WrCE1SOD52A9Ye//Wjl3HX7BFZv3dXzDz3adMo=
+github.com/GeoNet/kit v0.0.0-20241014234258-12f366e1c4f5 h1:k9mVdF26nLSaobyZtLO75R5aRcFwrANgQn3wyYnvNOI=
+github.com/GeoNet/kit v0.0.0-20241014234258-12f366e1c4f5/go.mod h1:O5T12WrCE1SOD52A9Ye//Wjl3HX7BFZv3dXzDz3adMo=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
