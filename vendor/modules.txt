@@ -1,5 +1,6 @@
-# github.com/GeoNet/kit v0.0.0-20241014234258-12f366e1c4f5
+# github.com/GeoNet/kit v0.0.0-20241117195712-f2c17e5af268
 ## explicit; go 1.21
+github.com/GeoNet/kit/health
 github.com/GeoNet/kit/map180
 github.com/GeoNet/kit/metrics
 github.com/GeoNet/kit/ui/geonet_footer

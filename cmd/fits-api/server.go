@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/GeoNet/kit/health"
 	"github.com/GeoNet/kit/map180"
 	_ "github.com/lib/pq"
 )
@@ -27,6 +29,11 @@ const (
 
 // main connects to the database, sets up request routing, and starts the http server.
 func main() {
+	//check health
+	if health.RunningHealthCheck() {
+		healthCheck()
+	}
+
 	var err error
 	db, err = sql.Open("postgres",
 		fmt.Sprintf("host=%s connect_timeout=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -63,6 +70,22 @@ func main() {
 		WriteTimeout: 5 * time.Minute,
 	}
 	log.Fatal(server.ListenAndServe())
+}
+
+// check health by calling the http soh endpoint
+// cmd: ./tilde-ws  -check
+func healthCheck() {
+	timeout := 30 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	msg, err := health.Check(ctx, ":8080/soh", timeout)
+	if err != nil {
+		log.Printf("status: %v", err)
+		os.Exit(1)
+	}
+	log.Printf("status: %s", string(msg))
+	os.Exit(0)
 }
 
 func inbound(h http.Handler) http.Handler {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/csv"
 	"encoding/json"
@@ -15,6 +16,7 @@ import (
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/aws/s3"
 	"github.com/GeoNet/kit/cfg"
+	"github.com/GeoNet/kit/health"
 	"github.com/GeoNet/kit/weft"
 	_ "github.com/lib/pq"
 	"google.golang.org/protobuf/proto"
@@ -62,6 +64,11 @@ func init() {
 }
 
 func main() {
+	//check health
+	if health.RunningHealthCheck() {
+		healthCheck()
+	}
+
 	var err error
 	p, err := cfg.PostgresEnv()
 	if err != nil {
@@ -109,6 +116,22 @@ func main() {
 		WriteTimeout: 5 * time.Minute,
 	}
 	log.Fatal(server.ListenAndServe())
+}
+
+// check health by calling the http soh endpoint
+// cmd: ./dapper-api  -check
+func healthCheck() {
+	timeout := 30 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	msg, err := health.Check(ctx, ":8080/soh", timeout)
+	if err != nil {
+		log.Printf("status: %v", err)
+		os.Exit(1)
+	}
+	log.Printf("status: %s", string(msg))
+	os.Exit(0)
 }
 
 func inbound(h http.Handler) http.Handler {
