@@ -16,6 +16,7 @@ import (
 
 	"github.com/GeoNet/fits/dapper/dapperlib"
 	"github.com/GeoNet/fits/dapper/internal/valid"
+	"github.com/GeoNet/kit/aws/s3"
 	"github.com/GeoNet/kit/metrics"
 	"github.com/GeoNet/kit/weft"
 )
@@ -69,7 +70,8 @@ type DomainConfig struct {
 	aggrtime dapperlib.TimeAggrLevel
 }
 
-func init() {
+// init and check variables
+func initVars() {
 	// Re-constructing domainMap from DOMAINS,DOMAIN_BUCKETS, and DOMAIN_PREFIXES.
 	str := os.Getenv("DOMAINS")
 	if str == "" {
@@ -128,6 +130,12 @@ func init() {
 				}
 			}
 		}()
+	}
+
+	var err error
+	s3Client, err = s3.New()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

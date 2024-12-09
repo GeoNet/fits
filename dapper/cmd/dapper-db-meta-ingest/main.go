@@ -20,7 +20,6 @@ import (
 	"github.com/GeoNet/kit/cfg"
 	"github.com/GeoNet/kit/health"
 	"github.com/GeoNet/kit/metrics"
-	"github.com/GeoNet/kit/slogger"
 	_ "github.com/lib/pq"
 	"google.golang.org/protobuf/proto"
 )
@@ -39,22 +38,20 @@ var (
 	s3Client  s3.S3
 	sqsClient sqs.SQS
 	queueURL  = os.Getenv("SQS_QUEUE_URL")
-
-	logger = slogger.NewSmartLogger(10*time.Minute, "") // log repeated error messages
 )
 
 type notification struct {
 	s3.Event
 }
 
-func main() {
-	//check health
-	if health.RunningHealthCheck() {
-		healthCheck()
+// init and check aws clients
+func initClients() {
+	queueURL = os.Getenv("SQS_QUEUE_URL")
+	if queueURL == "" {
+		log.Fatal("SQS_QUEUE_URL not set")
 	}
 
 	var err error
-
 	sqsClient, err = sqs.New()
 	if err != nil {
 		log.Fatal(err)
@@ -64,6 +61,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed creating S3 Client: %s", err)
 	}
+
+	if err = sqsClient.CheckQueue(queueURL); err != nil {
+		log.Fatalf("error checking ingest queue %s: %s", queueURL, err.Error())
+	}
+}
+
+func main() {
+	//check health
+	if health.RunningHealthCheck() {
+		healthCheck()
+	}
+
+	//run as normal service
+	initClients()
+
+	var err error
 
 	var r sqs.Raw
 	var n notification
@@ -77,25 +90,22 @@ func main() {
 
 loop1:
 	for {
+		health.Ok() //update health status
 		// TODO - does this visibility time out make sense?
 		// we don't want the message to become visible again if there is
 		// still processing happening
 		r, err = sqsClient.ReceiveWithContext(ctx, queueURL, 900)
 		if err != nil {
 			switch {
+			case sqs.IsNoMessagesError(err):
+				continue
 			case sqs.Cancelled(err): //stoped
 				log.Println("##1 system stop... ")
 				break loop1
-			case sqs.IsNoMessagesError(err):
-				n := logger.Log(err)
-				if n%100 == 0 { //don't log all repeated error messages
-					log.Printf("no message received for %d times ", n)
-				}
 			default:
 				log.Println("problem receiving message ", err)
 				time.Sleep(time.Second * 20)
 			}
-			health.Ok() //update health status
 			continue loop1
 		}
 
@@ -108,7 +118,6 @@ loop1:
 		if err != nil {
 			log.Printf("problem deleting message, continuing: %s", err)
 		}
-		health.Ok() //update health status
 	}
 }
 

@@ -127,6 +127,7 @@ func TestRoutes(t *testing.T) {
 }
 
 func setup() {
+
 	var err error
 	p, err := cfg.PostgresEnv()
 	if err != nil {

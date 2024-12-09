@@ -19,30 +19,52 @@ import (
 	"github.com/GeoNet/kit/cfg"
 	"github.com/GeoNet/kit/health"
 	"github.com/GeoNet/kit/metrics"
-	"github.com/GeoNet/kit/slogger"
 	_ "github.com/lib/pq"
 )
 
-const sqlInsert = `INSERT INTO dapper.records (record_domain, record_key, field, time, value, archived, modtime) VALUES ($1, $2, $3, $4, $5, FALSE, NOW());`
-
-var (
-	queueURL = os.Getenv("SQS_QUEUE_URL")
-
+const (
 	healthCheckAged    = 5 * time.Minute  //need to have a good heartbeat within this time
 	healthCheckStartup = 5 * time.Minute  //ignore heartbeat messages for this time after starting
 	healthCheckTimeout = 30 * time.Second //health check timeout
 	healthCheckService = ":7777"          //end point to listen to for SOH checks
 	healthCheckPath    = "/soh"
 
+	sqlInsert = `INSERT INTO dapper.records (record_domain, record_key, field, time, value, archived, modtime) VALUES ($1, $2, $3, $4, $5, FALSE, NOW());`
+)
+
+var (
+	queueURL string
+
 	s3Client  s3.S3
 	sqsClient sqs.SQS
 	db        *sql.DB
-
-	logger = slogger.NewSmartLogger(10*time.Minute, "") // log repeated error messages
 )
 
 type notification struct {
 	s3.Event
+}
+
+// init and check aws clients
+func initClients() {
+	queueURL = os.Getenv("SQS_QUEUE_URL")
+	if queueURL == "" {
+		log.Fatal("SQS_QUEUE_URL not set")
+	}
+
+	var err error
+	sqsClient, err = sqs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s3Client, err = s3.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err = sqsClient.CheckQueue(queueURL); err != nil {
+		log.Fatalf("error checking ingest queue %s: %s", queueURL, err.Error())
+	}
 }
 
 func main() {
@@ -52,8 +74,10 @@ func main() {
 		healthCheck()
 	}
 
-	var err error
+	//run as normal service
+	initClients()
 
+	var err error
 	p, err := cfg.PostgresEnv()
 	if err != nil {
 		log.Fatalf("error reading DB config from the environment vars: %v", err)
@@ -62,16 +86,6 @@ func main() {
 	db, err = sql.Open("postgres", p.Connection())
 	if err != nil {
 		log.Fatalf("error with DB config: %v", err)
-	}
-
-	sqsClient, err = sqs.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s3Client, err = s3.New()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	var r sqs.Raw
@@ -86,32 +100,28 @@ func main() {
 	log.Println("listening for messages on", queueURL)
 loop1:
 	for {
+		health.Ok() //update health status
 		// TODO - does this visibility time out make sense?
 		// we don't want the message to become visible again if there is
 		// still processing happening
 		r, err = sqsClient.ReceiveWithContext(ctx, queueURL, 900)
 		if err != nil {
 			switch {
+			case sqs.IsNoMessagesError(err):
+				continue
 			case sqs.Cancelled(err): //stoped
 				log.Println("##1 system stop... ")
 				break loop1
-			case sqs.IsNoMessagesError(err):
-				n := logger.Log(err)
-				if n%100 == 0 { //don't log all repeated error messages
-					log.Printf("no message received for %d times ", n)
-				}
 			default:
 				log.Println("problem receiving message ", err)
 				time.Sleep(time.Second * 20)
 			}
-			health.Ok() //update health status
 			continue
 		}
 
 		err = metrics.DoProcess(&n, []byte(r.Body))
 		if err != nil {
 			log.Printf("problem processing message, redelivering: %s", err)
-			health.Ok() //update health status
 			continue
 		}
 
@@ -119,7 +129,6 @@ loop1:
 		if err != nil {
 			log.Printf("problem deleting message, continuing: %s", err)
 		}
-		health.Ok() //update health status
 	}
 }
 

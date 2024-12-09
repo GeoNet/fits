@@ -3,7 +3,7 @@ module github.com/GeoNet/fits
 go 1.21
 
 require (
-	github.com/GeoNet/kit v0.0.0-20241117195712-f2c17e5af268
+	github.com/GeoNet/kit v0.0.0-20241129025613-745247c4fb1c
 	github.com/lib/pq v1.10.9
 )
 

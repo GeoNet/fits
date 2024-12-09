@@ -52,7 +52,7 @@ func handleFunc(route string, handlerFunc http.HandlerFunc) {
 	handledRoutes = append(handledRoutes, route)
 }
 
-func init() {
+func initHandlers() {
 	handleFunc("/soh", weft.MakeHandler(sohHandler, weft.TextError))
 	handleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
 	handleFunc("/soh/summary", weft.MakeHandler(summary, weft.TextError))
@@ -69,6 +69,10 @@ func main() {
 		healthCheck()
 	}
 
+	//run as normal service
+	initHandlers()
+	initVars()
+
 	var err error
 	p, err := cfg.PostgresEnv()
 	if err != nil {
@@ -78,11 +82,6 @@ func main() {
 	db, err = sql.Open("postgres", p.Connection())
 	if err != nil {
 		log.Fatalf("error with DB config: %v", err)
-	}
-
-	s3Client, err = s3.New()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	weft.SetLogger(log.New(os.Stdout, "dapper-api", -1))
