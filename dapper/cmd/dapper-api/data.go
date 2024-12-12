@@ -104,6 +104,19 @@ func initVars() {
 
 	hasFdmp := false
 	for i, v := range domains {
+		if v == "" {
+			log.Fatal("empty domain", i)
+		}
+		if domainBuckets[i] == "" {
+			log.Fatal("empty domain bucket", i)
+		}
+		if domainPrefixes[i] == "" {
+			log.Fatal("empty domain prefix", i)
+		}
+		if err := s3Client.CheckBucket(domainBuckets[i]); err != nil {
+			log.Fatalf("error checking domainBucket %s", domainBuckets[i])
+		}
+
 		domainMap[v] = DomainConfig{
 			s3bucket: domainBuckets[i],
 			s3prefix: domainPrefixes[i],

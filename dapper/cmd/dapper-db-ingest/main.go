@@ -133,7 +133,7 @@ loop1:
 }
 
 // check health by calling the http soh endpoint
-// cmd: ./tilde-bundle  -check
+// cmd: ./dapper-db-ingest  -check
 func healthCheck() {
 	ctx, cancel := context.WithTimeout(context.Background(), healthCheckTimeout)
 	defer cancel()

@@ -73,7 +73,7 @@ func main() {
 }
 
 // check health by calling the http soh endpoint
-// cmd: ./tilde-ws  -check
+// cmd: ./fits-api  -check
 func healthCheck() {
 	timeout := 30 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
