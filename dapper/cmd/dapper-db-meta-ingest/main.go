@@ -62,9 +62,9 @@ func initClients() {
 		log.Fatalf("Failed creating S3 Client: %s", err)
 	}
 
-	if err = sqsClient.CheckQueue(queueURL); err != nil {
-		log.Fatalf("error checking ingest queue %s: %s", queueURL, err.Error())
-	}
+	// if err = sqsClient.CheckQueue(queueURL); err != nil {
+	// 	log.Fatalf("error checking ingest queue %s: %s", queueURL, err.Error())
+	// }
 }
 
 func main() {
