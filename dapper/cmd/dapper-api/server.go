@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/csv"
 	"encoding/json"
@@ -15,6 +16,7 @@ import (
 	"github.com/GeoNet/fits/dapper/internal/valid"
 	"github.com/GeoNet/kit/aws/s3"
 	"github.com/GeoNet/kit/cfg"
+	"github.com/GeoNet/kit/health"
 	"github.com/GeoNet/kit/weft"
 	_ "github.com/lib/pq"
 	"google.golang.org/protobuf/proto"
@@ -50,7 +52,7 @@ func handleFunc(route string, handlerFunc http.HandlerFunc) {
 	handledRoutes = append(handledRoutes, route)
 }
 
-func init() {
+func initHandlers() {
 	handleFunc("/soh", weft.MakeHandler(sohHandler, weft.TextError))
 	handleFunc("/soh/up", weft.MakeHandler(weft.Up, weft.TextError))
 	handleFunc("/soh/summary", weft.MakeHandler(summary, weft.TextError))
@@ -62,6 +64,15 @@ func init() {
 }
 
 func main() {
+	//check health
+	if health.RunningHealthCheck() {
+		healthCheck()
+	}
+
+	//run as normal service
+	initHandlers()
+	initVars()
+
 	var err error
 	p, err := cfg.PostgresEnv()
 	if err != nil {
@@ -71,11 +82,6 @@ func main() {
 	db, err = sql.Open("postgres", p.Connection())
 	if err != nil {
 		log.Fatalf("error with DB config: %v", err)
-	}
-
-	s3Client, err = s3.New()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	weft.SetLogger(log.New(os.Stdout, "dapper-api", -1))
@@ -109,6 +115,22 @@ func main() {
 		WriteTimeout: 5 * time.Minute,
 	}
 	log.Fatal(server.ListenAndServe())
+}
+
+// check health by calling the http soh endpoint
+// cmd: ./dapper-api  -check
+func healthCheck() {
+	timeout := 30 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	msg, err := health.Check(ctx, ":8080/soh", timeout)
+	if err != nil {
+		log.Printf("status: %v", err)
+		os.Exit(1)
+	}
+	log.Printf("status: %s", string(msg))
+	os.Exit(0)
 }
 
 func inbound(h http.Handler) http.Handler {

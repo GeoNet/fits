@@ -3,7 +3,7 @@ module github.com/GeoNet/fits/dapper
 go 1.21.0
 
 require (
-	github.com/GeoNet/kit v0.0.0-20241014234258-12f366e1c4f5
+	github.com/GeoNet/kit v0.0.0-20241129025613-745247c4fb1c
 	github.com/aws/aws-sdk-go-v2 v1.25.3
 	github.com/aws/aws-sdk-go-v2/config v1.27.7
 	github.com/aws/aws-sdk-go-v2/service/firehose v1.28.2

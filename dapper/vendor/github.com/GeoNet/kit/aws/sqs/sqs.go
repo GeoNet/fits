@@ -27,6 +27,9 @@ type SQS struct {
 	client *sqs.Client
 }
 
+// specific error to return when no messages are received from the queue
+var ErrNoMessages = errors.New("no messages received from queue")
+
 // New returns an SQS struct which wraps an SQS client using the default AWS credentials chain.
 // This consults (in order) environment vars, config files, EC2 and ECS roles.
 // It is an error if the AWS_REGION environment variable is not set.
@@ -62,7 +65,7 @@ func getConfig() (aws.Config, error) {
 	var cfg aws.Config
 	var err error
 
-	if awsEndpoint := os.Getenv("CUSTOM_AWS_ENDPOINT_URL"); awsEndpoint != "" {
+	if awsEndpoint := os.Getenv("AWS_ENDPOINT_URL"); awsEndpoint != "" {
 		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
@@ -125,29 +128,28 @@ func (s *SQS) ReceiveWithContextAttributes(ctx context.Context, queueURL string,
 // receiveMessage is the common code used internally to receive an SQS message based
 // on the provided input.
 func (s *SQS) receiveMessage(ctx context.Context, input *sqs.ReceiveMessageInput) (Raw, error) {
+	r, err := s.client.ReceiveMessage(ctx, input)
+	if err != nil {
+		return Raw{}, err
+	}
 
-	for {
-		r, err := s.client.ReceiveMessage(ctx, input)
-		if err != nil {
-			return Raw{}, err
+	switch {
+	case r == nil || len(r.Messages) == 0:
+		// no message received
+		return Raw{}, ErrNoMessages
+
+	case len(r.Messages) == 1:
+		raw := r.Messages[0]
+
+		m := Raw{
+			Body:          aws.ToString(raw.Body),
+			ReceiptHandle: aws.ToString(raw.ReceiptHandle),
+			Attributes:    raw.Attributes,
 		}
+		return m, nil
 
-		switch {
-		case r == nil || len(r.Messages) == 0:
-			// no message received
-			continue
-		case len(r.Messages) == 1:
-			raw := r.Messages[0]
-
-			m := Raw{
-				Body:          aws.ToString(raw.Body),
-				ReceiptHandle: aws.ToString(raw.ReceiptHandle),
-				Attributes:    raw.Attributes,
-			}
-			return m, nil
-		case len(r.Messages) > 1:
-			return Raw{}, fmt.Errorf("received more than 1 message: %d", len(r.Messages))
-		}
+	default:
+		return Raw{}, fmt.Errorf("received unexpected messages: %d", len(r.Messages))
 	}
 }
 
@@ -318,6 +320,18 @@ func (s *SQS) CreateQueue(queueName string, isFifoQueue bool) (string, error) {
 	return aws.ToString(queue.QueueUrl), err
 }
 
+// CheckQueue checks if the given SQS queue exists and is accessible.
+func (s *SQS) CheckQueue(queueUrl string) error {
+	params := sqs.GetQueueAttributesInput{
+		QueueUrl: aws.String(queueUrl),
+		AttributeNames: []types.QueueAttributeName{
+			types.QueueAttributeNameAll,
+		},
+	}
+	_, err := s.client.GetQueueAttributes(context.TODO(), &params)
+	return err
+}
+
 // DeleteQueue deletes an Amazon SQS queue.
 func (s *SQS) DeleteQueue(queueUrl string) error {
 	_, err := s.client.DeleteQueue(context.TODO(), &sqs.DeleteQueueInput{
@@ -332,4 +346,8 @@ func Cancelled(err error) bool {
 		return opErr.Service() == "SQS" && strings.Contains(opErr.Unwrap().Error(), "context canceled")
 	}
 	return false
+}
+
+func IsNoMessagesError(err error) bool {
+	return errors.Is(err, ErrNoMessages)
 }
