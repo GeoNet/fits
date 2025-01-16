@@ -102,6 +102,12 @@ func initVars() {
 		log.Fatal("size mismatch for DOMAINS, DOMAIN_BUCKET, or DOMAIN_PREFIXES.")
 	}
 
+	var err error
+	s3Client, err = s3.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	hasFdmp := false
 	for i, v := range domains {
 		if v == "" {
@@ -143,12 +149,6 @@ func initVars() {
 				}
 			}
 		}()
-	}
-
-	var err error
-	s3Client, err = s3.New()
-	if err != nil {
-		log.Fatal(err)
 	}
 }
 
